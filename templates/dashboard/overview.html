@@ -403,11 +403,11 @@
             <tbody>
               {% for p in projects %}
                 <tr>
-                  <td><input type="checkbox" aria-label="Select {{ p.title|default:p.name }}"></td>
+                  <td><input type="checkbox" aria-label="Select {% if p.title %}{{ p.title }}{% else %}{{ p.name }}{% endif %}"></td>
                   <td>
                     <a href="{% url 'dashboard:projects' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
                       <span class="sr-only">Inspect {{ p.code }}</span>
-                      {{ p.title|default:p.name }}
+                      {% if p.title %}{{ p.title }}{% elif p.name %}{{ p.name }}{% else %}{{ p.code }}{% endif %}
                     </a>
                     <div class="type-caption mt-0.5">
                       <span>{{ p.code }}</span> &middot; <span>{{ p.location }}</span>
@@ -415,16 +415,40 @@
                   </td>
                   <td style="color: var(--text);">{{ p.client }}</td>
                   <td>
-                    {% status_badge p.current_phase|default:p.stage %}
+                    {% if p.current_phase %}
+                      {% status_badge p.current_phase %}
+                    {% elif p.stage %}
+                      {% status_badge p.stage %}
+                    {% else %}
+                      {% status_badge "" %}
+                    {% endif %}
                   </td>
                   <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                    {{ p.contract_value_ugx|default:p.contract_value|ugx_full }}
+                    {% if p.contract_value_ugx %}
+                      {{ p.contract_value_ugx|ugx_full }}
+                    {% elif p.contract_value %}
+                      {{ p.contract_value|ugx_full }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                   <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                    {{ p.cost_to_date_ugx|default:p.committed_cost|ugx_full }}
+                    {% if p.cost_to_date_ugx %}
+                      {{ p.cost_to_date_ugx|ugx_full }}
+                    {% elif p.committed_cost %}
+                      {{ p.committed_cost|ugx_full }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                   <td class="text-center tabular-nums" style="color: var(--text-muted);">
-                    {{ p.target_completion|default:p.completion_date }}
+                    {% if p.target_completion %}
+                      {{ p.target_completion }}
+                    {% elif p.completion_date %}
+                      {{ p.completion_date }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                   <td class="text-right">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
@@ -474,16 +498,40 @@
                   </td>
                   <td style="color: var(--text);">{{ inv.project_code }}</td>
                   <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                    {{ inv.net_amount_ugx|default:inv.subtotal|ugx_full }}
+                    {% if inv.net_amount_ugx %}
+                      {{ inv.net_amount_ugx|ugx_full }}
+                    {% elif inv.subtotal %}
+                      {{ inv.subtotal|ugx_full }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                   <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                    {{ inv.vat_18_ugx|default:inv.tax_amount|ugx_full }}
+                    {% if inv.vat_18_ugx %}
+                      {{ inv.vat_18_ugx|ugx_full }}
+                    {% elif inv.tax_amount %}
+                      {{ inv.tax_amount|ugx_full }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                   <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                    {{ inv.gross_amount_ugx|default:inv.total|ugx_full }}
+                    {% if inv.gross_amount_ugx %}
+                      {{ inv.gross_amount_ugx|ugx_full }}
+                    {% elif inv.total %}
+                      {{ inv.total|ugx_full }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
-                  <td class="text-right tabular-nums font-semibold" style="color: {% if inv.balance_due_ugx|default:inv.balance_due > 0 %}var(--red){% else %}var(--green){% endif %};">
-                    {{ inv.balance_due_ugx|default:inv.balance_due|ugx_full }}
+                  <td class="text-right tabular-nums font-semibold" style="color: {% if inv.balance_due_ugx and inv.balance_due_ugx > 0 %}var(--red){% elif inv.balance_due and inv.balance_due > 0 %}var(--red){% else %}var(--green){% endif %};">
+                    {% if inv.balance_due_ugx is not None %}
+                      {{ inv.balance_due_ugx|ugx_full }}
+                    {% elif inv.balance_due is not None %}
+                      {{ inv.balance_due|ugx_full }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                   <td class="text-center">
                     {% status_badge inv.status %}
@@ -526,21 +574,37 @@
             <tbody>
               {% for l in leads %}
                 <tr>
-                  <td><input type="checkbox" aria-label="Select {{ l.name|default:l.prospect }}"></td>
+                  <td><input type="checkbox" aria-label="Select {% if l.name %}{{ l.name }}{% else %}{{ l.prospect }}{% endif %}"></td>
                   <td>
                     <a href="{% url 'dashboard:leads' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
-                      <span class="sr-only">Inspect {{ l.code|default:l.public_id|slice:":8" }}</span>
-                      {{ l.code|default:l.public_id|slice:":8" }}
+                      <span class="sr-only">Inspect {% if l.code %}{{ l.code }}{% elif l.public_id %}{{ l.public_id|slice:":8" }}{% endif %}</span>
+                      {% if l.code %}{{ l.code }}{% elif l.public_id %}{{ l.public_id|slice:":8" }}{% endif %}
                     </a>
                   </td>
-                  <td class="font-semibold" style="color: var(--text);">{{ l.name|default:l.prospect }}</td>
-                  <td style="color: var(--text);">{{ l.project_type|default:l.scope }}</td>
+                  <td class="font-semibold" style="color: var(--text);">
+                    {% if l.name %}{{ l.name }}{% elif l.prospect %}{{ l.prospect }}{% endif %}
+                  </td>
+                  <td style="color: var(--text);">
+                    {% if l.project_type %}{{ l.project_type }}{% elif l.scope %}{{ l.scope }}{% endif %}
+                  </td>
                   <td style="color: var(--text-muted);">{{ l.location }}</td>
                   <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                    {{ l.budget_ugx|default:l.budget|ugx_full }}
+                    {% if l.budget_ugx %}
+                      {{ l.budget_ugx|ugx_full }}
+                    {% elif l.budget %}
+                      {{ l.budget|ugx_full }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                   <td class="text-center">
-                    {% status_badge l.status|default:l.stage %}
+                    {% if l.status %}
+                      {% status_badge l.status %}
+                    {% elif l.stage %}
+                      {% status_badge l.stage %}
+                    {% else %}
+                      {% status_badge "" %}
+                    {% endif %}
                   </td>
                   <td class="text-right">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
@@ -577,40 +641,83 @@
               </tr>
             </thead>
             <tbody>
-              {% for r in rate_library|default:rates %}
-                <tr>
-                  <td><input type="checkbox" aria-label="Select {{ r.code }}"></td>
-                  <td class="font-semibold" style="color: var(--text);">
-                    <a href="{% url 'dashboard:rates' %}" class="stretched-link" style="color: var(--text); text-decoration: none;">
-                      <span class="sr-only">Inspect {{ r.code }}</span>
-                      {{ r.code }}
-                    </a>
-                  </td>
-                  <td class="desc-cell-clamp" style="color: var(--text);">
-                    {{ r.description }}
-                  </td>
-                  <td style="color: var(--text-muted);">
-                    {{ r.unit }}
-                  </td>
-                  <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                    {{ r.standard_rate_ugx|default:r.rate|ugx_full }}
-                  </td>
-                  <td class="text-center">
-                    <span class="status-badge status-green">
-                      <span class="badge-dot"></span>Active 2026
-                    </span>
-                  </td>
-                  <td class="text-right">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                  </td>
-                </tr>
-              {% empty %}
+              {% if rate_library %}
+                {% for r in rate_library %}
+                  <tr>
+                    <td><input type="checkbox" aria-label="Select {{ r.code }}"></td>
+                    <td class="font-semibold" style="color: var(--text);">
+                      <a href="{% url 'dashboard:rates' %}" class="stretched-link" style="color: var(--text); text-decoration: none;">
+                        <span class="sr-only">Inspect {{ r.code }}</span>
+                        {{ r.code }}
+                      </a>
+                    </td>
+                    <td class="desc-cell-clamp" style="color: var(--text);">
+                      {{ r.description }}
+                    </td>
+                    <td style="color: var(--text-muted);">
+                      {{ r.unit }}
+                    </td>
+                    <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
+                      {% if r.standard_rate_ugx %}
+                        {{ r.standard_rate_ugx|ugx_full }}
+                      {% elif r.rate %}
+                        {{ r.rate|ugx_full }}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <span class="status-badge status-green">
+                        <span class="badge-dot"></span>Active 2026
+                      </span>
+                    </td>
+                    <td class="text-right">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% elif rates %}
+                {% for r in rates %}
+                  <tr>
+                    <td><input type="checkbox" aria-label="Select {{ r.code }}"></td>
+                    <td class="font-semibold" style="color: var(--text);">
+                      <a href="{% url 'dashboard:rates' %}" class="stretched-link" style="color: var(--text); text-decoration: none;">
+                        <span class="sr-only">Inspect {{ r.code }}</span>
+                        {{ r.code }}
+                      </a>
+                    </td>
+                    <td class="desc-cell-clamp" style="color: var(--text);">
+                      {{ r.description }}
+                    </td>
+                    <td style="color: var(--text-muted);">
+                      {{ r.unit }}
+                    </td>
+                    <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
+                      {% if r.standard_rate_ugx %}
+                        {{ r.standard_rate_ugx|ugx_full }}
+                      {% elif r.rate %}
+                        {{ r.rate|ugx_full }}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <span class="status-badge status-green">
+                        <span class="badge-dot"></span>Active 2026
+                      </span>
+                    </td>
+                    <td class="text-right">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
                 <tr>
                   <td colspan="7" class="text-center py-8" style="color: var(--text-muted);">
                     No approved specification rates available.
                   </td>
                 </tr>
-              {% endfor %}
+              {% endif %}
             </tbody>
           </table>
         </div>
