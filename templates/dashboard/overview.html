@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Operations Index · Jimcan{% endblock %}
+
+{% block app_shell %}
+<script>
+  function dashboardFeed() {
+    return {
+      selectedItem: {{ default_selected_json|safe }},
+      filterType: 'all',
+      allItems: {{ feed_items_json|safe }},
+      selectItem(item) {
+        this.selectedItem = item;
+      },
+      clearSelection() {
+        this.selectedItem = null;
+      },
+      get filteredItems() {
+        if (this.filterType === 'all') {
+          return this.allItems;
+        }
+        var targetType = this.filterType;
+        return this.allItems.filter(function(item) {
+          return item.type === targetType;
+        });
+      }
+    };
+  }
+</script>
+
+<!-- Pure White Unbounded Workspace (#FFFFFF) -->
+<div class="min-h-screen w-full bg-white text-[#1A1A1A] font-sans antialiased selection:bg-[#E2E8F0] selection:text-[#1A1A1A]"
+     x-data="dashboardFeed()">
+
+  <!-- Accessible Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Top Global Navigation (Single 1px Hairline Rule: #E2E8F0) -->
+  <header class="w-full bg-white border-b border-[#E2E8F0] sticky top-0 z-30" role="navigation" aria-label="Global Workspace Navigation">
+    <div class="max-w-[1440px] mx-auto px-8 lg:px-16 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Global System State Indicator -->
+      <div class="flex items-center gap-6">
+        <a href="{% url 'dashboard:overview' %}" class="flex items-baseline gap-2.5 no-underline">
+          <span class="font-sans font-semibold text-xs tracking-[0.25em] text-[#1A1A1A] uppercase">JIMCAN</span>
+          <span class="font-mono text-[11px] text-[#64748B]">OPERATIONS</span>
+        </a>
+
+        <!-- Critical Alert Indicator (Strict 4px Raw Crimson Dot) -->
+        <div class="hidden sm:flex items-center gap-2 pl-4">
+          <span class="w-1 h-1 rounded-full bg-[#DC2626]"></span>
+          <span class="font-mono text-[10px] uppercase tracking-widest text-[#64748B]">1 SYS.ALERT</span>
+        </div>
+      </div>
+
+      <!-- Flat Navigation Axis -->
+      <nav class="hidden md:flex items-center gap-8 text-[11px] font-sans uppercase tracking-[0.15em]" aria-label="Sections">
+        <a href="{% url 'dashboard:overview' %}" class="text-[#1A1A1A] font-semibold border-b border-[#1A1A1A] pb-0.5">
+          Overview
+        </a>
+        <a href="{% url 'dashboard:projects' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
+          Projects
+        </a>
+        <a href="{% url 'dashboard:rates' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
+          BOQ &amp; Rates
+        </a>
+        <a href="{% url 'dashboard:invoices' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
+          Invoices
+        </a>
+        <a href="{% url 'dashboard:expenses' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
+          Expenses
+        </a>
+        <a href="{% url 'dashboard:leads' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
+          Leads
+        </a>
+        <a href="{% url 'dashboard:audit' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
+          Audit
+        </a>
+      </nav>
+
+      <!-- User Context & Flat Sign Out -->
+      <div class="flex items-center gap-6">
+        <div class="hidden sm:block font-mono text-[11px] text-[#64748B] tabular-nums">
+          {{ request.user.username|default:"OPERATOR"|upper }} &middot; {{ current_role_display|upper }}
+        </div>
+        <form method="post" action="{% url 'logout' %}" class="inline">
+          {% csrf_token %}
+          <button type="submit" class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B] hover:text-[#1A1A1A] transition-colors bg-transparent border-0 cursor-pointer p-0">
+            [Exit]
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Unbounded Main Workspace (Generous White Space, No Boxes, No Shadows) -->
+  <main role="main" id="main-content" class="max-w-[1440px] mx-auto px-8 lg:px-16 py-16 space-y-24 focus:outline-none" tabindex="-1">
+
+    <!-- Section 1: Extreme Scale Contrast Primary Metrics -->
+    <section aria-labelledby="primary-metrics-heading">
+      <h2 id="primary-metrics-heading" class="sr-only">Primary Operational Figures</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
+        <!-- Metric 1: Total Contract Value -->
+        <div class="space-y-3">
+          <div class="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-[#64748B]">
+            Gross Contract Valuation [UGX]
+          </div>
+          <div class="font-mono text-[36px] lg:text-[40px] font-light leading-none text-[#1A1A1A] tabular-nums tracking-tight">
+            {{ total_contract_value }}
+          </div>
+          <div class="font-mono text-[11px] text-[#64748B] tabular-nums">
+            ACTIVE PORTFOLIO &middot; 2 SITES
+          </div>
+        </div>
+
+        <!-- Metric 2: Field Costs -->
+        <div class="space-y-3">
+          <div class="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-[#64748B]">
+            Incurred Site Expenditure [UGX]
+          </div>
+          <div class="font-mono text-[36px] lg:text-[40px] font-light leading-none text-[#1A1A1A] tabular-nums tracking-tight">
+            {{ total_cost_to_date }}
+          </div>
+          <div class="font-mono text-[11px] text-[#64748B] tabular-nums">
+            COMMITTED MATERIAL &amp; LABOR
+          </div>
+        </div>
+
+        <!-- Metric 3: Invoiced Gross -->
+        <div class="space-y-3">
+          <div class="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-[#64748B]">
+            Gross Milestone Claims [UGX]
+          </div>
+          <div class="font-mono text-[36px] lg:text-[40px] font-light leading-none text-[#1A1A1A] tabular-nums tracking-tight">
+            {{ total_invoiced_gross }}
+          </div>
+          <div class="font-mono text-[11px] text-[#64748B] tabular-nums">
+            INVOICED TOTAL (INCL. 18% VAT)
+          </div>
+        </div>
+
+        <!-- Metric 4: Outstanding Balance with Raw Crimson Dot -->
+        <div class="space-y-3">
+          <div class="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-[#64748B]">
+            Receivable Balance [UGX]
+          </div>
+          <div class="font-mono text-[36px] lg:text-[40px] font-light leading-none text-[#1A1A1A] tabular-nums tracking-tight">
+            {{ total_balance_due }}
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-1 h-1 rounded-full bg-[#DC2626]" aria-hidden="true"></span>
+            <span class="font-mono text-[10px] uppercase tracking-wider text-[#64748B]">
+              JC-INV-2026-002 PARTIALLY UNPAID
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Asymmetrical Viewport — High-Density Feed & Split-View Inspector -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-start" aria-labelledby="records-feed-heading">
+      
+      <!-- Left 7 Columns: High-Density Expansive Data Stream -->
+      <div class="lg:col-span-7 space-y-8">
+        
+        <!-- Filter Axis: Flat Text Switchers -->
+        <div class="flex flex-wrap items-center gap-6 text-[10px] font-sans uppercase tracking-[0.2em]">
+          <span class="text-[#64748B] font-mono">FILTER //</span>
+          <button type="button" 
+                  @click="filterType = 'all'"
+                  :class="filterType === 'all' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
+                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
+            All ({{ feed_items|length }})
+          </button>
+          <button type="button" 
+                  @click="filterType = 'project'"
+                  :class="filterType === 'project' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
+                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
+            Projects
+          </button>
+          <button type="button" 
+                  @click="filterType = 'invoice'"
+                  :class="filterType === 'invoice' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
+                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
+            Invoices
+          </button>
+          <button type="button" 
+                  @click="filterType = 'lead'"
+                  :class="filterType === 'lead' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
+                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
+            Leads
+          </button>
+          <button type="button" 
+                  @click="filterType = 'rate'"
+                  :class="filterType === 'rate' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
+                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
+            BOQ Rates
+          </button>
+        </div>
+
+        <!-- High-Density Column Header -->
+        <div class="grid grid-cols-12 gap-4 pb-2 text-[10px] font-sans font-medium uppercase tracking-[0.2em] text-[#64748B]">
+          <div class="col-span-3">Identifier</div>
+          <div class="col-span-5">Entity / Scope</div>
+          <div class="col-span-4 text-right">Value [UGX] &middot; Timestamp</div>
+        </div>
+
+        <!-- Flat Data Stream Rows (Zero Borders, Zero Cards, Pure Spatial Alignment) -->
+        <div class="space-y-4">
+          <template x-for="item in filteredItems" :key="item.id">
+            <div @click="selectItem(item)"
+                 @keydown.enter="selectItem(item)"
+                 @keydown.space.prevent="selectItem(item)"
+                 tabindex="0"
+                 role="button"
+                 :aria-pressed="selectedItem && selectedItem.id === item.id ? 'true' : 'false'"
+                 :class="selectedItem && selectedItem.id === item.id ? 'text-[#1A1A1A]' : 'text-[#64748B] hover:text-[#1A1A1A]'"
+                 class="grid grid-cols-12 gap-4 py-3 cursor-pointer transition-colors group select-none items-baseline focus:outline-none focus-visible:underline">
+              
+              <!-- Left Column: Primary ID (Mono) & Type -->
+              <div class="col-span-3 flex flex-col">
+                <span class="font-mono text-[12px] tabular-nums font-normal"
+                      :class="selectedItem && selectedItem.id === item.id ? 'text-[#1A1A1A] font-medium' : 'text-[#1A1A1A] group-hover:text-[#1A1A1A]'"
+                      x-text="item.id"></span>
+                <span class="font-mono text-[10px] text-[#64748B] tracking-wider uppercase mt-0.5" x-text="item.type_label"></span>
+              </div>
+
+              <!-- Center Column: Main Title (Sans) & Description -->
+              <div class="col-span-5 flex flex-col pr-2">
+                <span class="font-sans text-[13px] leading-snug"
+                      :class="selectedItem && selectedItem.id === item.id ? 'text-[#1A1A1A] font-semibold' : 'text-[#1A1A1A]'"
+                      x-text="item.title"></span>
+                <span class="font-sans text-[11px] text-[#64748B] leading-tight mt-0.5 truncate" x-text="item.subtitle"></span>
+              </div>
+
+              <!-- Far Right Column: Clean Timestamps & Tabular Metrics (Mono) -->
+              <div class="col-span-4 flex flex-col items-end text-right">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono text-[13px] text-[#1A1A1A] tabular-nums" x-text="item.value"></span>
+                  <!-- Critical Alert Indicator Dot -->
+                  <template x-if="item.has_alert">
+                    <span class="w-1 h-1 rounded-full bg-[#DC2626] inline-block" title="Unpaid milestone variance"></span>
+                  </template>
+                </div>
+                <div class="font-mono text-[10px] text-[#64748B] tabular-nums mt-0.5" x-text="item.timestamp + ' · ' + item.status"></div>
+              </div>
+
+            </div>
+          </template>
+        </div>
+
+      </div>
+
+      <!-- Right 5 Columns: Split-View Inspector Panel (Architectural Key-Value Column) -->
+      <aside class="lg:col-span-5 lg:sticky lg:top-28 space-y-10 pl-0 lg:pl-8" aria-label="Record Inspector">
+        
+        <!-- Inspector Content -->
+        <template x-if="selectedItem">
+          <div class="space-y-10">
+            <!-- Inspector Header -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="font-sans text-[10px] uppercase tracking-[0.25em] text-[#64748B]">
+                  INSPECTOR // ACTIVE RECORD
+                </div>
+                <button type="button" 
+                        @click="clearSelection()" 
+                        class="font-mono text-[10px] uppercase tracking-widest text-[#64748B] hover:text-[#1A1A1A] bg-transparent border-0 cursor-pointer p-0 transition-colors">
+                  [Close]
+                </button>
+              </div>
+              <div class="font-sans text-[20px] font-normal text-[#1A1A1A] leading-tight" x-text="selectedItem.title"></div>
+              <div class="font-mono text-[11px] text-[#64748B]" x-text="selectedItem.subtitle"></div>
+            </div>
+
+            <!-- Flat Key-Value Editorial Stack (Zero Boxes, Generous Vertical Rhythms) -->
+            <div class="space-y-6">
+              <template x-for="[key, val] in Object.entries(selectedItem.details)" :key="key">
+                <div class="space-y-1">
+                  <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]" x-text="key"></div>
+                  <div class="font-mono text-[13px] text-[#1A1A1A] tabular-nums leading-relaxed" x-text="val"></div>
+                </div>
+              </template>
+            </div>
+
+            <!-- Footer Action -->
+            <div class="pt-4 flex items-center justify-between">
+              <span class="font-mono text-[10px] text-[#64748B]">SYSTEM STATE: IMMUTABLE AUDIT LOGGED</span>
+              <button type="button" 
+                      @click="clearSelection()" 
+                      class="font-sans text-[10px] uppercase tracking-widest text-[#64748B] hover:text-[#1A1A1A] bg-transparent border-0 cursor-pointer p-0 transition-colors">
+                [Deselect]
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <!-- Fallback Telemetry Column when no specific row is selected -->
+        <template x-if="!selectedItem">
+          <div class="space-y-10">
+            <div class="space-y-2">
+              <div class="font-sans text-[10px] uppercase tracking-[0.25em] text-[#64748B]">
+                WORKSPACE // TELEMETRY &amp; RULES
+              </div>
+              <div class="font-sans text-[20px] font-normal text-[#1A1A1A]">
+                Jimcan Operational Core
+              </div>
+              <div class="font-mono text-[11px] text-[#64748B]">
+                Select any record on the left to inspect extended telemetry.
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="space-y-1">
+                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">PRIMARY ENTITY</div>
+                <div class="font-mono text-[13px] text-[#1A1A1A]">JIMCAN CONSTRUCTION LTD (KAMPALA)</div>
+              </div>
+              <div class="space-y-1">
+                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">URA REGISTRATION (TIN)</div>
+                <div class="font-mono text-[13px] text-[#1A1A1A]">1002345678</div>
+              </div>
+              <div class="space-y-1">
+                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">BASE CALCULATION CURRENCY</div>
+                <div class="font-mono text-[13px] text-[#1A1A1A]">UGX (UGANDAN SHILLING &middot; TABULAR LINING)</div>
+              </div>
+              <div class="space-y-1">
+                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">SYSTEM TIMEZONE</div>
+                <div class="font-mono text-[13px] text-[#1A1A1A]">AFRICA/KAMPALA (EAT &middot; UTC+3)</div>
+              </div>
+              <div class="space-y-1">
+                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">CRITICAL EXCEPTION REGISTRY</div>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="w-1 h-1 rounded-full bg-[#DC2626]"></span>
+                  <span class="font-mono text-[13px] text-[#1A1A1A]">1 ACTIVE DELINQUENCY ALERT DETECTED</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+      </aside>
+
+    </section>
+
+  </main>
+
+  <!-- Clean Bottom Baseline (No Borders, Single Text Baseline) -->
+  <footer class="max-w-[1440px] mx-auto px-8 lg:px-16 py-12 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#64748B] font-mono gap-4">
+    <div>
+      JIMCAN ARCHITECTURAL OPERATIONS &middot; 2026
+    </div>
+    <div>
+      UNBOUNDED LIGHT MODE &middot; PURE TYPOGRAPHIC CANVASES
+    </div>
+  </footer>
+
+</div>
+{% endblock app_shell %}

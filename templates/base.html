@@ -19,10 +19,10 @@
   <meta name="apple-mobile-web-app-title" content="Jimcan">
   <meta name="application-name" content="Jimcan Operations">
 
-  <!-- Clean Professional Typography: Inter & Geist Mono -->
+  <!-- Pure Editorial Typography: IBM Plex Sans & IBM Plex Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Core Progressive Libraries (TRD Section 4) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -31,10 +31,22 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-            mono: ['"Geist Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+            sans: ['"IBM Plex Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
           },
           colors: {
+            charcoal: '#1A1A1A',
+            slate: {
+              400: '#94A3B8',
+              500: '#64748B',
+              600: '#475569',
+              700: '#334155',
+              800: '#1E293B',
+              900: '#0F172A',
+              950: '#020617',
+            },
+            crimson: '#DC2626',
+            hairline: '#E2E8F0',
             brand: {
               charcoal: '#16181C',
               graphite: '#23262C',
