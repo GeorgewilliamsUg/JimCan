@@ -8,19 +8,19 @@
           :class="sidebarMode === 'collapsed' ? 'justify-center' : 'justify-between'"
           aria-haspopup="true"
           :aria-expanded="userMenuOpen"
-          :aria-label="'User menu for ' + '{{ request.user.first_name|default:request.user.username }}'"
-          :title="sidebarMode === 'collapsed' ? '{{ request.user.first_name|default:request.user.username }}' : ''">
+          :aria-label="'User menu for ' + '{% if user.first_name %}{{ user.first_name }}{% elif user.username %}{{ user.username }}{% else %}Admin{% endif %}'"
+          :title="sidebarMode === 'collapsed' ? '{% if user.first_name %}{{ user.first_name }}{% elif user.username %}{{ user.username }}{% else %}Admin{% endif %}' : ''">
     <div class="flex items-center gap-3 min-w-0" :class="sidebarMode === 'collapsed' ? 'justify-center' : ''">
       <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-display font-bold text-xs"
            style="background-color: var(--ink); color: #FFFFFF;">
-        {{ request.user.first_name|default:request.user.username|slice:":1"|upper|default:"A" }}
+        {% if user.first_name %}{{ user.first_name|slice:":1"|upper }}{% elif user.username %}{{ user.username|slice:":1"|upper }}{% else %}A{% endif %}
       </div>
       <div class="min-w-0 flex-1" x-show="sidebarMode === 'expanded'">
         <div class="truncate font-semibold text-sm" style="color: var(--text); line-height: 18px; font-family: var(--font-body);">
-          {{ request.user.first_name|default:request.user.username|default:"Admin" }}
+          {% if user.first_name %}{{ user.first_name }}{% elif user.username %}{{ user.username }}{% else %}Admin{% endif %}
         </div>
         <div class="truncate text-xs" style="color: var(--text-muted); line-height: 16px; font-family: var(--font-body);">
-          {% if request.user.email %}{{ request.user.email }}{% elif current_role_display %}{{ current_role_display }}{% else %}Administrator{% endif %}
+          {% if user.email %}{{ user.email }}{% elif current_role_display %}{{ current_role_display }}{% else %}Administrator{% endif %}
         </div>
       </div>
     </div>
