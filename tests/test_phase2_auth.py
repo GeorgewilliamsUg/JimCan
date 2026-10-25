@@ -202,3 +202,25 @@ class AuthTemplatesIntegrityTests(TestCase):
         response = self.client.get(reverse('password_change'))
         self.assertEqual(response.status_code, 200)
         self.assertIn('Change Password', response.content.decode('utf-8'))
+
+    def test_unauthenticated_user_accessing_root_renders_welcome_page(self):
+        """Verifies root URL (/) renders the branded Welcome/Login page."""
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn('Jimcan Operations', content)
+        self.assertIn('Sign In to Dashboard', content)
+        self.assertIn('login_bg.webp', content)
+
+    def test_unauthenticated_user_accessing_internal_view_redirects_to_login(self):
+        """Verifies unauthenticated users attempting to access internal views are routed to login."""
+        response = self.client.get('/overview/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers['Location'], '/login/?next=/overview/')
+
+    def test_authenticated_user_accessing_root_redirects_to_dashboard(self):
+        """Verifies authenticated users accessing root (/) are redirected to the dashboard."""
+        self.client.login(username='auth_user', password='SecretPassword123!')
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers['Location'], '/overview/')

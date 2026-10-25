@@ -162,9 +162,15 @@ body {
 /* Atomic UI Components */
 .card {
   background-color: var(--color-white);
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius-lg);
   padding: 24px;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
 }
 
 .btn {
@@ -180,29 +186,34 @@ body {
   border: 1px solid transparent;
   text-decoration: none;
   min-height: 44px;
-  transition: background-color 0.15s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease-in-out;
 }
 
 .btn-primary {
   background-color: var(--color-safety);
   color: var(--color-white);
+  box-shadow: 0 2px 6px 0 rgba(242, 106, 27, 0.22);
 }
 .btn-primary:hover {
   background-color: var(--color-safety-hover);
+  box-shadow: 0 4px 10px 0 rgba(242, 106, 27, 0.32);
 }
 
 .btn-secondary {
   background-color: var(--color-white);
-  border-color: var(--color-line);
+  border-color: rgba(0, 0, 0, 0.1);
   color: var(--color-charcoal);
 }
 .btn-secondary:hover {
   background-color: var(--color-bone);
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .btn-ghost {
   background-color: transparent;
   color: var(--color-charcoal);
+  box-shadow: none;
 }
 .btn-ghost:hover {
   background-color: rgba(22, 24, 28, 0.05);
@@ -210,11 +221,12 @@ body {
 
 .btn-danger {
   background-color: var(--color-white);
-  border-color: var(--color-danger);
+  border-color: rgba(178, 58, 58, 0.3);
   color: var(--color-danger);
 }
 .btn-danger:hover {
   background-color: var(--color-danger-light);
+  border-color: var(--color-danger);
 }
 
 .btn:disabled, .btn[disabled] {
@@ -232,13 +244,14 @@ body {
   font-size: 12px;
   font-weight: 600;
   border: 1px solid transparent;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
-.chip-new { background-color: var(--color-bone); color: var(--color-charcoal); border-color: var(--color-line); }
-.chip-contacted { background-color: var(--color-brass-light); color: var(--color-brass-dark); border-color: var(--color-brass); }
-.chip-site-visit { background-color: #FFF7ED; color: var(--color-safety); border-color: var(--color-safety); }
-.chip-quoted { background-color: var(--color-white); color: var(--color-charcoal); border-color: var(--color-charcoal); }
-.chip-won { background-color: var(--color-go-light); color: var(--color-go); border-color: var(--color-go); }
-.chip-lost { background-color: var(--color-danger-light); color: var(--color-danger); border-color: var(--color-danger); }
+.chip-new { background-color: var(--color-bone); color: var(--color-charcoal); border-color: rgba(0,0,0,0.08); }
+.chip-contacted { background-color: var(--color-brass-light); color: var(--color-brass-dark); border-color: rgba(184, 145, 74, 0.3); }
+.chip-site-visit { background-color: #FFF7ED; color: var(--color-safety); border-color: rgba(242, 106, 27, 0.3); }
+.chip-quoted { background-color: var(--color-white); color: var(--color-charcoal); border-color: rgba(0,0,0,0.12); }
+.chip-won { background-color: var(--color-go-light); color: var(--color-go); border-color: rgba(62, 142, 90, 0.3); }
+.chip-lost { background-color: var(--color-danger-light); color: var(--color-danger); border-color: rgba(178, 58, 58, 0.3); }
 
 /* Form Inputs */
 .form-group {
@@ -247,7 +260,7 @@ body {
 .form-label {
   display: block;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-charcoal);
   margin-bottom: 6px;
 }
@@ -256,11 +269,18 @@ body {
   min-height: 44px;
   padding: 10px 14px;
   background-color: var(--color-white);
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: var(--radius-md);
   color: var(--color-charcoal);
   font-family: var(--font-sans);
   font-size: 14px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-safety);
+  box-shadow: 0 0 0 3px rgba(242, 106, 27, 0.15);
 }
 .form-control.is-invalid {
   border-color: var(--color-danger);
@@ -275,10 +295,11 @@ body {
 /* KPI Card */
 .kpi-card {
   background-color: var(--color-white);
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius-lg);
   padding: 24px;
   border-top: 3px solid var(--color-line);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
 }
 .kpi-card.accent-safety { border-top-color: var(--color-safety); }
 .kpi-card.accent-go { border-top-color: var(--color-go); }

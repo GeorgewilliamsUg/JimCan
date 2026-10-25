@@ -5,7 +5,8 @@ app_name = 'dashboard'
 
 urlpatterns = [
     # Operational & Administrative Section Views
-    path('', views.overview_view, name='overview'),
+    path('overview/', views.overview_view, name='overview'),
+    path('dashboard/', views.overview_view, name='dashboard_alias'),
     path('leads/', views.leads_view, name='leads'),
     path('projects/', views.projects_view, name='projects'),
     path('rates/', views.rates_view, name='rates'),

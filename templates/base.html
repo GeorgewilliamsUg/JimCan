@@ -4,14 +4,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="theme-color" content="#0F172A">
+  <meta name="theme-color" content="#0e1012">
   <meta name="description" content="Jimcan Construction & Engineering Operations Dashboard">
   <title>{% block title %}{{ page_title|default:"Overview" }}{% endblock %} · Jimcan Operations</title>
   
-  <!-- Modern Clean Typography: Inter & Geist Mono -->
+  <!-- Comprehensive Favicon & Web App Manifest Suite (static/img/favicon/) -->
+  <link rel="icon" type="image/x-icon" href="{% static 'img/favicon/favicon.ico' %}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon/favicon.svg' %}">
+  <link rel="icon" type="image/png" sizes="96x96" href="{% static 'img/favicon/favicon-96x96.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/favicon/web-app-manifest-192x192.png' %}">
+  <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/favicon/web-app-manifest-512x512.png' %}">
+  <link rel="manifest" href="{% static 'img/favicon/site.webmanifest' %}">
+  <meta name="apple-mobile-web-app-title" content="Jimcan">
+  <meta name="application-name" content="Jimcan Operations">
+
+  <!-- Clean Professional Typography: Inter & Geist Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Core Progressive Libraries (TRD Section 4) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,6 +34,30 @@
             sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
             mono: ['"Geist Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
           },
+          colors: {
+            brand: {
+              charcoal: '#16181C',
+              graphite: '#23262C',
+              steel: '#3A3F47',
+              safety: '#F26A1B',
+              'safety-hover': '#D95B12',
+              brass: '#B8914A',
+              'brass-light': '#EFE6D2',
+              'brass-dark': '#6E5420',
+              bone: '#F4F1EA',
+              line: '#E3DED3',
+              muted: '#6B7380',
+              go: '#3E8E5A',
+              'go-light': '#EAF5EE',
+              danger: '#B23A3A',
+              'danger-light': '#FDF2F2',
+            }
+          },
+          boxShadow: {
+            'soft': '0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.03)',
+            'card': '0 4px 14px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04)',
+            'elevated': '0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03)',
+          }
         },
       },
     }
@@ -32,7 +67,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
   <script src="https://unpkg.com/lucide@latest" defer></script>
 
-  <!-- Base stylesheet for CSS variables and print/reduction rules -->
+  <!-- Base stylesheet for tokens, CSS variables, and accessibility -->
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 
   {% block extra_head %}{% endblock %}
@@ -51,11 +86,10 @@
       @show-toast.window="showToast($event.detail.message, $event.detail.type || 'success')"
       @keydown.escape.window="sidebarOpen = false"
       hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-      class="h-full bg-slate-50 antialiased text-slate-900 font-sans">
+      class="h-full bg-slate-50/70 antialiased text-slate-800 font-sans selection:bg-amber-500/20 selection:text-amber-900">
 
   <!-- Accessible Skip Link (WCAG 2.1 AA) -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
-
 
   <!-- Global Top Progress Indicator for HTMX Requests -->
   <div id="global-progress" aria-hidden="true"></div>
@@ -75,7 +109,7 @@
            'bg-amber-600 text-white': toastType === 'warning',
            'bg-blue-600 text-white': toastType === 'info'
          }"
-         class="px-4 py-3 rounded-lg shadow-xl font-medium flex items-center gap-3 border border-white/10"
+         class="px-4 py-3 rounded-xl shadow-card font-medium flex items-center gap-3 border border-white/10"
          style="display: none;"
          role="status">
       <div class="flex items-center gap-2">
@@ -99,7 +133,7 @@
 
 {% block app_shell %}
   <!-- Enterprise Full-Viewport Application Shell -->
-  <div class="h-screen w-full flex overflow-hidden bg-slate-50 antialiased text-slate-900">
+  <div class="h-screen w-full flex overflow-hidden bg-slate-50/70 antialiased text-slate-900">
     
     <!-- Mobile Drawer Backdrop (z-40) -->
     <div x-show="sidebarOpen" 
@@ -110,7 +144,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          @click="sidebarOpen = false"
-         class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+         class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 md:hidden"
          style="display: none;"
          aria-hidden="true"></div>
 
@@ -184,7 +218,6 @@
     document.body.addEventListener('htmx:beforeSwap', function(evt) {
       const status = evt.detail.xhr ? evt.detail.xhr.status : 200;
       if (status === 401 || status === 403) {
-        // Prevent HTMX from injecting login HTML into partial widget/modal
         evt.detail.shouldSwap = false;
         const currentPath = window.location.pathname + window.location.search;
         window.location.href = '/login/?next=' + encodeURIComponent(currentPath);

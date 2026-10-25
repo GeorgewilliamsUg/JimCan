@@ -15,7 +15,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'jimcan-dev-insecure-key-2026-phase-0-
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 allowed_hosts_str = os.environ.get('ALLOWED_HOSTS', '*')
-ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(',') if h.strip()]
+if allowed_hosts_str == '*':
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(',') if h.strip()]
+    for local_dev in ['localhost', '127.0.0.1', '[::1]']:
+        if local_dev not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(local_dev)
 
 csrf_trusted_str = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 if csrf_trusted_str:

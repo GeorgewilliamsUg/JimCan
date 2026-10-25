@@ -11,7 +11,7 @@ NAVIGATION_ITEMS = [
         "id": "overview",
         "name": "Dashboard",
         "url_name": "dashboard:overview",
-        "url_prefix": "/",
+        "url_prefix": "/overview",
         "exact_match": True,
         "icon": "layout-dashboard",
         "allowed_roles": ["admin", "manager"],
@@ -136,7 +136,7 @@ def get_navigation_items(role: str, current_path: str) -> List[Dict[str, Any]]:
             item_copy = item.copy()
             # Active matching logic: exact match for root '/' or prefix match for subpaths
             if item.get("exact_match"):
-                item_copy["is_active"] = current_path == item["url_prefix"]
+                item_copy["is_active"] = (current_path == item["url_prefix"]) or (item["id"] == "overview" and current_path in ("/", "/overview", "/overview/", "/dashboard", "/dashboard/"))
             else:
                 item_copy["is_active"] = current_path.startswith(item["url_prefix"])
             permitted.append(item_copy)

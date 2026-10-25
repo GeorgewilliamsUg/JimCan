@@ -1,8 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
+from dashboard.views import WelcomeLoginView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', WelcomeLoginView.as_view(), name='welcome'),
+    path('login/', WelcomeLoginView.as_view(), name='login'),
     path('', include('django.contrib.auth.urls')),
     path('', include('dashboard.urls', namespace='dashboard')),
 ]
