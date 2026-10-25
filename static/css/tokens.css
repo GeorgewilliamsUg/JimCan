@@ -1,0 +1,112 @@
+/* ==============================================================================
+   Jimcan Operations Dashboard - Design Tokens (tokens.css)
+   Exact specifications per Redesign Brief Section 3 & Section 4.
+   ============================================================================== */
+
+/* Self-Hosted Variable Fonts (Archivo Variable & Public Sans Variable) */
+@font-face {
+  font-family: 'Archivo Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url('../fonts/archivo-latin-wdth-normal.woff2') format('woff2-variations'),
+       url('../fonts/archivo-latin-wdth-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Archivo Variable';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url('../fonts/archivo-latin-wdth-italic.woff2') format('woff2-variations'),
+       url('../fonts/archivo-latin-wdth-italic.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Public Sans Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('../fonts/public-sans-latin-wght-normal.woff2') format('woff2-variations'),
+       url('../fonts/public-sans-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Public Sans Variable';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('../fonts/public-sans-latin-wght-italic.woff2') format('woff2-variations'),
+       url('../fonts/public-sans-latin-wght-italic.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* Surfaces */
+  --ink:            #1E2225; /* sidebar, hero panel, primary text */
+  --ink-raised:     #2C3135; /* raised surface and bar track on dark */
+  --concrete:       #E3E4E0; /* page background */
+  --paper:          #F6F5F1; /* panel surface on light */
+  --paper-sunk:     #EEEDE7; /* table header, row hover */
+  --line:           #D6D4CC; /* 1px borders on light */
+  --line-on-dark:   #3A4045; /* 1px borders on dark */
+
+  /* Text */
+  --text:           #1E2225;
+  --text-muted:     #5B605D; /* min contrast 5.8:1 on paper */
+  --text-on-dark:   #F6F5F1;
+  --text-muted-on-dark: #A9AEAA;
+  --text-nav:       #C9CCC8; /* default nav link text */
+
+  /* Accents */
+  --signal:         #E8590C; /* graphics and icons ON DARK only */
+  --signal-strong:  #C2410C; /* fills and text on light (white text on it passes 5:1) */
+  --brass:          #A8843A; /* rules, bar fills, hairlines. NEVER small text on light */
+  --green:          #2E7D52;
+  --green-tint:     #E3F0E8;
+  --green-lit:      #6BBF8E; /* green on dark surfaces only */
+  --red:            #B3261E;
+  --red-tint:       #F6E1DF;
+  --amber:          #8A5A00;
+  --amber-tint:     #F5E8CC;
+
+  /* Space: 4px base. Use ONLY these values for margin, padding and gap. */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  /* Radius: only two. */
+  --radius-data:  4px;   /* tables, inputs, badges, buttons, menu items */
+  --radius-panel: 10px;  /* panels and the hero */
+
+  /* Type */
+  --font-display: "Archivo Variable", "Archivo", system-ui, sans-serif;
+  --font-body:    "Public Sans Variable", "Public Sans", system-ui, sans-serif;
+
+  /* Elevation (Single permitted shadow) */
+  --shadow-create: 0 8px 24px rgba(30, 34, 37, 0.18);
+}
+
+/* Accessibility Focus States */
+:focus-visible {
+  outline: 2px solid var(--signal-strong);
+  outline-offset: 2px;
+}
+
+.focus-dark:focus-visible,
+[data-dark] :focus-visible,
+.on-dark:focus-visible,
+aside :focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
