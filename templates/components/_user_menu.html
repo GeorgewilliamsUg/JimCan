@@ -2,22 +2,24 @@
 <div x-data="{ userMenuOpen: false, roleSwitcherOpen: false }" class="relative">
   <button @click="userMenuOpen = !userMenuOpen" 
           @keydown.escape="userMenuOpen = false"
-          class="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 text-left text-xs transition-all border border-slate-200/70 hover:border-slate-300 shadow-xs group"
+          class="w-full flex items-center rounded-xl hover:bg-slate-50 text-left text-xs transition-all border border-slate-200/70 hover:border-slate-300 shadow-xs group"
+          :class="sidebarCollapsed ? 'justify-center p-2' : 'justify-between p-2.5'"
           aria-haspopup="true" 
-          :aria-expanded="userMenuOpen">
-    <div class="flex items-center gap-2.5 min-w-0">
-      <div class="w-8 h-8 rounded-xl bg-slate-900 text-white font-mono font-bold flex items-center justify-center flex-shrink-0 text-xs shadow-xs">
+          :aria-expanded="userMenuOpen"
+          :title="sidebarCollapsed ? '{{ request.user.username|default:'George' }} ({{ current_role_display }})' : ''">
+    <div class="flex items-center gap-2.5 min-w-0" :class="sidebarCollapsed ? 'justify-center' : ''">
+      <div class="w-8 h-8 rounded-xl bg-slate-900 text-white font-sans font-bold flex items-center justify-center flex-shrink-0 text-xs shadow-xs">
         {{ request.user.username|default:"G"|slice:":1"|upper }}
       </div>
-      <div class="min-w-0 flex-1">
-        <div class="font-bold text-slate-900 truncate">{{ request.user.username|default:"George" }}</div>
-        <div class="text-[11px] font-mono text-slate-500 flex items-center gap-1.5 mt-0.5">
+      <div class="min-w-0 flex-1" x-show="!sidebarCollapsed">
+        <div class="font-bold text-slate-900 truncate font-sans">{{ request.user.username|default:"George" }}</div>
+        <div class="text-[11px] font-sans text-slate-500 flex items-center gap-1.5 mt-0.5">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
           <span>{{ current_role_display }}</span>
         </div>
       </div>
     </div>
-    <i data-lucide="chevrons-up-down" class="w-4 h-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0 transition-colors"></i>
+    <i data-lucide="chevrons-up-down" class="w-4 h-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0 transition-colors" x-show="!sidebarCollapsed"></i>
   </button>
 
   <!-- Dropdown Menu -->
@@ -29,11 +31,12 @@
        x-transition:leave="transition ease-in duration-100"
        x-transition:leave-start="opacity-100"
        x-transition:leave-end="opacity-0"
-       class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-slate-200/90 rounded-2xl shadow-elevated p-2 space-y-1 z-50 text-xs"
+       class="absolute bottom-full mb-2 bg-white border border-slate-200/90 rounded-2xl shadow-elevated p-2 space-y-1 z-50 text-xs"
+       :class="sidebarCollapsed ? 'left-0 w-64' : 'left-0 right-0'"
        style="display: none;">
     
     <!-- Role Switcher -->
-    <div class="px-3 py-1.5 text-[10px] font-mono uppercase text-slate-400 tracking-wider border-b border-slate-100 font-semibold">
+    <div class="px-3 py-1.5 text-[10px] font-sans uppercase text-slate-400 tracking-wider border-b border-slate-100 font-semibold">
       Simulate Active Role
     </div>
     {% for r_code, r_label in all_roles %}

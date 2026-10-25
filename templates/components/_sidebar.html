@@ -1,19 +1,36 @@
 {% load static %}
-<!-- Enterprise Desktop & Mobile Responsive Sidebar -->
-<aside class="fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 border-r border-slate-200/80 bg-white flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0 shadow-[1px_0_3px_0_rgba(0,0,0,0.02)]"
-       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+<!-- Enterprise Desktop & Mobile Responsive Retractable Sidebar -->
+<aside class="fixed inset-y-0 left-0 z-50 flex-shrink-0 border-r border-slate-200/80 bg-white flex flex-col transition-all duration-300 ease-in-out md:static shadow-[1px_0_3px_0_rgba(0,0,0,0.02)]"
+       :class="{
+         'translate-x-0': sidebarOpen,
+         '-translate-x-full md:translate-x-0': !sidebarOpen,
+         'w-64 md:w-64': !sidebarCollapsed,
+         'w-64 md:w-20': sidebarCollapsed
+       }"
        role="navigation" 
        aria-label="Main Navigation">
 
-  <!-- Brand Area -->
-  <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100/90 flex-shrink-0">
-    <a href="{% url 'dashboard:overview' %}" class="flex items-center gap-3 no-underline group">
+  <!-- Brand Area & Retract Action -->
+  <div class="h-16 flex items-center justify-between border-b border-slate-100/90 flex-shrink-0 transition-all duration-300"
+       :class="sidebarCollapsed ? 'px-4 justify-center md:px-0 md:justify-center' : 'px-6'">
+    <a href="{% url 'dashboard:overview' %}" class="flex items-center gap-3 no-underline group" :class="sidebarCollapsed ? 'md:justify-center' : ''">
       <img src="{% static 'img/favicon/logo.png' %}" alt="Jimcan Logo" class="h-8 w-auto object-contain transition-transform group-hover:scale-105">
-      <div class="flex flex-col">
-        <span class="font-bold text-base tracking-tight text-slate-900 leading-none">JIMCAN</span>
-        <span class="text-[10px] font-mono font-medium tracking-wider text-slate-400 uppercase mt-0.5">Operations</span>
+      <div class="flex flex-col" x-show="!sidebarCollapsed" x-transition.opacity>
+        <span class="font-bold text-base tracking-tight text-slate-900 leading-none font-display">JIMCAN</span>
+        <span class="text-[10px] font-sans font-medium tracking-wider text-slate-400 uppercase mt-0.5">Operations</span>
       </div>
     </a>
+
+    <!-- Desktop Retract / Expand Button -->
+    <button type="button" 
+            class="hidden md:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            @click="toggleSidebarCollapse()"
+            :title="sidebarCollapsed ? 'Expand sidebar' : 'Retract sidebar'"
+            aria-label="Toggle sidebar collapse">
+      <i data-lucide="panel-left-close" class="w-4 h-4 transition-transform duration-200" :class="sidebarCollapsed ? 'rotate-180' : ''"></i>
+    </button>
+
+    <!-- Mobile Close Button -->
     <button type="button" 
             class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             @click="sidebarOpen = false"
@@ -26,24 +43,30 @@
   <div class="flex-1 overflow-y-auto py-5 space-y-6">
     <!-- Operational Navigation Group -->
     <div>
-      <div class="px-6 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+      <div x-show="!sidebarCollapsed" class="px-6 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-sans">
         Operations
       </div>
-      <nav class="space-y-1 px-3" aria-label="Operations Navigation">
+      <div x-show="sidebarCollapsed" class="hidden md:block w-8 mx-auto my-2 border-t border-slate-100" title="Operations"></div>
+
+      <nav class="space-y-1" :class="sidebarCollapsed ? 'px-2 md:px-2' : 'px-3'" aria-label="Operations Navigation">
         {% for item in operational_nav %}
           <a href="{% url item.url_name %}" 
-             class="flex items-center px-3 py-2 rounded-xl text-sm transition-all group {% if item.is_active %}bg-amber-500/10 text-amber-900 font-semibold border border-amber-500/20 shadow-xs{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium border border-transparent{% endif %}"
+             class="flex items-center py-2 rounded-xl text-sm transition-all group {% if item.is_active %}bg-amber-500/10 text-amber-900 font-semibold border border-amber-500/20 shadow-xs{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium border border-transparent{% endif %}"
+             :class="sidebarCollapsed ? 'justify-center md:px-0 px-3' : 'px-3'"
+             :title="sidebarCollapsed ? '{{ item.name }}' : ''"
              {% if item.is_active %}aria-current="page"{% endif %}>
-            <i data-lucide="{{ item.icon }}" class="w-4 h-4 mr-3 flex-shrink-0 transition-colors {% if item.is_active %}text-amber-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}"></i>
-            <span class="truncate">{{ item.name }}</span>
+            <i data-lucide="{{ item.icon }}" 
+               class="w-4 h-4 flex-shrink-0 transition-colors {% if item.is_active %}text-amber-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}"
+               :class="sidebarCollapsed ? 'md:mr-0 mr-3' : 'mr-3'"></i>
+            <span class="truncate" x-show="!sidebarCollapsed">{{ item.name }}</span>
             {% if item.badge %}
-              <span class="ml-auto px-2 py-0.5 rounded-full text-[11px] font-semibold {% if item.badge == 'P0' or item.badge == 'P1' %}bg-slate-100 text-slate-600{% else %}bg-amber-100 text-amber-800 font-bold{% endif %}">
+              <span x-show="!sidebarCollapsed" class="ml-auto px-2 py-0.5 rounded-full text-[11px] font-semibold {% if item.badge == 'P0' or item.badge == 'P1' %}bg-slate-100 text-slate-600{% else %}bg-amber-100 text-amber-800 font-bold{% endif %}">
                 {{ item.badge }}
               </span>
             {% endif %}
           </a>
         {% empty %}
-          <div class="px-6 py-2 text-xs text-slate-400 italic">No operational tools assigned.</div>
+          <div x-show="!sidebarCollapsed" class="px-6 py-2 text-xs text-slate-400 italic">No operational tools assigned.</div>
         {% endfor %}
       </nav>
     </div>
@@ -51,18 +74,24 @@
     <!-- Administrative Navigation Group (Role Filtered) -->
     {% if admin_nav %}
       <div>
-        <div class="px-6 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+        <div x-show="!sidebarCollapsed" class="px-6 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-sans">
           Administration
         </div>
-        <nav class="space-y-1 px-3" aria-label="Administration Navigation">
+        <div x-show="sidebarCollapsed" class="hidden md:block w-8 mx-auto my-2 border-t border-slate-100" title="Administration"></div>
+
+        <nav class="space-y-1" :class="sidebarCollapsed ? 'px-2 md:px-2' : 'px-3'" aria-label="Administration Navigation">
           {% for item in admin_nav %}
             <a href="{% url item.url_name %}" 
-               class="flex items-center px-3 py-2 rounded-xl text-sm transition-all group {% if item.is_active %}bg-amber-500/10 text-amber-900 font-semibold border border-amber-500/20 shadow-xs{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium border border-transparent{% endif %}"
+               class="flex items-center py-2 rounded-xl text-sm transition-all group {% if item.is_active %}bg-amber-500/10 text-amber-900 font-semibold border border-amber-500/20 shadow-xs{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium border border-transparent{% endif %}"
+               :class="sidebarCollapsed ? 'justify-center md:px-0 px-3' : 'px-3'"
+               :title="sidebarCollapsed ? '{{ item.name }}' : ''"
                {% if item.is_active %}aria-current="page"{% endif %}>
-              <i data-lucide="{{ item.icon }}" class="w-4 h-4 mr-3 flex-shrink-0 transition-colors {% if item.is_active %}text-amber-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}"></i>
-              <span class="truncate">{{ item.name }}</span>
+              <i data-lucide="{{ item.icon }}" 
+                 class="w-4 h-4 flex-shrink-0 transition-colors {% if item.is_active %}text-amber-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}"
+                 :class="sidebarCollapsed ? 'md:mr-0 mr-3' : 'mr-3'"></i>
+              <span class="truncate" x-show="!sidebarCollapsed">{{ item.name }}</span>
               {% if item.badge %}
-                <span class="ml-auto px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+                <span x-show="!sidebarCollapsed" class="ml-auto px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
                   {{ item.badge }}
                 </span>
               {% endif %}
@@ -74,7 +103,7 @@
   </div>
 
   <!-- Sidebar Footer User Menu -->
-  <div class="p-4 border-t border-slate-100 flex-shrink-0">
+  <div class="p-4 border-t border-slate-100 flex-shrink-0" :class="sidebarCollapsed ? 'md:p-2 p-4' : 'p-4'">
     {% include "components/_user_menu.html" %}
   </div>
 </aside>

@@ -1,361 +1,591 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Operations Index · Jimcan{% endblock %}
+{% block title %}Operations Dashboard · Jimcan{% endblock %}
 
-{% block app_shell %}
-<script>
-  function dashboardFeed() {
-    return {
-      selectedItem: {{ default_selected_json|safe }},
-      filterType: 'all',
-      allItems: {{ feed_items_json|safe }},
-      selectItem(item) {
-        this.selectedItem = item;
-      },
-      clearSelection() {
-        this.selectedItem = null;
-      },
-      get filteredItems() {
-        if (this.filterType === 'all') {
-          return this.allItems;
-        }
-        var targetType = this.filterType;
-        return this.allItems.filter(function(item) {
-          return item.type === targetType;
-        });
-      }
-    };
-  }
-</script>
+{% block content %}
+<div x-data="{
+       activeTab: 'projects',
+       inspectorOpen: false,
+       inspectedItem: null,
+       inspect(item) {
+         this.inspectedItem = item;
+         this.inspectorOpen = true;
+         this.$nextTick(() => { if (window.lucide) window.lucide.createIcons(); });
+       },
+       closeInspector() {
+         this.inspectorOpen = false;
+         this.inspectedItem = null;
+       }
+     }"
+     class="space-y-8">
 
-<!-- Pure White Unbounded Workspace (#FFFFFF) -->
-<div class="min-h-screen w-full bg-white text-[#1A1A1A] font-sans antialiased selection:bg-[#E2E8F0] selection:text-[#1A1A1A]"
-     x-data="dashboardFeed()">
-
-  <!-- Accessible Skip Link -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-
-  <!-- Top Global Navigation (Single 1px Hairline Rule: #E2E8F0) -->
-  <header class="w-full bg-white border-b border-[#E2E8F0] sticky top-0 z-30" role="navigation" aria-label="Global Workspace Navigation">
-    <div class="max-w-[1440px] mx-auto px-8 lg:px-16 h-16 flex items-center justify-between">
-      
-      <!-- Brand & Global System State Indicator -->
-      <div class="flex items-center gap-6">
-        <a href="{% url 'dashboard:overview' %}" class="flex items-baseline gap-2.5 no-underline">
-          <span class="font-sans font-semibold text-xs tracking-[0.25em] text-[#1A1A1A] uppercase">JIMCAN</span>
-          <span class="font-mono text-[11px] text-[#64748B]">OPERATIONS</span>
-        </a>
-
-        <!-- Critical Alert Indicator (Strict 4px Raw Crimson Dot) -->
-        <div class="hidden sm:flex items-center gap-2 pl-4">
-          <span class="w-1 h-1 rounded-full bg-[#DC2626]"></span>
-          <span class="font-mono text-[10px] uppercase tracking-widest text-[#64748B]">1 SYS.ALERT</span>
-        </div>
+  <!-- Executive Header & Operational Command Bar -->
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 pb-2 border-b border-slate-200/80">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/70">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+          <span>Command Center</span>
+        </span>
+        <span class="text-xs font-medium text-slate-500">
+          Kampala Metro Build Operations &middot; Africa/Kampala (UTC+3)
+        </span>
       </div>
-
-      <!-- Flat Navigation Axis -->
-      <nav class="hidden md:flex items-center gap-8 text-[11px] font-sans uppercase tracking-[0.15em]" aria-label="Sections">
-        <a href="{% url 'dashboard:overview' %}" class="text-[#1A1A1A] font-semibold border-b border-[#1A1A1A] pb-0.5">
-          Overview
-        </a>
-        <a href="{% url 'dashboard:projects' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
-          Projects
-        </a>
-        <a href="{% url 'dashboard:rates' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
-          BOQ &amp; Rates
-        </a>
-        <a href="{% url 'dashboard:invoices' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
-          Invoices
-        </a>
-        <a href="{% url 'dashboard:expenses' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
-          Expenses
-        </a>
-        <a href="{% url 'dashboard:leads' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
-          Leads
-        </a>
-        <a href="{% url 'dashboard:audit' %}" class="text-[#64748B] hover:text-[#1A1A1A] transition-colors">
-          Audit
-        </a>
-      </nav>
-
-      <!-- User Context & Flat Sign Out -->
-      <div class="flex items-center gap-6">
-        <div class="hidden sm:block font-mono text-[11px] text-[#64748B] tabular-nums">
-          {{ request.user.username|default:"OPERATOR"|upper }} &middot; {{ current_role_display|upper }}
-        </div>
-        <form method="post" action="{% url 'logout' %}" class="inline">
-          {% csrf_token %}
-          <button type="submit" class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B] hover:text-[#1A1A1A] transition-colors bg-transparent border-0 cursor-pointer p-0">
-            [Exit]
-          </button>
-        </form>
-      </div>
-
+      <h1 class="text-2xl lg:text-3xl font-display font-bold text-slate-900 tracking-tight">
+        Construction Operations Dashboard
+      </h1>
+      <p class="text-sm text-slate-500 font-sans">
+        Real-time site expenditure, active project delivery, milestone claims, and commercial pipeline telemetry.
+      </p>
     </div>
-  </header>
 
-  <!-- Unbounded Main Workspace (Generous White Space, No Boxes, No Shadows) -->
-  <main role="main" id="main-content" class="max-w-[1440px] mx-auto px-8 lg:px-16 py-16 space-y-24 focus:outline-none" tabindex="-1">
+    <!-- Quick Action Launchpad -->
+    <div class="flex flex-wrap items-center gap-3">
+      <a href="{% url 'dashboard:projects' %}" 
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-xs">
+        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+        <span>New Project</span>
+      </a>
+      <a href="{% url 'dashboard:invoices' %}" 
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-slate-200/80 shadow-xs">
+        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+        <span>Raise Invoice</span>
+      </a>
+      <a href="{% url 'dashboard:expenses' %}" 
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-slate-200/80 shadow-xs">
+        <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
+        <span>Log Expense</span>
+      </a>
+      <a href="{% url 'dashboard:leads' %}" 
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-slate-200/80 shadow-xs">
+        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+        <span>Add Lead</span>
+      </a>
+    </div>
+  </div>
 
-    <!-- Section 1: Extreme Scale Contrast Primary Metrics -->
-    <section aria-labelledby="primary-metrics-heading">
-      <h2 id="primary-metrics-heading" class="sr-only">Primary Operational Figures</h2>
-      
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
-        <!-- Metric 1: Total Contract Value -->
-        <div class="space-y-3">
-          <div class="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-[#64748B]">
-            Gross Contract Valuation [UGX]
-          </div>
-          <div class="font-mono text-[36px] lg:text-[40px] font-light leading-none text-[#1A1A1A] tabular-nums tracking-tight">
-            {{ total_contract_value }}
-          </div>
-          <div class="font-mono text-[11px] text-[#64748B] tabular-nums">
-            ACTIVE PORTFOLIO &middot; 2 SITES
-          </div>
-        </div>
-
-        <!-- Metric 2: Field Costs -->
-        <div class="space-y-3">
-          <div class="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-[#64748B]">
-            Incurred Site Expenditure [UGX]
-          </div>
-          <div class="font-mono text-[36px] lg:text-[40px] font-light leading-none text-[#1A1A1A] tabular-nums tracking-tight">
-            {{ total_cost_to_date }}
-          </div>
-          <div class="font-mono text-[11px] text-[#64748B] tabular-nums">
-            COMMITTED MATERIAL &amp; LABOR
-          </div>
-        </div>
-
-        <!-- Metric 3: Invoiced Gross -->
-        <div class="space-y-3">
-          <div class="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-[#64748B]">
-            Gross Milestone Claims [UGX]
-          </div>
-          <div class="font-mono text-[36px] lg:text-[40px] font-light leading-none text-[#1A1A1A] tabular-nums tracking-tight">
-            {{ total_invoiced_gross }}
-          </div>
-          <div class="font-mono text-[11px] text-[#64748B] tabular-nums">
-            INVOICED TOTAL (INCL. 18% VAT)
-          </div>
-        </div>
-
-        <!-- Metric 4: Outstanding Balance with Raw Crimson Dot -->
-        <div class="space-y-3">
-          <div class="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-[#64748B]">
-            Receivable Balance [UGX]
-          </div>
-          <div class="font-mono text-[36px] lg:text-[40px] font-light leading-none text-[#1A1A1A] tabular-nums tracking-tight">
-            {{ total_balance_due }}
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-1 h-1 rounded-full bg-[#DC2626]" aria-hidden="true"></span>
-            <span class="font-mono text-[10px] uppercase tracking-wider text-[#64748B]">
-              JC-INV-2026-002 PARTIALLY UNPAID
-            </span>
-          </div>
+  <!-- Executive Financial & Operations KPI Grid (4 Cohesive Cards) -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" aria-label="Executive Performance Indicators">
+    
+    <!-- KPI 1: Active Contract Valuation -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-card transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider font-sans">
+          Contract Valuation
+        </span>
+        <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+          <i data-lucide="building-2" class="w-4 h-4"></i>
         </div>
       </div>
-    </section>
-
-    <!-- Section 2: Asymmetrical Viewport — High-Density Feed & Split-View Inspector -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-start" aria-labelledby="records-feed-heading">
-      
-      <!-- Left 7 Columns: High-Density Expansive Data Stream -->
-      <div class="lg:col-span-7 space-y-8">
-        
-        <!-- Filter Axis: Flat Text Switchers -->
-        <div class="flex flex-wrap items-center gap-6 text-[10px] font-sans uppercase tracking-[0.2em]">
-          <span class="text-[#64748B] font-mono">FILTER //</span>
-          <button type="button" 
-                  @click="filterType = 'all'"
-                  :class="filterType === 'all' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
-                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
-            All ({{ feed_items|length }})
-          </button>
-          <button type="button" 
-                  @click="filterType = 'project'"
-                  :class="filterType === 'project' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
-                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
-            Projects
-          </button>
-          <button type="button" 
-                  @click="filterType = 'invoice'"
-                  :class="filterType === 'invoice' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
-                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
-            Invoices
-          </button>
-          <button type="button" 
-                  @click="filterType = 'lead'"
-                  :class="filterType === 'lead' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
-                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
-            Leads
-          </button>
-          <button type="button" 
-                  @click="filterType = 'rate'"
-                  :class="filterType === 'rate' ? 'text-[#1A1A1A] font-semibold underline underline-offset-4' : 'text-[#64748B] hover:text-[#1A1A1A]'"
-                  class="bg-transparent border-0 cursor-pointer p-0 transition-colors">
-            BOQ Rates
-          </button>
+      <div class="mt-4">
+        <div class="text-2xl lg:text-3xl font-display font-bold text-slate-900 tabular-nums">
+          <span class="text-xs font-medium text-slate-400 mr-1 font-sans">UGX</span>{{ total_contract_value }}
         </div>
-
-        <!-- High-Density Column Header -->
-        <div class="grid grid-cols-12 gap-4 pb-2 text-[10px] font-sans font-medium uppercase tracking-[0.2em] text-[#64748B]">
-          <div class="col-span-3">Identifier</div>
-          <div class="col-span-5">Entity / Scope</div>
-          <div class="col-span-4 text-right">Value [UGX] &middot; Timestamp</div>
+        <div class="flex items-center justify-between text-xs text-slate-500 mt-2 font-sans">
+          <span>Active Portfolio</span>
+          <span class="font-semibold text-slate-700">{{ projects_count }} Sites Committed</span>
         </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs text-emerald-700 font-medium font-sans">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+        <span>100% Verified Contracts</span>
+      </div>
+    </div>
 
-        <!-- Flat Data Stream Rows (Zero Borders, Zero Cards, Pure Spatial Alignment) -->
-        <div class="space-y-4">
-          <template x-for="item in filteredItems" :key="item.id">
-            <div @click="selectItem(item)"
-                 @keydown.enter="selectItem(item)"
-                 @keydown.space.prevent="selectItem(item)"
-                 tabindex="0"
-                 role="button"
-                 :aria-pressed="selectedItem && selectedItem.id === item.id ? 'true' : 'false'"
-                 :class="selectedItem && selectedItem.id === item.id ? 'text-[#1A1A1A]' : 'text-[#64748B] hover:text-[#1A1A1A]'"
-                 class="grid grid-cols-12 gap-4 py-3 cursor-pointer transition-colors group select-none items-baseline focus:outline-none focus-visible:underline">
-              
-              <!-- Left Column: Primary ID (Mono) & Type -->
-              <div class="col-span-3 flex flex-col">
-                <span class="font-mono text-[12px] tabular-nums font-normal"
-                      :class="selectedItem && selectedItem.id === item.id ? 'text-[#1A1A1A] font-medium' : 'text-[#1A1A1A] group-hover:text-[#1A1A1A]'"
-                      x-text="item.id"></span>
-                <span class="font-mono text-[10px] text-[#64748B] tracking-wider uppercase mt-0.5" x-text="item.type_label"></span>
-              </div>
+    <!-- KPI 2: Site Expenditure -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-card transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider font-sans">
+          Site Expenditure
+        </span>
+        <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="text-2xl lg:text-3xl font-display font-bold text-slate-900 tabular-nums">
+          <span class="text-xs font-medium text-slate-400 mr-1 font-sans">UGX</span>{{ total_cost_to_date }}
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-500 mt-2 font-sans">
+          <span>Committed Costs</span>
+          <span class="font-semibold text-slate-700 tabular-nums">{{ cost_percentage }}% of budget</span>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100">
+        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+          <div class="bg-slate-800 h-1.5 rounded-full" style="width: {{ cost_percentage }}%;"></div>
+        </div>
+      </div>
+    </div>
 
-              <!-- Center Column: Main Title (Sans) & Description -->
-              <div class="col-span-5 flex flex-col pr-2">
-                <span class="font-sans text-[13px] leading-snug"
-                      :class="selectedItem && selectedItem.id === item.id ? 'text-[#1A1A1A] font-semibold' : 'text-[#1A1A1A]'"
-                      x-text="item.title"></span>
-                <span class="font-sans text-[11px] text-[#64748B] leading-tight mt-0.5 truncate" x-text="item.subtitle"></span>
-              </div>
+    <!-- KPI 3: Milestone Claims -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-card transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider font-sans">
+          Milestone Claims
+        </span>
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="text-2xl lg:text-3xl font-display font-bold text-slate-900 tabular-nums">
+          <span class="text-xs font-medium text-slate-400 mr-1 font-sans">UGX</span>{{ total_invoiced_gross }}
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-500 mt-2 font-sans">
+          <span>Gross Invoiced</span>
+          <span class="font-semibold text-blue-700 tabular-nums">{{ invoiced_percentage }}% of sum</span>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs text-slate-600 font-medium font-sans">
+        <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-blue-600"></i>
+        <span>URA EFRIS Compliant (18% VAT)</span>
+      </div>
+    </div>
 
-              <!-- Far Right Column: Clean Timestamps & Tabular Metrics (Mono) -->
-              <div class="col-span-4 flex flex-col items-end text-right">
-                <div class="flex items-center gap-1.5">
-                  <span class="font-mono text-[13px] text-[#1A1A1A] tabular-nums" x-text="item.value"></span>
-                  <!-- Critical Alert Indicator Dot -->
-                  <template x-if="item.has_alert">
-                    <span class="w-1 h-1 rounded-full bg-[#DC2626] inline-block" title="Unpaid milestone variance"></span>
-                  </template>
+    <!-- KPI 4: Receivable Working Capital -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-card transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider font-sans">
+          Receivable Balance
+        </span>
+        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <i data-lucide="wallet" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="text-2xl lg:text-3xl font-display font-bold text-slate-900 tabular-nums">
+          <span class="text-xs font-medium text-slate-400 mr-1 font-sans">UGX</span>{{ total_balance_due }}
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-500 mt-2 font-sans">
+          <span>Collected Remittances</span>
+          <span class="font-semibold text-emerald-700 tabular-nums">UGX {{ total_collected_gross }}</span>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs text-amber-700 font-medium font-sans">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+        <span>1 Invoice Overdue Variance</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Interactive Operations Data Center -->
+  <section class="space-y-6">
+    
+    <!-- Tab Controls & Quick Filter Axis -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-3">
+      <div class="flex items-center gap-2">
+        <button type="button" 
+                @click="activeTab = 'projects'"
+                :class="activeTab === 'projects' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+                class="px-3.5 py-1.5 rounded-xl text-xs transition-colors flex items-center gap-2">
+          <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+          <span>Active Projects ({{ projects_count }})</span>
+        </button>
+
+        <button type="button" 
+                @click="activeTab = 'invoices'"
+                :class="activeTab === 'invoices' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+                class="px-3.5 py-1.5 rounded-xl text-xs transition-colors flex items-center gap-2">
+          <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
+          <span>Milestone Invoices ({{ invoices_count }})</span>
+        </button>
+
+        <button type="button" 
+                @click="activeTab = 'leads'"
+                :class="activeTab === 'leads' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+                class="px-3.5 py-1.5 rounded-xl text-xs transition-colors flex items-center gap-2">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>Inquiries &amp; Leads ({{ leads_count }})</span>
+        </button>
+
+        <button type="button" 
+                @click="activeTab = 'rates'"
+                :class="activeTab === 'rates' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+                class="px-3.5 py-1.5 rounded-xl text-xs transition-colors flex items-center gap-2">
+          <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+          <span>BOQ Rates ({{ rates_count }})</span>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-500 font-sans flex items-center gap-2">
+        <span>Click any row to inspect extended audit telemetry</span>
+      </div>
+    </div>
+
+    <!-- Tab 1: Active Projects -->
+    <div x-show="activeTab === 'projects'" class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h2 class="font-display font-bold text-base text-slate-900">Active Worksites &amp; Builds</h2>
+          <p class="text-xs text-slate-500 font-sans">Active build contracts, physical coordinates, and milestones</p>
+        </div>
+        <a href="{% url 'dashboard:projects' %}" class="text-xs font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 font-sans">
+          <span>Manage All Projects</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs font-sans">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <th class="py-3 px-6">Project / Site</th>
+              <th class="py-3 px-6">Client</th>
+              <th class="py-3 px-6">Stage</th>
+              <th class="py-3 px-6 text-right">Contract Value [UGX]</th>
+              <th class="py-3 px-6 text-right">Site Cost [UGX]</th>
+              <th class="py-3 px-6 text-center">Commissioning</th>
+              <th class="py-3 px-6 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for p in projects %}
+            <tr class="hover:bg-slate-50/70 transition-colors cursor-pointer group"
+                @click="inspect({
+                  type: 'Project',
+                  id: '{{ p.code }}',
+                  title: '{{ p.title }}',
+                  subtitle: '{{ p.client }} &middot; {{ p.location }}',
+                  details: {
+                    'Project Identifier': '{{ p.code }}',
+                    'Client Name': '{{ p.client }}',
+                    'Site Coordinates': '{{ p.location }}',
+                    'Construction Phase': '{{ p.current_phase|upper }}',
+                    'Contract Valuation': 'UGX {{ p.contract_value_fmt }}',
+                    'Expenditure to Date': 'UGX {{ p.cost_to_date_fmt }}',
+                    'Commencement Date': '{{ p.start_date }}',
+                    'Target Commissioning': '{{ p.target_completion }}',
+                    'Compliance Status': 'VERIFIED'
+                  }
+                })">
+              <td class="py-4 px-6">
+                <div class="font-bold text-slate-900 group-hover:text-amber-700 transition-colors font-display text-sm">{{ p.title }}</div>
+                <div class="text-slate-500 font-sans text-[11px] flex items-center gap-1.5 mt-0.5">
+                  <span class="font-semibold text-slate-700">{{ p.code }}</span>
+                  <span>&middot;</span>
+                  <span>{{ p.location }}</span>
                 </div>
-                <div class="font-mono text-[10px] text-[#64748B] tabular-nums mt-0.5" x-text="item.timestamp + ' · ' + item.status"></div>
-              </div>
+              </td>
+              <td class="py-4 px-6 font-medium text-slate-700">{{ p.client }}</td>
+              <td class="py-4 px-6">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/80">
+                  {{ p.current_phase|upper }}
+                </span>
+              </td>
+              <td class="py-4 px-6 text-right font-semibold text-slate-900 tabular-nums">
+                {{ p.contract_value_fmt }}
+              </td>
+              <td class="py-4 px-6 text-right font-medium text-slate-700 tabular-nums">
+                {{ p.cost_to_date_fmt }}
+              </td>
+              <td class="py-4 px-6 text-center text-slate-500 tabular-nums font-sans">
+                {{ p.target_completion }}
+              </td>
+              <td class="py-4 px-6 text-right">
+                <button type="button" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors font-semibold text-[11px]">
+                  Inspect
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
+    <!-- Tab 2: Milestone Invoices -->
+    <div x-show="activeTab === 'invoices'" class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs" style="display: none;">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h2 class="font-display font-bold text-base text-slate-900">Milestone Claims &amp; Tax Invoices</h2>
+          <p class="text-xs text-slate-500 font-sans">Statutory tax invoicing, URA EFRIS compliance, and milestone billings</p>
+        </div>
+        <a href="{% url 'dashboard:invoices' %}" class="text-xs font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 font-sans">
+          <span>Manage Invoices</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs font-sans">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <th class="py-3 px-6">Invoice #</th>
+              <th class="py-3 px-6">Project Reference</th>
+              <th class="py-3 px-6 text-right">Net Sum [UGX]</th>
+              <th class="py-3 px-6 text-right">VAT (18%)</th>
+              <th class="py-3 px-6 text-right">Gross Total [UGX]</th>
+              <th class="py-3 px-6 text-right">Balance Due [UGX]</th>
+              <th class="py-3 px-6 text-center">Status</th>
+              <th class="py-3 px-6 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for inv in invoices %}
+            <tr class="hover:bg-slate-50/70 transition-colors cursor-pointer group"
+                @click="inspect({
+                  type: 'Invoice',
+                  id: '{{ inv.invoice_number }}',
+                  title: 'Tax Invoice &middot; {{ inv.invoice_number }}',
+                  subtitle: 'Linked to {{ inv.project_code }}',
+                  details: {
+                    'Invoice Number': '{{ inv.invoice_number }}',
+                    'Associated Project': '{{ inv.project_code }}',
+                    'Net Revenue': 'UGX {{ inv.net_amount_fmt }}',
+                    'Statutory VAT (18%)': 'UGX {{ inv.vat_18_fmt }}',
+                    'Gross Claim': 'UGX {{ inv.gross_amount_fmt }}',
+                    'Remitted Total': 'UGX {{ inv.paid_amount_fmt }}',
+                    'Outstanding Balance': 'UGX {{ inv.balance_due_fmt }}',
+                    'Reconciliation State': '{{ inv.status|upper }}',
+                    'URA Fiscal Status': 'EFRIS COMPLIANT'
+                  }
+                })">
+              <td class="py-4 px-6 font-bold text-slate-900 group-hover:text-amber-700 transition-colors font-display text-sm">
+                {{ inv.invoice_number }}
+              </td>
+              <td class="py-4 px-6 font-medium text-slate-700">{{ inv.project_code }}</td>
+              <td class="py-4 px-6 text-right text-slate-600 tabular-nums">{{ inv.net_amount_fmt }}</td>
+              <td class="py-4 px-6 text-right text-slate-500 tabular-nums">{{ inv.vat_18_fmt }}</td>
+              <td class="py-4 px-6 text-right font-bold text-slate-900 tabular-nums">{{ inv.gross_amount_fmt }}</td>
+              <td class="py-4 px-6 text-right font-bold tabular-nums {% if inv.balance_due_ugx > 0 %}text-red-600{% else %}text-emerald-700{% endif %}">
+                {{ inv.balance_due_fmt }}
+              </td>
+              <td class="py-4 px-6 text-center">
+                {% if inv.status == 'paid' %}
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    Paid in Full
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    Partially Paid
+                  </span>
+                {% endif %}
+              </td>
+              <td class="py-4 px-6 text-right">
+                <button type="button" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors font-semibold text-[11px]">
+                  Inspect
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 3: Commercial Leads -->
+    <div x-show="activeTab === 'leads'" class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs" style="display: none;">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h2 class="font-display font-bold text-base text-slate-900">Commercial Pipeline &amp; Inquiries</h2>
+          <p class="text-xs text-slate-500 font-sans">Prospective client estimates, development scopes, and conversion stages</p>
+        </div>
+        <a href="{% url 'dashboard:leads' %}" class="text-xs font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 font-sans">
+          <span>Manage Leads</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs font-sans">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <th class="py-3 px-6">Lead ID</th>
+              <th class="py-3 px-6">Prospect Name</th>
+              <th class="py-3 px-6">Development Scope</th>
+              <th class="py-3 px-6">Location</th>
+              <th class="py-3 px-6 text-right">Indicative Budget [UGX]</th>
+              <th class="py-3 px-6 text-center">Stage</th>
+              <th class="py-3 px-6 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for l in leads %}
+            <tr class="hover:bg-slate-50/70 transition-colors cursor-pointer group"
+                @click="inspect({
+                  type: 'Lead',
+                  id: '{{ l.public_id }}',
+                  title: '{{ l.name }}',
+                  subtitle: '{{ l.project_type }} &middot; {{ l.location }}',
+                  details: {
+                    'Lead Reference': '{{ l.public_id }}',
+                    'Prospect Name': '{{ l.name }}',
+                    'Contact Phone': '{{ l.phone }}',
+                    'Official Email': '{{ l.email }}',
+                    'Development Scope': '{{ l.project_type }}',
+                    'Site Location': '{{ l.location }}',
+                    'Target Budget': 'UGX {{ l.budget_fmt }}',
+                    'Pipeline Position': '{{ l.status|upper }}',
+                    'Inquiry Date': '{{ l.created_at|slice:':10' }}'
+                  }
+                })">
+              <td class="py-4 px-6 font-semibold text-slate-700 font-sans text-xs">
+                {{ l.public_id|slice:":12" }}
+              </td>
+              <td class="py-4 px-6">
+                <div class="font-bold text-slate-900 group-hover:text-amber-700 transition-colors font-display text-sm">{{ l.name }}</div>
+                <div class="text-slate-500 text-[11px] mt-0.5">{{ l.phone }} &middot; {{ l.email }}</div>
+              </td>
+              <td class="py-4 px-6 font-medium text-slate-700">{{ l.project_type }}</td>
+              <td class="py-4 px-6 text-slate-600">{{ l.location }}</td>
+              <td class="py-4 px-6 text-right font-bold text-slate-900 tabular-nums">
+                {{ l.budget_fmt }}
+              </td>
+              <td class="py-4 px-6 text-center">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {% if l.status == 'won' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% elif l.status == 'quoted' %}bg-blue-50 text-blue-800 border border-blue-200{% else %}bg-slate-100 text-slate-700 border border-slate-200{% endif %}">
+                  {{ l.status|upper }}
+                </span>
+              </td>
+              <td class="py-4 px-6 text-right">
+                <button type="button" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors font-semibold text-[11px]">
+                  Inspect
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 4: BOQ Rates -->
+    <div x-show="activeTab === 'rates'" class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs" style="display: none;">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h2 class="font-display font-bold text-base text-slate-900">Standard BOQ Rate Library</h2>
+          <p class="text-xs text-slate-500 font-sans">Approved annual unit prices for engineering excavation, structural concrete, and masonry</p>
+        </div>
+        <a href="{% url 'dashboard:rates' %}" class="text-xs font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 font-sans">
+          <span>Manage Rates</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs font-sans">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <th class="py-3 px-6">Specification Code</th>
+              <th class="py-3 px-6">Description</th>
+              <th class="py-3 px-6 text-center">Unit</th>
+              <th class="py-3 px-6 text-right">Approved Rate [UGX]</th>
+              <th class="py-3 px-6 text-center">Schedule</th>
+              <th class="py-3 px-6 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for r in rate_library %}
+            <tr class="hover:bg-slate-50/70 transition-colors cursor-pointer group"
+                @click="inspect({
+                  type: 'BOQ Rate',
+                  id: '{{ r.code }}',
+                  title: '{{ r.description }}',
+                  subtitle: 'Standard Measurement Unit: {{ r.unit }}',
+                  details: {
+                    'Specification Code': '{{ r.code }}',
+                    'Summary Description': '{{ r.description }}',
+                    'Standard Unit': '{{ r.unit }}',
+                    'Approved Unit Rate': 'UGX {{ r.standard_rate_fmt }}',
+                    'Base Currency': 'UGX (Fixed Schedule)',
+                    'Schedule Status': 'ACTIVE &middot; 2026'
+                  }
+                })">
+              <td class="py-4 px-6 font-bold text-slate-900 group-hover:text-amber-700 transition-colors font-display text-sm">
+                {{ r.code }}
+              </td>
+              <td class="py-4 px-6 font-medium text-slate-700">{{ r.description }}</td>
+              <td class="py-4 px-6 text-center font-semibold text-slate-500">{{ r.unit }}</td>
+              <td class="py-4 px-6 text-right font-bold text-slate-900 tabular-nums">
+                {{ r.standard_rate_fmt }} / {{ r.unit }}
+              </td>
+              <td class="py-4 px-6 text-center">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  ACTIVE 2026
+                </span>
+              </td>
+              <td class="py-4 px-6 text-right">
+                <button type="button" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors font-semibold text-[11px]">
+                  Inspect
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Slide-Out Quick Inspector Drawer -->
+  <div x-show="inspectorOpen"
+       x-transition:enter="transition-opacity ease-linear duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition-opacity ease-linear duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       @click="closeInspector()"
+       class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-50"
+       style="display: none;"></div>
+
+  <div x-show="inspectorOpen"
+       x-transition:enter="transition ease-out duration-300 transform"
+       x-transition:enter-start="translate-x-full"
+       x-transition:enter-end="translate-x-0"
+       x-transition:leave="transition ease-in duration-200 transform"
+       x-transition:leave-start="translate-x-0"
+       x-transition:leave-end="translate-x-full"
+       class="fixed inset-y-0 right-0 max-w-md w-full bg-white shadow-elevated z-50 flex flex-col border-l border-slate-200/80"
+       style="display: none;"
+       role="dialog"
+       aria-modal="true"
+       aria-label="Record Details Inspector">
+    
+    <!-- Drawer Header -->
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+      <div>
+        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-sans" x-text="inspectedItem ? inspectedItem.type : 'Record Details'"></div>
+        <div class="text-lg font-display font-bold text-slate-900 mt-0.5" x-text="inspectedItem ? inspectedItem.title : ''"></div>
+        <div class="text-xs text-slate-500 font-sans mt-0.5" x-text="inspectedItem ? inspectedItem.subtitle : ''"></div>
+      </div>
+      <button type="button" 
+              @click="closeInspector()" 
+              class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              aria-label="Close details inspector">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Drawer Body -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+      <template x-if="inspectedItem">
+        <div class="space-y-4">
+          <template x-for="[key, val] in Object.entries(inspectedItem.details)" :key="key">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 flex flex-col gap-1">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider font-sans" x-text="key"></span>
+              <span class="text-sm font-semibold text-slate-900 font-sans tabular-nums" x-text="val"></span>
             </div>
           </template>
         </div>
-
-      </div>
-
-      <!-- Right 5 Columns: Split-View Inspector Panel (Architectural Key-Value Column) -->
-      <aside class="lg:col-span-5 lg:sticky lg:top-28 space-y-10 pl-0 lg:pl-8" aria-label="Record Inspector">
-        
-        <!-- Inspector Content -->
-        <template x-if="selectedItem">
-          <div class="space-y-10">
-            <!-- Inspector Header -->
-            <div class="space-y-2">
-              <div class="flex items-center justify-between">
-                <div class="font-sans text-[10px] uppercase tracking-[0.25em] text-[#64748B]">
-                  INSPECTOR // ACTIVE RECORD
-                </div>
-                <button type="button" 
-                        @click="clearSelection()" 
-                        class="font-mono text-[10px] uppercase tracking-widest text-[#64748B] hover:text-[#1A1A1A] bg-transparent border-0 cursor-pointer p-0 transition-colors">
-                  [Close]
-                </button>
-              </div>
-              <div class="font-sans text-[20px] font-normal text-[#1A1A1A] leading-tight" x-text="selectedItem.title"></div>
-              <div class="font-mono text-[11px] text-[#64748B]" x-text="selectedItem.subtitle"></div>
-            </div>
-
-            <!-- Flat Key-Value Editorial Stack (Zero Boxes, Generous Vertical Rhythms) -->
-            <div class="space-y-6">
-              <template x-for="[key, val] in Object.entries(selectedItem.details)" :key="key">
-                <div class="space-y-1">
-                  <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]" x-text="key"></div>
-                  <div class="font-mono text-[13px] text-[#1A1A1A] tabular-nums leading-relaxed" x-text="val"></div>
-                </div>
-              </template>
-            </div>
-
-            <!-- Footer Action -->
-            <div class="pt-4 flex items-center justify-between">
-              <span class="font-mono text-[10px] text-[#64748B]">SYSTEM STATE: IMMUTABLE AUDIT LOGGED</span>
-              <button type="button" 
-                      @click="clearSelection()" 
-                      class="font-sans text-[10px] uppercase tracking-widest text-[#64748B] hover:text-[#1A1A1A] bg-transparent border-0 cursor-pointer p-0 transition-colors">
-                [Deselect]
-              </button>
-            </div>
-          </div>
-        </template>
-
-        <!-- Fallback Telemetry Column when no specific row is selected -->
-        <template x-if="!selectedItem">
-          <div class="space-y-10">
-            <div class="space-y-2">
-              <div class="font-sans text-[10px] uppercase tracking-[0.25em] text-[#64748B]">
-                WORKSPACE // TELEMETRY &amp; RULES
-              </div>
-              <div class="font-sans text-[20px] font-normal text-[#1A1A1A]">
-                Jimcan Operational Core
-              </div>
-              <div class="font-mono text-[11px] text-[#64748B]">
-                Select any record on the left to inspect extended telemetry.
-              </div>
-            </div>
-
-            <div class="space-y-6">
-              <div class="space-y-1">
-                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">PRIMARY ENTITY</div>
-                <div class="font-mono text-[13px] text-[#1A1A1A]">JIMCAN CONSTRUCTION LTD (KAMPALA)</div>
-              </div>
-              <div class="space-y-1">
-                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">URA REGISTRATION (TIN)</div>
-                <div class="font-mono text-[13px] text-[#1A1A1A]">1002345678</div>
-              </div>
-              <div class="space-y-1">
-                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">BASE CALCULATION CURRENCY</div>
-                <div class="font-mono text-[13px] text-[#1A1A1A]">UGX (UGANDAN SHILLING &middot; TABULAR LINING)</div>
-              </div>
-              <div class="space-y-1">
-                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">SYSTEM TIMEZONE</div>
-                <div class="font-mono text-[13px] text-[#1A1A1A]">AFRICA/KAMPALA (EAT &middot; UTC+3)</div>
-              </div>
-              <div class="space-y-1">
-                <div class="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B]">CRITICAL EXCEPTION REGISTRY</div>
-                <div class="flex items-center gap-2 mt-1">
-                  <span class="w-1 h-1 rounded-full bg-[#DC2626]"></span>
-                  <span class="font-mono text-[13px] text-[#1A1A1A]">1 ACTIVE DELINQUENCY ALERT DETECTED</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
-
-      </aside>
-
-    </section>
-
-  </main>
-
-  <!-- Clean Bottom Baseline (No Borders, Single Text Baseline) -->
-  <footer class="max-w-[1440px] mx-auto px-8 lg:px-16 py-12 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#64748B] font-mono gap-4">
-    <div>
-      JIMCAN ARCHITECTURAL OPERATIONS &middot; 2026
+      </template>
     </div>
-    <div>
-      UNBOUNDED LIGHT MODE &middot; PURE TYPOGRAPHIC CANVASES
+
+    <!-- Drawer Footer -->
+    <div class="p-6 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/50">
+      <span class="text-xs text-slate-400 font-sans">Verified System Record</span>
+      <button type="button" 
+              @click="closeInspector()" 
+              class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-xs">
+        Done
+      </button>
     </div>
-  </footer>
+
+  </div>
 
 </div>
-{% endblock app_shell %}
+{% endblock content %}

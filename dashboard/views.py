@@ -102,6 +102,8 @@ def overview_view(request):
 
     feed_items = []
     for p in projects:
+        p['contract_value_fmt'] = f"{p.get('contract_value_ugx', 0):,}"
+        p['cost_to_date_fmt'] = f"{p.get('cost_to_date_ugx', 0):,}"
         feed_items.append({
             'type': 'project',
             'type_label': 'PROJECT',
@@ -128,6 +130,11 @@ def overview_view(request):
         })
     for inv in invoices:
         has_alert = inv.get('balance_due_ugx', 0) > 0
+        inv['net_amount_fmt'] = f"{inv.get('net_amount_ugx', 0):,}"
+        inv['vat_18_fmt'] = f"{inv.get('vat_18_ugx', 0):,}"
+        inv['gross_amount_fmt'] = f"{inv.get('gross_amount_ugx', 0):,}"
+        inv['paid_amount_fmt'] = f"{inv.get('paid_amount_ugx', 0):,}"
+        inv['balance_due_fmt'] = f"{inv.get('balance_due_ugx', 0):,}"
         feed_items.append({
             'type': 'invoice',
             'type_label': 'INVOICE',
@@ -153,6 +160,7 @@ def overview_view(request):
             }
         })
     for l in leads:
+        l['budget_fmt'] = f"{l.get('budget_ugx', 0):,}"
         feed_items.append({
             'type': 'lead',
             'type_label': 'LEAD',
@@ -178,6 +186,7 @@ def overview_view(request):
             }
         })
     for r in rate_library:
+        r['standard_rate_fmt'] = f"{r.get('standard_rate_ugx', 0):,}"
         feed_items.append({
             'type': 'rate',
             'type_label': 'RATE',
@@ -200,13 +209,28 @@ def overview_view(request):
             }
         })
 
+    total_collected_gross = total_invoiced_gross - total_balance_due
+    cost_percentage = round((total_cost_to_date / total_contract_value * 100), 1) if total_contract_value else 0
+    invoiced_percentage = round((total_invoiced_gross / total_contract_value * 100), 1) if total_contract_value else 0
+
     context = {
-        'page_title': 'Operational Index',
+        'page_title': 'Operations Dashboard',
         'currency': demo_data.get('currency', 'UGX'),
         'total_contract_value': f"{total_contract_value:,}",
         'total_cost_to_date': f"{total_cost_to_date:,}",
         'total_invoiced_gross': f"{total_invoiced_gross:,}",
         'total_balance_due': f"{total_balance_due:,}",
+        'total_collected_gross': f"{total_collected_gross:,}",
+        'cost_percentage': cost_percentage,
+        'invoiced_percentage': invoiced_percentage,
+        'projects': projects,
+        'invoices': invoices,
+        'leads': leads,
+        'rate_library': rate_library,
+        'projects_count': len(projects),
+        'leads_count': len(leads),
+        'invoices_count': len(invoices),
+        'rates_count': len(rate_library),
         'feed_items': feed_items,
         'feed_items_json': json.dumps(feed_items),
         'default_selected_json': json.dumps(feed_items[0] if feed_items else {}),

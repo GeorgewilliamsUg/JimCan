@@ -19,10 +19,10 @@
   <meta name="apple-mobile-web-app-title" content="Jimcan">
   <meta name="application-name" content="Jimcan Operations">
 
-  <!-- Pure Editorial Typography: IBM Plex Sans & IBM Plex Mono -->
+  <!-- Consistent Modern Font Pair: Plus Jakarta Sans (Headings/Display) & Inter (Body/UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Core Progressive Libraries (TRD Section 4) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -31,8 +31,9 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"IBM Plex Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+            sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', '"Inter"', 'system-ui', 'sans-serif'],
+            mono: ['"Inter"', 'system-ui', 'sans-serif'], // Redirect mono to Inter with tabular-nums so no mono font is used
           },
           colors: {
             charcoal: '#1A1A1A',
@@ -86,6 +87,12 @@
 </head>
 <body x-data="{ 
         sidebarOpen: false, 
+        sidebarCollapsed: localStorage.getItem('jimcan_sidebar_collapsed') === 'true',
+        toggleSidebarCollapse() {
+          this.sidebarCollapsed = !this.sidebarCollapsed;
+          localStorage.setItem('jimcan_sidebar_collapsed', this.sidebarCollapsed);
+          this.$nextTick(() => { if (window.lucide) window.lucide.createIcons(); });
+        },
         mobileNav: false,
         toastMessage: '', 
         toastType: 'success',
