@@ -158,6 +158,10 @@ def overdue_count(invoices):
             count += 1
     return count
 
+@register.simple_tag(name='overdue_count')
+def overdue_count_tag(invoices):
+    return overdue_count(invoices)
+
 @register.simple_tag
 def time_greeting():
     """

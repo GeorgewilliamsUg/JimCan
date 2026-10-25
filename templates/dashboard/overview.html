@@ -32,7 +32,7 @@
   <div class="header-blueprint flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
     <div class="space-y-1">
       <h1 class="type-greeting" style="color: var(--text);">
-        {% time_greeting %}, {{ request.user.first_name|default:request.user.username }}.
+        {% time_greeting %}{% if request.user.first_name %}, {{ request.user.first_name }}{% elif request.user.username %}, {{ request.user.username }}{% endif %}.
       </h1>
       <p class="type-caption" style="color: var(--text-muted);">
         {{ projects_count }} active project{{ projects_count|pluralize }}{% if ov_count > 0 %}, <a href="{% url 'dashboard:invoices' %}" class="underline" style="color: var(--text-muted);">{{ ov_count }} overdue invoice{{ ov_count|pluralize }}</a>{% endif %}.
