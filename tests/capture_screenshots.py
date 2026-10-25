@@ -1,7 +1,7 @@
 import os
 from playwright.sync_api import sync_playwright
 
-output_dir = "/home/george/Desktop/Dev2026/Jimcan/tests/visual/screenshots"
+output_dir = "/home/george/.gemini/antigravity-ide/brain/dd2159df-fc3e-4a36-be18-ad4ffc7288ac"
 os.makedirs(output_dir, exist_ok=True)
 
 viewports = [
@@ -17,8 +17,8 @@ with sync_playwright() as p:
         page = context.new_page()
         
         # Navigate to overview with admin role
-        page.goto("http://127.0.0.1:8001/overview/?role=admin", wait_until="domcontentloaded")
-        page.wait_for_timeout(2000) # wait for count-up/transitions
+        page.goto("http://127.0.0.1:8000/overview/?role=admin", wait_until="networkidle")
+        page.wait_for_timeout(1000)
         
         # Capture screenshot
         shot_path = os.path.join(output_dir, f"{name}.png")

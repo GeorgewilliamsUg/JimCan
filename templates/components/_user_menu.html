@@ -1,63 +1,63 @@
-<!-- User Profile & Session Menu (Section 5) -->
+<!-- User Profile & Session Menu (Clean Light Design) -->
 <div x-data="{ userMenuOpen: false }" class="relative" style="width: 100%;">
   <button type="button"
           @click="userMenuOpen = !userMenuOpen"
           @keydown.escape="userMenuOpen = false"
-          class="w-full flex items-center rounded transition-all text-left"
-          style="background: transparent; border: none; cursor: pointer; padding: var(--s2); border-radius: var(--radius-data);"
+          class="w-full flex items-center rounded-xl transition-all text-left hover:bg-slate-50"
+          style="background: transparent; border: none; cursor: pointer; padding: var(--s2);"
           :class="sidebarMode === 'collapsed' ? 'justify-center' : 'justify-between'"
           aria-haspopup="true"
           :aria-expanded="userMenuOpen"
           :aria-label="'User menu for ' + '{{ request.user.first_name|default:request.user.username }}'"
-          :title="sidebarMode === 'collapsed' ? '{{ request.user.first_name|default:request.user.username }} ({{ current_role_display }})' : ''">
-    <div class="flex items-center gap-2.5 min-w-0" :class="sidebarMode === 'collapsed' ? 'justify-center' : ''">
-      <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 font-display font-semibold text-xs"
-           style="background-color: var(--ink-raised); color: var(--text-on-dark); border-radius: var(--radius-data);">
-        {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+          :title="sidebarMode === 'collapsed' ? '{{ request.user.first_name|default:request.user.username }}' : ''">
+    <div class="flex items-center gap-3 min-w-0" :class="sidebarMode === 'collapsed' ? 'justify-center' : ''">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-display font-bold text-xs"
+           style="background-color: var(--ink); color: #FFFFFF;">
+        {{ request.user.first_name|default:request.user.username|slice:":1"|upper|default:"A" }}
       </div>
       <div class="min-w-0 flex-1" x-show="sidebarMode === 'expanded'">
-        <div class="truncate font-semibold text-sm" style="color: var(--text-on-dark); line-height: 18px; font-family: var(--font-body);">
-          {{ request.user.first_name|default:request.user.username }}
+        <div class="truncate font-semibold text-sm" style="color: var(--text); line-height: 18px; font-family: var(--font-body);">
+          {{ request.user.first_name|default:request.user.username|default:"Admin" }}
         </div>
-        <div class="truncate text-xs" style="color: var(--text-muted-on-dark); line-height: 16px; font-family: var(--font-body);">
-          {{ current_role_display }}
+        <div class="truncate text-xs" style="color: var(--text-muted); line-height: 16px; font-family: var(--font-body);">
+          {% if request.user.email %}{{ request.user.email }}{% elif current_role_display %}{{ current_role_display }}{% else %}Administrator{% endif %}
         </div>
       </div>
     </div>
-    <div class="nav-icon-box" x-show="sidebarMode === 'expanded'" style="color: var(--text-muted-on-dark);">
-      <i data-lucide="chevrons-up-down" class="w-4 h-4"></i>
+    <div class="nav-icon-box" x-show="sidebarMode === 'expanded'" style="color: var(--text-muted);">
+      <i data-lucide="log-out" class="w-4 h-4"></i>
     </div>
   </button>
 
-  <!-- Dropdown Menu (No shadow per Elevation rules) -->
+  <!-- Dropdown Menu -->
   <div x-show="userMenuOpen"
        @click.away="userMenuOpen = false"
        class="absolute bottom-full mb-2 p-2 space-y-1 z-50 text-xs"
-       style="background-color: var(--ink-raised); border: 1px solid var(--line-on-dark); border-radius: var(--radius-data); width: 240px; left: 0;"
+       style="background-color: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-data); width: 240px; box-shadow: var(--shadow-create);"
        :style="sidebarMode === 'collapsed' ? 'left: calc(100% + 8px); bottom: 0;' : 'left: 0; bottom: calc(100% + 8px);'"
        style="display: none;">
 
     <!-- Role Switcher -->
-    <div class="px-3 py-1 font-semibold" style="font-size: 11px; color: var(--text-muted-on-dark); border-bottom: 1px solid var(--line-on-dark);">
+    <div class="px-3 py-1 font-semibold" style="font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--line);">
       Simulate active role
     </div>
     {% for r_code, r_label in all_roles %}
       <a href="?role={{ r_code }}"
          class="flex items-center justify-between px-3 py-2 rounded transition-colors no-underline"
-         style="color: var(--text-on-dark); border-radius: var(--radius-data); {% if current_role == r_code %}background-color: rgba(246, 245, 241, 0.12); font-weight: 600;{% endif %}">
+         style="color: var(--text); border-radius: var(--radius-data); {% if current_role == r_code %}background-color: var(--paper-sunk); font-weight: 600;{% endif %}">
         <span>{{ r_label }}</span>
         {% if current_role == r_code %}
-          <i data-lucide="check" class="w-3.5 h-3.5" style="color: var(--brass);"></i>
+          <i data-lucide="check" class="w-3.5 h-3.5" style="color: var(--ink);"></i>
         {% endif %}
       </a>
     {% endfor %}
 
-    <div style="border-top: 1px solid var(--line-on-dark); margin: 4px 0;"></div>
+    <div style="border-top: 1px solid var(--line); margin: 4px 0;"></div>
 
     <a href="{% url 'password_change' %}"
        class="flex items-center gap-2 px-3 py-2 rounded transition-colors no-underline"
-       style="color: var(--text-on-dark); border-radius: var(--radius-data);">
-      <i data-lucide="key-round" class="w-4 h-4" style="color: var(--text-muted-on-dark);"></i>
+       style="color: var(--text); border-radius: var(--radius-data);">
+      <i data-lucide="key-round" class="w-4 h-4" style="color: var(--text-muted);"></i>
       <span>Change password</span>
     </a>
 

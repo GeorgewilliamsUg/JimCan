@@ -8,6 +8,7 @@
 <div x-data="{
        activeTab: 'projects',
        createMenuOpen: false,
+       timeframeDropdown: false,
        tabs: ['projects', 'invoices', 'leads', 'rates'],
        selectTab(tabId) {
          this.activeTab = tabId;
@@ -28,26 +29,53 @@
      }"
      class="space-y-6">
 
-  <!-- Header Zone with Blueprint Grid Mask (Section 6) -->
-  <div class="header-blueprint flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-    <div class="space-y-1">
-      <h1 class="type-greeting" style="color: var(--text);">
-        {% time_greeting %}{% if request.user.first_name %}, {{ request.user.first_name }}{% elif request.user.username %}, {{ request.user.username }}{% endif %}.
+  <!-- Top Breadcrumb & Search Bar (Modulix Style) -->
+  <div class="top-breadcrumb-bar">
+    <div class="breadcrumb-trail">
+      <span>Jimcan Operations</span>
+      <span style="color: var(--line);">/</span>
+      <span class="flex items-center gap-1.5 font-semibold" style="color: var(--text);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        Dashboard
+      </span>
+    </div>
+
+    <!-- Search Input Bar -->
+    <div class="top-search-box">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="top-search-icon" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text"
+             class="top-search-input"
+             placeholder="Search projects, invoices, BOQs..."
+             aria-label="Search dashboard">
+    </div>
+  </div>
+
+  <!-- Page Header Greeting & Actions (Modulix Style) -->
+  <div class="header-greeting-banner">
+    <div>
+      <h1 class="type-greeting">
+        Welcome, {{ request.user.first_name|default:request.user.username|default:"Admin" }} <span aria-hidden="true">👋</span>
       </h1>
-      <p class="type-caption" style="color: var(--text-muted);">
-        {{ projects_count }} active project{{ projects_count|pluralize }}{% if ov_count > 0 %}, <a href="{% url 'dashboard:invoices' %}" class="underline" style="color: var(--text-muted);">{{ ov_count }} overdue invoice{{ ov_count|pluralize }}</a>{% endif %}.
+      <p class="type-caption mt-1">
+        Manage builds, track milestone claims, and site operations &mdash; all in one place.
       </p>
     </div>
 
-    <!-- Right-Aligned Action Controls (Section 6) -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-      <!-- Secondary Disclosure Control: Create -->
+    <!-- Action Controls on Right -->
+    <div class="flex items-center gap-3">
+      <!-- Calendar Pill -->
+      <div class="timeframe-pill hidden sm:inline-flex">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        <span>FY 2026</span>
+      </div>
+
+      <!-- Create Menu -->
       <div class="create-disclosure" @keydown.escape.window="createMenuOpen = false">
         <button type="button"
                 id="create-menu-button"
                 @click="createMenuOpen = !createMenuOpen"
                 @click.outside="createMenuOpen = false"
-                class="btn-secondary-create w-full sm:w-auto"
+                class="btn-secondary-create"
                 :aria-expanded="createMenuOpen"
                 aria-haspopup="true"
                 aria-controls="create-dropdown-menu">
@@ -79,518 +107,614 @@
         </div>
       </div>
 
-      <!-- Primary Action: New Project -->
+      <!-- Primary Action -->
       <a href="{% url 'dashboard:projects' %}" class="btn-primary-signal">
         <span>New project</span>
       </a>
     </div>
   </div>
 
-  <!-- Money Flow Panel (Section 7) -->
-  <section class="money-flow-panel" aria-label="Money flow overview">
-    <h2 class="type-panel-title" style="color: var(--text-on-dark);">Money flow</h2>
-
-    <div class="money-flow-grid">
-      <!-- Left Column: Contract Value, Bar Visualization, Legend, Insight Sentence -->
-      <div class="money-flow-divider">
-        <div class="type-caption" style="color: var(--text-muted-on-dark);">Contract value</div>
-        <div class="type-hero mt-1"
-             style="color: var(--text-on-dark);"
-             title="{{ total_contract_value|ugx_full }}"
-             aria-label="{{ total_contract_value|ugx_words }}">
-          <span class="stat-figure-currency">UGX</span>&thinsp;<span class="count-num" data-count-target="{{ total_contract_value|ugx_compact|slice:':-1' }}" data-count-suffix="{{ total_contract_value|ugx_compact|slice:'-1:' }}" data-count-decimals="2">{{ total_contract_value|ugx_compact }}</span>
+  <!-- KPI Metric Cards Grid (Row of 4 Clean White Cards with Sparklines) -->
+  <div class="kpi-cards-grid">
+    <!-- Card 1: Contract Valuation -->
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-icon-chip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
         </div>
-
-        <!-- The Bar Visualization -->
-        {% with inv_pct=total_invoiced_gross|clamp_pct:total_contract_value col_pct=total_collected_gross|clamp_pct:total_contract_value com_pct=total_cost_to_date|clamp_pct:total_contract_value %}
-        {% if total_contract_value and total_contract_value != '0' %}
-          <div class="money-bar-wrapper"
-               role="img"
-               tabindex="0"
-               aria-label="Contract value {{ total_contract_value|ugx_words }}, committed cost {{ total_cost_to_date|ugx_words }}, invoiced {{ total_invoiced_gross|ugx_words }}, collected {{ total_collected_gross|ugx_words }}.">
-            <div class="money-bar-track">
-              <!-- Invoiced Segment -->
-              <div class="money-bar-invoiced"
-                   data-bar-width="{{ inv_pct }}"
-                   style="width: {{ inv_pct }}%;"></div>
-              <!-- Collected Segment (Drawn over invoiced segment from the left) -->
-              <div class="money-bar-collected"
-                   data-bar-width="{{ col_pct }}"
-                   style="width: {{ col_pct }}%;"></div>
-              <!-- Committed Cost Marker (2px tick extending 6px above and below) -->
-              <div class="money-bar-committed-tick"
-                   data-tick-pos="{{ com_pct }}"
-                   style="left: {{ com_pct }}%;">
-                <span class="committed-label {% if com_pct|is_greater:92 %}align-right{% elif 8|is_greater:com_pct %}align-left{% else %}align-center{% endif %}">
-                  Committed UGX {{ total_cost_to_date|ugx_compact }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Legend Row -->
-          <div class="legend-row">
-            <div class="legend-item">
-              <span class="legend-swatch swatch-brass" aria-hidden="true"></span>
-              <span>Invoiced</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-swatch swatch-green" aria-hidden="true"></span>
-              <span>Collected</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-swatch swatch-tick" aria-hidden="true"></span>
-              <span>Committed cost</span>
-            </div>
-          </div>
-
-          <!-- Insight Sentence -->
-          {% if total_cost_to_date and total_collected_gross %}
-            {% with diff=total_cost_to_date|calc_diff:total_collected_gross %}
-              <div class="money-insight-sentence">
-                {% if total_cost_to_date|is_greater:total_collected_gross %}
-                  You have committed UGX {{ diff|ugx_compact }} more than you have collected.
-                {% else %}
-                  Collections are ahead of committed cost by UGX {{ diff|ugx_compact }}.
-                {% endif %}
-              </div>
-            {% endwith %}
-          {% endif %}
-        {% endif %}
-        {% endwith %}
+        <span class="kpi-title">Contract value</span>
       </div>
+      <div class="kpi-figure" title="{{ total_contract_value }}">
+        <span class="kpi-currency">UGX</span>{{ total_contract_value|ugx_compact }}
+      </div>
+      <div class="kpi-footer">
+        <span class="kpi-pill positive">
+          <span>+100%</span> Pipeline
+        </span>
+        <!-- Green Sparkline SVG -->
+        <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
+          <path d="M2 18 L16 14 L30 17 L44 9 L56 12 L66 4" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
 
-      <!-- Right Column: Three Vertically Stacked Stats on Fixed Baseline -->
-      <div class="stats-column">
-        <!-- Invoiced -->
-        <div class="stat-block">
-          <div class="type-caption" style="color: var(--text-muted-on-dark);">Invoiced</div>
-          <div class="type-stat-figure mt-1"
-               style="color: var(--text-on-dark);"
-               title="{{ total_invoiced_gross|ugx_full }}"
-               aria-label="{{ total_invoiced_gross|ugx_words }}">
-            <span class="stat-figure-currency">UGX</span>&thinsp;<span class="count-num" data-count-target="{{ total_invoiced_gross|ugx_compact|slice:':-1' }}" data-count-suffix="{{ total_invoiced_gross|ugx_compact|slice:'-1:' }}" data-count-decimals="1">{{ total_invoiced_gross|ugx_compact }}</span>
-          </div>
-          <div class="type-caption mt-1" style="color: var(--text-muted-on-dark);">
-            {{ total_invoiced_gross|calc_pct:total_contract_value }}% of contract
-          </div>
+    <!-- Card 2: Site Expenditure -->
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-icon-chip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>
         </div>
+        <span class="kpi-title">Committed cost</span>
+      </div>
+      <div class="kpi-figure" title="{{ committed_cost }}">
+        <span class="kpi-currency">UGX</span>{{ committed_cost|ugx_compact }}
+      </div>
+      <div class="kpi-footer">
+        <span class="kpi-pill positive">
+          <span>{{ committed_cost|calc_pct:total_contract_value }}%</span> of budget
+        </span>
+        <!-- Sparkline SVG -->
+        <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
+          <path d="M2 20 L16 16 L28 18 L42 10 L54 12 L66 6" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
 
-        <!-- Collected -->
-        <div class="stat-block">
-          <div class="type-caption" style="color: var(--text-muted-on-dark);">Collected</div>
-          <div class="type-stat-figure mt-1"
-               style="color: var(--text-on-dark);"
-               title="{{ total_collected_gross|ugx_full }}"
-               aria-label="{{ total_collected_gross|ugx_words }}">
-            <span class="stat-figure-currency">UGX</span>&thinsp;<span class="count-num" data-count-target="{{ total_collected_gross|ugx_compact|slice:':-1' }}" data-count-suffix="{{ total_collected_gross|ugx_compact|slice:'-1:' }}" data-count-decimals="1">{{ total_collected_gross|ugx_compact }}</span>
-          </div>
-          <div class="type-caption mt-1" style="color: var(--text-muted-on-dark);">
-            {{ total_collected_gross|calc_pct:total_contract_value }}% of contract
-          </div>
+    <!-- Card 3: Milestone Claims -->
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-icon-chip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
         </div>
+        <span class="kpi-title">Invoiced claims</span>
+      </div>
+      <div class="kpi-figure" title="{{ total_invoiced_gross }}">
+        <span class="kpi-currency">UGX</span>{{ total_invoiced_gross|ugx_compact }}
+      </div>
+      <div class="kpi-footer">
+        <span class="kpi-pill positive">
+          <span>+{{ total_invoiced_gross|calc_pct:total_contract_value }}%</span> contract
+        </span>
+        <!-- Sparkline SVG -->
+        <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
+          <path d="M2 19 L15 16 L29 18 L44 8 L55 11 L66 3" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
 
-        <!-- Still Owed -->
-        <div class="stat-block">
-          <div class="type-caption" style="color: var(--text-muted-on-dark);">Still owed</div>
-          <div class="type-stat-figure mt-1"
-               style="color: var(--text-on-dark);"
-               title="{{ total_balance_due|ugx_full }}"
-               aria-label="{{ total_balance_due|ugx_words }}">
-            <span class="stat-figure-currency">UGX</span>&thinsp;<span class="count-num" data-count-target="{{ total_balance_due|ugx_compact|slice:':-1' }}" data-count-suffix="{{ total_balance_due|ugx_compact|slice:'-1:' }}" data-count-decimals="1">{{ total_balance_due|ugx_compact }}</span>
-          </div>
-          <div class="type-caption mt-1" style="color: var(--text-muted-on-dark);">
-            {{ total_balance_due|calc_pct:total_invoiced_gross }}% of invoiced
-          </div>
+    <!-- Card 4: Receivable Balance -->
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-icon-chip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-
-        <!-- Overdue Alert Indicator (Rendered only when overdue count > 0) -->
+        <span class="kpi-title">Still owed</span>
+      </div>
+      <div class="kpi-figure" title="{{ total_receivable }}">
+        <span class="kpi-currency">UGX</span>{{ total_receivable|ugx_compact }}
+      </div>
+      <div class="kpi-footer">
         {% if ov_count > 0 %}
-          <div class="overdue-alert-row">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="overdue-alert-icon" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <span class="overdue-alert-text">{{ ov_count }} invoice{{ ov_count|pluralize }} overdue</span>
-            <a href="{% url 'dashboard:invoices' %}" class="overdue-alert-link">Review</a>
-          </div>
+          <span class="kpi-pill negative">
+            <span>{{ ov_count }}</span> overdue
+          </span>
+          <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
+            <path d="M2 6 L15 11 L28 9 L42 16 L54 14 L66 20" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        {% else %}
+          <span class="kpi-pill positive">
+            <span>0</span> overdue
+          </span>
+          <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
+            <path d="M2 18 L16 14 L30 16 L44 8 L56 10 L66 4" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         {% endif %}
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Interactive Operations Data Center (Section 8) -->
-  <section aria-label="Operations records">
-    <!-- Underline Tab Navigation (role="tablist") -->
-    <div class="tablist-container" role="tablist" aria-label="Operations sections">
-      <button type="button"
-              id="tab-projects"
-              role="tab"
-              :aria-selected="activeTab === 'projects'"
-              aria-controls="panel-projects"
-              @click="selectTab('projects')"
-              @keydown="onTabKeydown($event, 'projects')"
-              :tabindex="activeTab === 'projects' ? 0 : -1"
-              class="tab-btn"
-              :class="activeTab === 'projects' ? 'active' : ''">
-        <span>Active projects</span>
-        <span class="tab-count">{{ projects_count }}</span>
-      </button>
+  <!-- Two-Column Operations Layout (Main 68% + Right Feed 32%) -->
+  <div class="dashboard-main-grid">
+    <!-- LEFT MAIN COLUMN -->
+    <div class="space-y-6">
 
-      <button type="button"
-              id="tab-invoices"
-              role="tab"
-              :aria-selected="activeTab === 'invoices'"
-              aria-controls="panel-invoices"
-              @click="selectTab('invoices')"
-              @keydown="onTabKeydown($event, 'invoices')"
-              :tabindex="activeTab === 'invoices' ? 0 : -1"
-              class="tab-btn"
-              :class="activeTab === 'invoices' ? 'active' : ''">
-        <span>Milestone invoices</span>
-        <span class="tab-count">{{ invoices_count }}</span>
-      </button>
-
-      <button type="button"
-              id="tab-leads"
-              role="tab"
-              :aria-selected="activeTab === 'leads'"
-              aria-controls="panel-leads"
-              @click="selectTab('leads')"
-              @keydown="onTabKeydown($event, 'leads')"
-              :tabindex="activeTab === 'leads' ? 0 : -1"
-              class="tab-btn"
-              :class="activeTab === 'leads' ? 'active' : ''">
-        <span>Leads</span>
-        <span class="tab-count">{{ leads_count }}</span>
-      </button>
-
-      <button type="button"
-              id="tab-rates"
-              role="tab"
-              :aria-selected="activeTab === 'rates'"
-              aria-controls="panel-rates"
-              @click="selectTab('rates')"
-              @keydown="onTabKeydown($event, 'rates')"
-              :tabindex="activeTab === 'rates' ? 0 : -1"
-              class="tab-btn"
-              :class="activeTab === 'rates' ? 'active' : ''">
-        <span>BOQ rates</span>
-        <span class="tab-count">{{ rates_count }}</span>
-      </button>
-    </div>
-
-    <!-- Tab 1: Active Projects Panel -->
-    <div id="panel-projects"
-         role="tabpanel"
-         aria-labelledby="tab-projects"
-         x-show="activeTab === 'projects'"
-         class="table-panel-wrapper">
-      <div class="table-panel-header">
-        <div>
-          <h2 class="type-panel-title" style="color: var(--text);">Active projects</h2>
-          <p class="type-caption mt-0.5" style="color: var(--text-muted);">Active build contracts and milestone targets</p>
-        </div>
-        <a href="{% url 'dashboard:projects' %}" class="table-header-link">Manage projects</a>
-      </div>
-
-      <div class="table-scroll-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Project / site</th>
-              <th>Client</th>
-              <th>Stage</th>
-              <th class="text-right">Contract value (UGX)</th>
-              <th class="text-right">Site cost (UGX)</th>
-              <th class="text-center">Commissioning</th>
-              <th style="width: 40px;" aria-label="Actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in projects %}
-              <tr>
-                <td>
-                  <a href="{% url 'dashboard:projects' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
-                    <span class="sr-only">Inspect {{ p.code }}</span>
-                    {{ p.title }}
-                  </a>
-                  <div class="type-caption mt-0.5" style="color: var(--text-muted);">
-                    <span>{{ p.code }}</span> &middot; <span>{{ p.location }}</span>
-                  </div>
-                </td>
-                <td style="color: var(--text);">{{ p.client }}</td>
-                <td>{{ p.current_phase|status_badge }}</td>
-                <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                  {{ p.contract_value_ugx|ugx_full }}
-                </td>
-                <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                  {{ p.cost_to_date_ugx|ugx_full }}
-                </td>
-                <td class="text-center tabular-nums" style="color: var(--text-muted);">
-                  {{ p.target_completion }}
-                </td>
-                <td class="text-right">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="7" class="py-6 text-center" style="color: var(--text-muted);">No active projects recorded.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Tab 2: Milestone Invoices Panel -->
-    <div id="panel-invoices"
-         role="tabpanel"
-         aria-labelledby="tab-invoices"
-         x-show="activeTab === 'invoices'"
-         class="table-panel-wrapper"
-         style="display: none;">
-      <div class="table-panel-header">
-        <div>
-          <h2 class="type-panel-title" style="color: var(--text);">Milestone invoices</h2>
-          <p class="type-caption mt-0.5" style="color: var(--text-muted);">Progress claims, statutory tax billings, and remittances</p>
-        </div>
-        <a href="{% url 'dashboard:invoices' %}" class="table-header-link">Manage invoices</a>
-      </div>
-
-      <div class="table-scroll-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Invoice #</th>
-              <th>Project reference</th>
-              <th class="text-right">Net sum (UGX)</th>
-              <th class="text-right">VAT (18%)</th>
-              <th class="text-right">Gross total (UGX)</th>
-              <th class="text-right">Balance due (UGX)</th>
-              <th class="text-center">Status</th>
-              <th style="width: 40px;" aria-label="Actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for inv in invoices %}
-              <tr>
-                <td>
-                  <a href="{% url 'dashboard:invoices' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
-                    <span class="sr-only">Inspect {{ inv.invoice_number }}</span>
-                    {{ inv.invoice_number }}
-                  </a>
-                </td>
-                <td style="color: var(--text);">{{ inv.project_code }}</td>
-                <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                  {{ inv.net_amount_ugx|ugx_full }}
-                </td>
-                <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                  {{ inv.vat_18_ugx|ugx_full }}
-                </td>
-                <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                  {{ inv.gross_amount_ugx|ugx_full }}
-                </td>
-                <td class="text-right tabular-nums font-semibold" style="{% if inv.balance_due_ugx > 0 %}color: var(--red);{% else %}color: var(--green);{% endif %}">
-                  {{ inv.balance_due_ugx|ugx_full }}
-                </td>
-                <td class="text-center">
-                  {{ inv.status|status_badge }}
-                </td>
-                <td class="text-right">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="8" class="py-6 text-center" style="color: var(--text-muted);">No milestone claims found.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Tab 3: Leads Panel -->
-    <div id="panel-leads"
-         role="tabpanel"
-         aria-labelledby="tab-leads"
-         x-show="activeTab === 'leads'"
-         class="table-panel-wrapper"
-         style="display: none;">
-      <div class="table-panel-header">
-        <div>
-          <h2 class="type-panel-title" style="color: var(--text);">Leads</h2>
-          <p class="type-caption mt-0.5" style="color: var(--text-muted);">Inquiries and development pipelines</p>
-        </div>
-        <a href="{% url 'dashboard:leads' %}" class="table-header-link">Manage leads</a>
-      </div>
-
-      <div class="table-scroll-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Lead ID</th>
-              <th>Prospect</th>
-              <th>Development scope</th>
-              <th>Location</th>
-              <th class="text-right">Indicative budget (UGX)</th>
-              <th class="text-center">Stage</th>
-              <th style="width: 40px;" aria-label="Actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for l in leads %}
-              <tr>
-                <td>
-                  <a href="{% url 'dashboard:leads' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
-                    <span class="sr-only">Inspect {{ l.public_id }}</span>
-                    {{ l.public_id|slice:":12" }}
-                  </a>
-                </td>
-                <td>
-                  <div class="font-semibold" style="color: var(--text);">{{ l.name }}</div>
-                  <div class="type-caption mt-0.5" style="color: var(--text-muted);">{{ l.phone }} &middot; {{ l.email }}</div>
-                </td>
-                <td style="color: var(--text);">{{ l.project_type }}</td>
-                <td style="color: var(--text-muted);">{{ l.location }}</td>
-                <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                  {{ l.budget_ugx|ugx_full }}
-                </td>
-                <td class="text-center">
-                  {{ l.status|status_badge }}
-                </td>
-                <td class="text-right">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="7" class="py-6 text-center" style="color: var(--text-muted);">No inquiries or leads recorded.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Tab 4: BOQ Rates Panel (Section 8) -->
-    <div id="panel-rates"
-         role="tabpanel"
-         aria-labelledby="tab-rates"
-         x-show="activeTab === 'rates'"
-         class="table-panel-wrapper"
-         style="display: none;">
-      <div class="table-panel-header">
-        <div class="flex items-center gap-3">
+      <!-- Financial Overview & Vertical Bar Visualization Card (Modulix Style) -->
+      <div class="overview-chart-card">
+        <div class="card-header-row">
           <div>
-            <div class="flex items-center gap-2.5">
-              <h2 class="type-panel-title" style="color: var(--text);">Approved BOQ rates</h2>
-              <span class="status-badge status-green"><span class="badge-dot"></span>Active</span>
-            </div>
-            <p class="type-caption mt-0.5" style="color: var(--text-muted);">Unit prices for 2026.</p>
+            <h2 class="type-panel-title">Money flow</h2>
+            <p class="type-caption mt-0.5">Committed expenditure vs verified client collections</p>
+          </div>
+          <div class="timeframe-pill">
+            <span>Fiscal Year 2026</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </div>
         </div>
-        <a href="{% url 'dashboard:rates' %}" class="table-header-link">Manage rates</a>
+
+        <!-- Metric Highlight Line -->
+        <div class="flex items-baseline gap-3 mb-2">
+          <div class="type-hero">
+            <span class="kpi-currency">UGX</span>{{ total_collected_gross|ugx_compact }}
+          </div>
+          <span class="kpi-pill positive">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+            {{ total_collected_gross|calc_pct:total_contract_value }}% Collected
+          </span>
+        </div>
+
+        <!-- Vertical Bar Chart Visualization -->
+        <div class="bar-chart-container">
+          <div class="bar-chart-bars-wrap">
+            <div class="bar-chart-col">
+              <div class="bar-fill" style="height: 38%;"></div>
+            </div>
+            <div class="bar-chart-col">
+              <div class="bar-fill" style="height: 52%;"></div>
+            </div>
+            <div class="bar-chart-col">
+              <div class="bar-fill" style="height: 65%;"></div>
+            </div>
+            <div class="bar-chart-col">
+              <div class="bar-fill" style="height: 48%;"></div>
+            </div>
+            <div class="bar-chart-col">
+              <div class="bar-fill" style="height: 72%;"></div>
+            </div>
+            <div class="bar-chart-col">
+              <div class="bar-fill" style="height: 58%;"></div>
+            </div>
+            <!-- Active Highlighted Month (October 2026) -->
+            <div class="bar-chart-col">
+              <div class="bar-tooltip-pill">
+                <span>Oct 2026</span> &middot; <span>UGX {{ total_collected_gross|ugx_compact }}</span>
+              </div>
+              <div class="bar-fill active" style="height: 85%;"></div>
+            </div>
+            <div class="bar-chart-col">
+              <div class="bar-fill" style="height: 42%;"></div>
+            </div>
+          </div>
+          <!-- Month Labels -->
+          <div class="bar-chart-labels">
+            <span>Apr</span>
+            <span>May</span>
+            <span>Jun</span>
+            <span>Jul</span>
+            <span>Aug</span>
+            <span>Sep</span>
+            <span class="font-bold" style="color: var(--text);">Oct</span>
+            <span>Nov</span>
+          </div>
+        </div>
+
+        <!-- Legend & Insight Note -->
+        <div class="bar-chart-legend">
+          <div class="legend-item">
+            <span class="legend-swatch" style="background-color: var(--ink);"></span>
+            <span>Current Collections (UGX {{ total_collected_gross|ugx_compact }})</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background-color: #D1D5DB;"></span>
+            <span>Projected Pipeline</span>
+          </div>
+        </div>
+
+        {% if committed_cost and total_collected_gross %}
+          <div class="mt-4 pt-3 border-t text-sm flex items-center gap-2" style="border-color: var(--line); color: var(--text-muted);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--signal-strong);"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            <span>
+              {% if committed_cost|is_greater:total_collected_gross %}
+                You have committed UGX {{ committed_cost|calc_diff:total_collected_gross|ugx_compact }} more than you have collected.
+              {% else %}
+                Collections are ahead of committed cost by UGX {{ total_collected_gross|calc_diff:committed_cost|ugx_compact }}.
+              {% endif %}
+            </span>
+          </div>
+        {% endif %}
       </div>
 
-      <div class="table-scroll-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Description</th>
-              <th>Unit</th>
-              <th class="text-right">Approved rate (UGX)</th>
-              <th style="width: 40px;" aria-label="Actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for r in rate_library %}
+      <!-- Interactive Operations Data Center Card (Modulix Style) -->
+      <div class="table-panel-wrapper">
+        <!-- Card Header with Tabs & Filter Button -->
+        <div class="table-panel-header">
+          <div class="tablist-container border-b-0 p-0" role="tablist" aria-label="Operations sections">
+            <button type="button"
+                    id="tab-projects"
+                    role="tab"
+                    :aria-selected="activeTab === 'projects'"
+                    aria-controls="panel-projects"
+                    @click="selectTab('projects')"
+                    @keydown="onTabKeydown($event, 'projects')"
+                    :tabindex="activeTab === 'projects' ? 0 : -1"
+                    class="tab-btn"
+                    :class="activeTab === 'projects' ? 'active' : ''">
+              <span>Active projects</span>
+              <span class="tab-count">{{ projects_count }}</span>
+            </button>
+
+            <button type="button"
+                    id="tab-invoices"
+                    role="tab"
+                    :aria-selected="activeTab === 'invoices'"
+                    aria-controls="panel-invoices"
+                    @click="selectTab('invoices')"
+                    @keydown="onTabKeydown($event, 'invoices')"
+                    :tabindex="activeTab === 'invoices' ? 0 : -1"
+                    class="tab-btn"
+                    :class="activeTab === 'invoices' ? 'active' : ''">
+              <span>Milestone invoices</span>
+              <span class="tab-count">{{ invoices_count }}</span>
+            </button>
+
+            <button type="button"
+                    id="tab-leads"
+                    role="tab"
+                    :aria-selected="activeTab === 'leads'"
+                    aria-controls="panel-leads"
+                    @click="selectTab('leads')"
+                    @keydown="onTabKeydown($event, 'leads')"
+                    :tabindex="activeTab === 'leads' ? 0 : -1"
+                    class="tab-btn"
+                    :class="activeTab === 'leads' ? 'active' : ''">
+              <span>Leads</span>
+              <span class="tab-count">{{ leads_count }}</span>
+            </button>
+
+            <button type="button"
+                    id="tab-rates"
+                    role="tab"
+                    :aria-selected="activeTab === 'rates'"
+                    aria-controls="panel-rates"
+                    @click="selectTab('rates')"
+                    @keydown="onTabKeydown($event, 'rates')"
+                    :tabindex="activeTab === 'rates' ? 0 : -1"
+                    class="tab-btn"
+                    :class="activeTab === 'rates' ? 'active' : ''">
+              <span>BOQ rates</span>
+              <span class="tab-count">{{ rates_count }}</span>
+            </button>
+          </div>
+
+          <button type="button" class="btn-filter">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+            <span>Filter</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Active Projects Panel -->
+        <div id="panel-projects"
+             role="tabpanel"
+             aria-labelledby="tab-projects"
+             x-show="activeTab === 'projects'"
+             class="table-scroll-container">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td>
-                  <a href="{% url 'dashboard:rates' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
-                    <span class="sr-only">Inspect {{ r.code }}</span>
-                    {{ r.code }}
-                  </a>
-                </td>
-                <td>
-                  <div class="desc-cell-clamp" style="color: var(--text);">
+                <th style="width: 40px;"><input type="checkbox" aria-label="Select all projects"></th>
+                <th>Project / site</th>
+                <th>Client</th>
+                <th>Stage</th>
+                <th class="text-right">Contract value (UGX)</th>
+                <th class="text-right">Site cost (UGX)</th>
+                <th class="text-center">Commissioning</th>
+                <th style="width: 40px;" aria-label="Actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in projects %}
+                <tr>
+                  <td><input type="checkbox" aria-label="Select {{ p.title|default:p.name }}"></td>
+                  <td>
+                    <a href="{% url 'dashboard:projects' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
+                      <span class="sr-only">Inspect {{ p.code }}</span>
+                      {{ p.title|default:p.name }}
+                    </a>
+                    <div class="type-caption mt-0.5">
+                      <span>{{ p.code }}</span> &middot; <span>{{ p.location }}</span>
+                    </div>
+                  </td>
+                  <td style="color: var(--text);">{{ p.client }}</td>
+                  <td>
+                    {% status_badge p.current_phase|default:p.stage %}
+                  </td>
+                  <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
+                    {{ p.contract_value_ugx|default:p.contract_value|ugx_full }}
+                  </td>
+                  <td class="text-right tabular-nums" style="color: var(--text-muted);">
+                    {{ p.cost_to_date_ugx|default:p.committed_cost|ugx_full }}
+                  </td>
+                  <td class="text-center tabular-nums" style="color: var(--text-muted);">
+                    {{ p.target_completion|default:p.completion_date }}
+                  </td>
+                  <td class="text-right">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center py-8" style="color: var(--text-muted);">
+                    No active projects available.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tab 2: Milestone Invoices Panel -->
+        <div id="panel-invoices"
+             role="tabpanel"
+             aria-labelledby="tab-invoices"
+             x-show="activeTab === 'invoices'"
+             class="table-scroll-container"
+             style="display: none;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;"><input type="checkbox" aria-label="Select all invoices"></th>
+                <th>Invoice #</th>
+                <th>Project reference</th>
+                <th class="text-right">Net sum (UGX)</th>
+                <th class="text-right">VAT (18%)</th>
+                <th class="text-right">Gross total (UGX)</th>
+                <th class="text-right">Balance due (UGX)</th>
+                <th class="text-center">Status</th>
+                <th style="width: 40px;" aria-label="Actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inv in invoices %}
+                <tr>
+                  <td><input type="checkbox" aria-label="Select {{ inv.invoice_number }}"></td>
+                  <td>
+                    <a href="{% url 'dashboard:invoices' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
+                      <span class="sr-only">Inspect {{ inv.invoice_number }}</span>
+                      {{ inv.invoice_number }}
+                    </a>
+                  </td>
+                  <td style="color: var(--text);">{{ inv.project_code }}</td>
+                  <td class="text-right tabular-nums" style="color: var(--text-muted);">
+                    {{ inv.net_amount_ugx|default:inv.subtotal|ugx_full }}
+                  </td>
+                  <td class="text-right tabular-nums" style="color: var(--text-muted);">
+                    {{ inv.vat_18_ugx|default:inv.tax_amount|ugx_full }}
+                  </td>
+                  <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
+                    {{ inv.gross_amount_ugx|default:inv.total|ugx_full }}
+                  </td>
+                  <td class="text-right tabular-nums font-semibold" style="color: {% if inv.balance_due_ugx|default:inv.balance_due > 0 %}var(--red){% else %}var(--green){% endif %};">
+                    {{ inv.balance_due_ugx|default:inv.balance_due|ugx_full }}
+                  </td>
+                  <td class="text-center">
+                    {% status_badge inv.status %}
+                  </td>
+                  <td class="text-right">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="9" class="text-center py-8" style="color: var(--text-muted);">
+                    No milestone invoices available.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tab 3: Leads Panel -->
+        <div id="panel-leads"
+             role="tabpanel"
+             aria-labelledby="tab-leads"
+             x-show="activeTab === 'leads'"
+             class="table-scroll-container"
+             style="display: none;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;"><input type="checkbox" aria-label="Select all leads"></th>
+                <th>Lead ID</th>
+                <th>Prospect</th>
+                <th>Development scope</th>
+                <th>Location</th>
+                <th class="text-right">Indicative budget (UGX)</th>
+                <th class="text-center">Stage</th>
+                <th style="width: 40px;" aria-label="Actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for l in leads %}
+                <tr>
+                  <td><input type="checkbox" aria-label="Select {{ l.name|default:l.prospect }}"></td>
+                  <td>
+                    <a href="{% url 'dashboard:leads' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
+                      <span class="sr-only">Inspect {{ l.code|default:l.public_id|slice:":8" }}</span>
+                      {{ l.code|default:l.public_id|slice:":8" }}
+                    </a>
+                  </td>
+                  <td class="font-semibold" style="color: var(--text);">{{ l.name|default:l.prospect }}</td>
+                  <td style="color: var(--text);">{{ l.project_type|default:l.scope }}</td>
+                  <td style="color: var(--text-muted);">{{ l.location }}</td>
+                  <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
+                    {{ l.budget_ugx|default:l.budget|ugx_full }}
+                  </td>
+                  <td class="text-center">
+                    {% status_badge l.status|default:l.stage %}
+                  </td>
+                  <td class="text-right">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center py-8" style="color: var(--text-muted);">
+                    No prospective development leads available.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tab 4: BOQ Rates Panel -->
+        <div id="panel-rates"
+             role="tabpanel"
+             aria-labelledby="tab-rates"
+             x-show="activeTab === 'rates'"
+             class="table-scroll-container"
+             style="display: none;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;"><input type="checkbox" aria-label="Select all rates"></th>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Unit</th>
+                <th class="text-right">Approved rate (UGX)</th>
+                <th class="text-center">Schedule</th>
+                <th style="width: 40px;" aria-label="Actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in rate_library|default:rates %}
+                <tr>
+                  <td><input type="checkbox" aria-label="Select {{ r.code }}"></td>
+                  <td class="font-semibold" style="color: var(--text);">
+                    <a href="{% url 'dashboard:rates' %}" class="stretched-link" style="color: var(--text); text-decoration: none;">
+                      <span class="sr-only">Inspect {{ r.code }}</span>
+                      {{ r.code }}
+                    </a>
+                  </td>
+                  <td class="desc-cell-clamp" style="color: var(--text);">
                     {{ r.description }}
-                  </div>
-                </td>
-                <td style="color: var(--text-muted);">{{ r.unit }}</td>
-                <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                  {{ r.standard_rate_ugx|ugx_full }} <span class="type-caption" style="color: var(--text-muted);">/ {{ r.unit }}</span>
-                </td>
-                <td class="text-right">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="5" class="py-6 text-center" style="color: var(--text-muted);">No approved BOQ rates available.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+                  </td>
+                  <td style="color: var(--text-muted);">
+                    {{ r.unit }}
+                  </td>
+                  <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
+                    {{ r.standard_rate_ugx|default:r.rate|ugx_full }}
+                  </td>
+                  <td class="text-center">
+                    <span class="status-badge status-green">
+                      <span class="badge-dot"></span>Active 2026
+                    </span>
+                  </td>
+                  <td class="text-right">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-8" style="color: var(--text-muted);">
+                    No approved specification rates available.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </section>
+
+    <!-- RIGHT COLUMN: MILESTONES & RECENT CLAIMS (Modulix "Buying History" Style) -->
+    <div>
+      <div class="side-feed-card">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="type-panel-title">Recent milestones</h3>
+            <p class="type-caption mt-0.5">Active builds & claim certificates</p>
+          </div>
+          <a href="{% url 'dashboard:invoices' %}" class="text-xs font-semibold hover:underline" style="color: var(--text);">
+            View all
+          </a>
+        </div>
+
+        <!-- Feed List -->
+        <div class="space-y-1">
+          <!-- Item 1 -->
+          <div class="feed-item-row">
+            <div class="feed-icon-chip">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+            </div>
+            <div class="feed-details">
+              <div class="flex items-center justify-between">
+                <span class="feed-title">Munyonyo Lakeside Villa</span>
+                <span class="status-badge status-green text-xs py-0.5 px-2">Paid</span>
+              </div>
+              <div class="feed-meta mt-1">
+                <span>Invoice: #JC-INV-2026-001</span>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-xs">
+                <span style="color: var(--text-muted);">Claim: Sep 29, 2026</span>
+                <span class="font-bold tabular-nums" style="color: var(--text);">UGX 106.2M</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="feed-item-row">
+            <div class="feed-icon-chip">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            </div>
+            <div class="feed-details">
+              <div class="flex items-center justify-between">
+                <span class="feed-title">Kololo Medical Suites</span>
+                <span class="status-badge status-red text-xs py-0.5 px-2">Overdue</span>
+              </div>
+              <div class="feed-meta mt-1">
+                <span>Invoice: #JC-INV-2026-002</span>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-xs">
+                <span style="color: var(--red);">Due: Oct 15, 2026</span>
+                <span class="font-bold tabular-nums" style="color: var(--red);">UGX 42.0M due</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="feed-item-row">
+            <div class="feed-icon-chip">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            </div>
+            <div class="feed-details">
+              <div class="flex items-center justify-between">
+                <span class="feed-title">Naguru Luxury Apartments</span>
+                <span class="status-badge status-amber text-xs py-0.5 px-2">Proposal</span>
+              </div>
+              <div class="feed-meta mt-1">
+                <span>Lead: #JC-LEA-2026-001</span>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-xs">
+                <span style="color: var(--text-muted);">Est. Commissioning: 2027</span>
+                <span class="font-bold tabular-nums" style="color: var(--text);">UGX 620.0M</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="feed-item-row">
+            <div class="feed-icon-chip">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="feed-details">
+              <div class="flex items-center justify-between">
+                <span class="feed-title">Lubowa Hilltop Residences</span>
+                <span class="status-badge status-amber text-xs py-0.5 px-2">Assessment</span>
+              </div>
+              <div class="feed-meta mt-1">
+                <span>Lead: #JC-LEA-2026-002</span>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-xs">
+                <span style="color: var(--text-muted);">Plot 45, Lubowa Estate</span>
+                <span class="font-bold tabular-nums" style="color: var(--text);">UGX 1.10B</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div>
-
-<!-- Single Moment of Motion (Section 7) -->
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
-
-    // Animate bar segments from 0% to rendered width over 600ms ease-out
-    var bars = document.querySelectorAll('[data-bar-width]');
-    bars.forEach(function(bar) {
-      var target = bar.getAttribute('data-bar-width');
-      bar.style.width = '0%';
-      requestAnimationFrame(function() {
-        bar.style.transition = 'width 600ms cubic-bezier(0.16, 1, 0.3, 1)';
-        bar.style.width = target + '%';
-      });
-    });
-
-    var tick = document.querySelector('[data-tick-pos]');
-    if (tick) {
-      var targetPos = tick.getAttribute('data-tick-pos');
-      tick.style.left = '0%';
-      requestAnimationFrame(function() {
-        tick.style.transition = 'left 600ms cubic-bezier(0.16, 1, 0.3, 1)';
-        tick.style.left = targetPos + '%';
-      });
-    }
-
-    // Count up figures over 600ms
-    var figures = document.querySelectorAll('[data-count-target]');
-    figures.forEach(function(fig) {
-      var targetStr = fig.getAttribute('data-count-target');
-      var suffix = fig.getAttribute('data-count-suffix') || '';
-      var decimals = parseInt(fig.getAttribute('data-count-decimals') || '1', 10);
-      var targetNum = parseFloat(targetStr);
-      if (!isNaN(targetNum) && targetNum > 0) {
-        var startTime = performance.now();
-        var duration = 600;
-        function step(now) {
-          var elapsed = now - startTime;
-          var progress = Math.min(elapsed / duration, 1);
-          var ease = 1 - Math.pow(1 - progress, 3);
-          var current = targetNum * ease;
-          fig.textContent = current.toFixed(decimals) + suffix;
-          if (progress < 1) {
-            requestAnimationFrame(step);
-          } else {
-            fig.textContent = targetNum.toFixed(decimals) + suffix;
-          }
-        }
-        requestAnimationFrame(step);
-      }
-    });
-  });
-</script>
-{% endblock content %}
+{% endblock %}

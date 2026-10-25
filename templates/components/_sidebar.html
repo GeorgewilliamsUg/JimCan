@@ -1,6 +1,6 @@
 {% load static dashboard_tags %}
 {% is_debug as debug_mode %}
-<!-- Bespoke Enterprise Sidebar (Section 5) -->
+<!-- Bespoke Modulix-Inspired Clean Light Sidebar -->
 <aside id="app-sidebar"
        class="app-sidebar flex flex-col h-full flex-shrink-0"
        :class="{
@@ -12,21 +12,22 @@
        aria-label="Main navigation">
 
   <!-- Sidebar Brand Header -->
-  <div class="h-16 flex items-center border-b flex-shrink-0 px-4"
-       style="border-color: var(--line-on-dark);"
+  <div class="sidebar-brand-header flex items-center justify-between"
        :class="sidebarMode === 'collapsed' ? 'justify-center' : 'justify-between'">
     <a href="{% url 'dashboard:overview' %}" class="flex items-center gap-3 no-underline" :class="sidebarMode === 'collapsed' ? 'justify-center' : ''">
-      <img src="{% static 'img/favicon/logo.png' %}" alt="Jimcan logo" class="h-8 w-8 object-contain">
+      <div class="sidebar-logo-icon-box">
+        <img src="{% static 'img/favicon/logo.png' %}" alt="Jimcan" class="h-6 w-6 object-contain">
+      </div>
       <div class="flex flex-col" x-show="sidebarMode === 'expanded'">
-        <span class="font-display text-base font-semibold" style="color: var(--text-on-dark); line-height: 1.1;">Jimcan</span>
-        <span style="font-size: 13px; line-height: 18px; color: var(--text-muted-on-dark); font-family: var(--font-body);">Operations</span>
+        <span class="font-display text-base font-bold" style="color: var(--text); line-height: 1.1;">Jimcan</span>
+        <span style="font-size: 12px; line-height: 16px; color: var(--text-muted); font-family: var(--font-body);">Operations</span>
       </div>
     </a>
 
     <!-- Mobile Drawer Close Button (Below 1024px Only) -->
     <button type="button"
             class="lg:hidden p-1.5 rounded"
-            style="color: var(--text-muted-on-dark); background: transparent; border: none; cursor: pointer;"
+            style="color: var(--text-muted); background: transparent; border: none; cursor: pointer;"
             @click="sidebarDrawerOpen = false"
             aria-label="Close navigation drawer">
       <i data-lucide="x" class="w-5 h-5"></i>
@@ -34,13 +35,12 @@
   </div>
 
   <!-- Navigation Items Region -->
-  <div class="flex-1 overflow-y-auto py-4 px-2 space-y-4">
-    <!-- Operational Items -->
+  <div class="flex-1 overflow-y-auto py-5 px-3 space-y-6">
+    <!-- Main Menu Group -->
     <div>
       <div x-show="sidebarMode === 'expanded'"
-           class="px-3 pb-1"
-           style="font-size: 13px; color: var(--text-muted-on-dark); font-family: var(--font-body);">
-        Operations
+           class="nav-section-title">
+        MAIN MENU
       </div>
       <div class="space-y-1">
         {% for item in operational_nav %}
@@ -62,13 +62,12 @@
       </div>
     </div>
 
-    <!-- Administration Items -->
+    <!-- Administration Group -->
     {% if admin_nav %}
-      <div style="border-top: 1px solid var(--line-on-dark); padding-top: var(--s3);">
+      <div style="border-top: 1px solid var(--line); padding-top: var(--s4);">
         <div x-show="sidebarMode === 'expanded'"
-             class="px-3 pb-1"
-             style="font-size: 13px; color: var(--text-muted-on-dark); font-family: var(--font-body);">
-          Administration
+             class="nav-section-title">
+          SETTING
         </div>
         <div class="space-y-1">
           {% for item in admin_nav %}
@@ -94,8 +93,8 @@
     {% endif %}
   </div>
 
-  <!-- Exactly One Sidebar Toggle Button (Desktop & Drawer bottom, directly above user block) -->
-  <div class="px-2 pb-2">
+  <!-- Single Sidebar Toggle Button -->
+  <div class="px-3 pb-2">
     <button type="button"
             id="sidebar-toggle"
             class="sidebar-toggle-btn"
@@ -106,7 +105,7 @@
             :aria-label="sidebarMode === 'collapsed' ? 'Expand sidebar' : 'Collapse sidebar'">
       <div class="nav-icon-box">
         <i data-lucide="panel-left-close"
-           class="w-5 h-5 transition-transform duration-200"
+           class="w-4 h-4 transition-transform duration-200"
            :class="sidebarMode === 'collapsed' ? 'rotate-180' : ''"></i>
       </div>
       <span x-show="sidebarMode === 'expanded'">Collapse</span>
@@ -114,7 +113,7 @@
   </div>
 
   <!-- User Block (Bottom of Sidebar) -->
-  <div class="p-2 border-t" style="border-color: var(--line-on-dark);">
+  <div class="p-3 border-t" style="border-color: var(--line);">
     {% include "components/_user_menu.html" %}
   </div>
 

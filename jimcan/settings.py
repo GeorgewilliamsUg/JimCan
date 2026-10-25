@@ -69,6 +69,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'dashboard.context_processors.navigation_context',
             ],
+            'libraries': {
+                'dashboard_tags': 'dashboard.templatetags.dashboard_tags',
+            },
         },
     },
 ]

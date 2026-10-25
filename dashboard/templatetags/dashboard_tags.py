@@ -248,3 +248,8 @@ def status_badge(status_raw):
         variant = 'status-neutral'
         
     return mark_safe(f'<span class="status-badge {variant}"><span class="badge-dot"></span>{label}</span>')
+
+@register.simple_tag(name='status_badge')
+def status_badge_tag(status_raw):
+    return status_badge(status_raw)
+

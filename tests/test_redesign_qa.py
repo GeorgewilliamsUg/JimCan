@@ -37,7 +37,7 @@ class RedesignQATest(TestCase):
         # Verify sidebar and shell
         self.assertIn('id="app-sidebar"', content)
         self.assertIn('id="sidebar-toggle"', content)
-        self.assertIn('Good ', content) # greeting
+        self.assertTrue('Welcome' in content or 'Good ' in content) # greeting
 
     def test_projects_and_invoices_render_inside_new_shell(self):
         # Projects page
