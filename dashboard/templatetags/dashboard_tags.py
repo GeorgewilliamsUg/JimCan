@@ -175,6 +175,38 @@ def time_greeting():
     else:
         return "Good evening"
 
+@register.simple_tag
+def is_debug():
+    """Returns settings.DEBUG boolean."""
+    from django.conf import settings
+    return bool(getattr(settings, 'DEBUG', False))
+
+@register.filter(name='sentence_case')
+def sentence_case(text):
+    """
+    Converts text to sentence case while preserving acronyms like BOQ, URA, UGX, etc.
+    e.g. 'Tax & Reports' -> 'Tax & reports'
+         'BOQ & Rates' -> 'BOQ & rates'
+         'Audit Log' -> 'Audit log'
+         'Site Uploads' -> 'Site uploads'
+    """
+    if not text:
+        return ''
+    words = str(text).split(' ')
+    if not words:
+        return ''
+    out = []
+    for i, w in enumerate(words):
+        if w.upper() in ('BOQ', 'URA', 'UGX', 'VAT', 'EFRIS', 'P0', 'P1', 'ID', 'TIN'):
+            out.append(w.upper())
+        elif i == 0:
+            out.append(w.capitalize())
+        elif w == '&':
+            out.append('&')
+        else:
+            out.append(w.lower())
+    return ' '.join(out)
+
 @register.filter(name='status_badge')
 def status_badge(status_raw):
     """

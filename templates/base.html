@@ -19,10 +19,21 @@
   <meta name="apple-mobile-web-app-title" content="Jimcan">
   <meta name="application-name" content="Jimcan Operations">
 
-  <!-- Consistent Modern Font Pair: Plus Jakarta Sans (Headings/Display) & Inter (Body/UI) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Preload Self-Hosted Fonts (Section 4) -->
+  <link rel="preload" href="{% static 'fonts/archivo-latin-wdth-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{% static 'fonts/public-sans-latin-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+
+  <!-- Prevent Flash of Uncollapsed/Expanded Sidebar (Section 5) -->
+  <script>
+    (function() {
+      try {
+        var stored = localStorage.getItem('jimcan.sidebar');
+        var width = window.innerWidth;
+        var initial = (stored === 'expanded' || stored === 'collapsed') ? stored : (width >= 1280 ? 'expanded' : (width >= 1024 ? 'collapsed' : 'expanded'));
+        document.documentElement.setAttribute('data-sidebar', initial);
+      } catch (e) {}
+    })();
+  </script>
 
   <!-- Core Progressive Libraries (TRD Section 4) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -31,45 +42,16 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
-            display: ['"Plus Jakarta Sans"', '"Inter"', 'system-ui', 'sans-serif'],
-            mono: ['"Inter"', 'system-ui', 'sans-serif'], // Redirect mono to Inter with tabular-nums so no mono font is used
+            sans: ['"Public Sans Variable"', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['"Archivo Variable"', 'system-ui', 'sans-serif'],
+            body: ['"Public Sans Variable"', 'system-ui', 'sans-serif'],
           },
           colors: {
-            charcoal: '#1A1A1A',
-            slate: {
-              400: '#94A3B8',
-              500: '#64748B',
-              600: '#475569',
-              700: '#334155',
-              800: '#1E293B',
-              900: '#0F172A',
-              950: '#020617',
-            },
-            crimson: '#DC2626',
-            hairline: '#E2E8F0',
-            brand: {
-              charcoal: '#16181C',
-              graphite: '#23262C',
-              steel: '#3A3F47',
-              safety: '#F26A1B',
-              'safety-hover': '#D95B12',
-              brass: '#B8914A',
-              'brass-light': '#EFE6D2',
-              'brass-dark': '#6E5420',
-              bone: '#F4F1EA',
-              line: '#E3DED3',
-              muted: '#6B7380',
-              go: '#3E8E5A',
-              'go-light': '#EAF5EE',
-              danger: '#B23A3A',
-              'danger-light': '#FDF2F2',
-            }
-          },
-          boxShadow: {
-            'soft': '0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.03)',
-            'card': '0 4px 14px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04)',
-            'elevated': '0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03)',
+            ink: 'var(--ink)',
+            concrete: 'var(--concrete)',
+            paper: 'var(--paper)',
+            brass: 'var(--brass)',
+            signal: 'var(--signal-strong)',
           }
         },
       },
@@ -77,23 +59,32 @@
   </script>
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
   <script src="https://unpkg.com/lucide@latest" defer></script>
 
-  <!-- Base stylesheet for tokens, CSS variables, and accessibility -->
+  <!-- Base stylesheet and tokens -->
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'css/redesign.css' %}">
 
   {% block extra_head %}{% endblock %}
 </head>
 <body x-data="{ 
-        sidebarOpen: false, 
-        sidebarCollapsed: localStorage.getItem('jimcan_sidebar_collapsed') === 'true',
-        toggleSidebarCollapse() {
-          this.sidebarCollapsed = !this.sidebarCollapsed;
-          localStorage.setItem('jimcan_sidebar_collapsed', this.sidebarCollapsed);
+        sidebarMode: (function() {
+          try {
+            var stored = localStorage.getItem('jimcan.sidebar');
+            if (stored === 'expanded' || stored === 'collapsed') return stored;
+          } catch(e) {}
+          return window.innerWidth >= 1280 ? 'expanded' : (window.innerWidth >= 1024 ? 'collapsed' : 'expanded');
+        })(),
+        sidebarDrawerOpen: false,
+        toggleSidebar() {
+          this.sidebarMode = (this.sidebarMode === 'collapsed' ? 'expanded' : 'collapsed');
+          try {
+            localStorage.setItem('jimcan.sidebar', this.sidebarMode);
+            document.documentElement.setAttribute('data-sidebar', this.sidebarMode);
+          } catch(e) {}
           this.$nextTick(() => { if (window.lucide) window.lucide.createIcons(); });
         },
-        mobileNav: false,
         toastMessage: '', 
         toastType: 'success',
         showToast(msg, type = 'success') {
@@ -103,9 +94,10 @@
         }
       }" 
       @show-toast.window="showToast($event.detail.message, $event.detail.type || 'success')"
-      @keydown.escape.window="sidebarOpen = false"
+      @keydown.escape.window="sidebarDrawerOpen = false"
       hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-      class="h-full bg-slate-50/70 antialiased text-slate-800 font-sans selection:bg-amber-500/20 selection:text-amber-900">
+      class="h-full antialiased font-body"
+      style="background-color: var(--concrete); color: var(--text);">
 
   <!-- Accessible Skip Link (WCAG 2.1 AA) -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -128,7 +120,7 @@
            'bg-amber-600 text-white': toastType === 'warning',
            'bg-blue-600 text-white': toastType === 'info'
          }"
-         class="px-4 py-3 rounded-xl shadow-card font-medium flex items-center gap-3 border border-white/10"
+         class="px-4 py-3 rounded-xl font-medium flex items-center gap-3 border border-white/10"
          style="display: none;"
          role="status">
       <div class="flex items-center gap-2">
@@ -151,35 +143,35 @@
   </div>
 
 {% block app_shell %}
-  <!-- Enterprise Full-Viewport Application Shell -->
-  <div class="h-screen w-full flex overflow-hidden bg-slate-50/70 antialiased text-slate-900">
+  <!-- Enterprise Full-Viewport Application Shell (Section 5) -->
+  <div class="app-layout">
     
-    <!-- Mobile Drawer Backdrop (z-40) -->
-    <div x-show="sidebarOpen" 
-         x-transition:enter="transition-opacity ease-linear duration-300"
+    <!-- Mobile Drawer Backdrop (Below 1024px Only) -->
+    <div x-show="sidebarDrawerOpen" 
+         x-transition:enter="transition-opacity ease-linear duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave="transition-opacity ease-linear duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         @click="sidebarOpen = false"
-         class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 md:hidden"
+         @click="sidebarDrawerOpen = false"
+         class="drawer-backdrop lg:hidden"
          style="display: none;"
          aria-hidden="true"></div>
 
-    <!-- Fixed Desktop & Off-Canvas Mobile Sidebar (Semantic Landmark: role="navigation") -->
-    <div class="contents" role="navigation" aria-label="Main Navigation">
+    <!-- Semantic Landmark: role="navigation" -->
+    <div class="contents" role="navigation" aria-label="Main navigation">
       {% include "components/_sidebar.html" %}
     </div>
 
-    <!-- Main Content Column -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <!-- Top Enterprise Header -->
+    <!-- Main Canvas Area -->
+    <div class="main-canvas-area">
+      <!-- Minimal Mobile Top Bar (Below 1024px Only) -->
       {% include "components/_header.html" %}
 
       <!-- Independently Scrollable Canvas -->
       <main role="main" id="main-content" class="flex-1 overflow-y-auto focus:outline-none" tabindex="-1">
-        <div class="p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <div class="main-content-wrapper">
           {% block content %}{% endblock %}
         </div>
       </main>
