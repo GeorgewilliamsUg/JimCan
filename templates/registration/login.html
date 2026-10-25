@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In · Jimcan Operations{% endblock %}
+
+{% block app_shell %}
+<div class="min-h-screen bg-bone flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8"
+     x-data="{ 
+       showPassword: false, 
+       capsLockOn: false,
+       submitting: false,
+       checkCaps(e) {
+         if (e && e.getModifierState) {
+           this.capsLockOn = e.getModifierState('CapsLock');
+         }
+       }
+     }">
+  
+  <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
+    <!-- Brand Header -->
+    <div class="flex items-center justify-center gap-3 mb-2">
+      <span class="w-10 h-10 rounded-lg bg-safety text-white flex items-center justify-center font-display text-2xl font-bold tracking-tight shadow-sm">
+        J
+      </span>
+      <div class="text-left">
+        <span class="font-display text-2xl font-bold tracking-wide text-charcoal block leading-none">JIMCAN</span>
+        <span class="text-[11px] font-mono text-muted tracking-widest uppercase">Operations Dashboard</span>
+      </div>
+    </div>
+    <p class="text-xs text-muted mt-2">
+      Authorized personnel and contractor portal
+    </p>
+  </div>
+
+  <div class="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="card p-6 sm:p-8 shadow-sm border border-line bg-white rounded-xl">
+      
+      <!-- Session Expiration or Next Banner -->
+      {% if request.GET.expired %}
+        <div class="mb-5 p-3.5 rounded-lg bg-brass-light/60 border border-brass text-brass-dark text-xs flex items-start gap-2.5" role="alert">
+          <i data-lucide="clock" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+          <div>
+            <strong class="font-bold">Session Expired:</strong> Your secure session ended due to inactivity. Please sign in to resume.
+          </div>
+        </div>
+      {% elif next and next != '/' %}
+        <div class="mb-5 p-3 rounded-lg bg-bone border border-line text-xs text-muted flex items-center gap-2">
+          <i data-lucide="lock" class="w-4 h-4 text-safety flex-shrink-0"></i>
+          <span>Please sign in to access <strong class="text-charcoal font-mono">{{ next }}</strong></span>
+        </div>
+      {% endif %}
+
+      <!-- Generic Authentication Error Banner -->
+      {% if form.errors %}
+        <div class="mb-5 p-3.5 rounded-lg bg-danger-light border border-danger text-danger text-xs flex items-start gap-2.5" role="alert">
+          <i data-lucide="alert-octagon" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+          <div>
+            <strong class="font-bold">Authentication failed:</strong>
+            <p class="mt-0.5">Invalid username or password. Please verify your credentials and try again.</p>
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}" @submit="submitting = true" class="space-y-5" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+        <!-- Username Input -->
+        <div class="form-group mb-0">
+          <label for="id_username" class="form-label text-xs uppercase tracking-wider text-charcoal font-bold flex items-center justify-between">
+            <span>Username or Email</span>
+            <span class="text-[11px] font-normal text-muted lowercase">required</span>
+          </label>
+          <div class="relative mt-1">
+            <input type="text"
+                   name="username"
+                   id="id_username"
+                   autocomplete="username"
+                   required
+                   autofocus
+                   value="{{ form.username.value|default:'' }}"
+                   placeholder="e.g. j.mugisha"
+                   class="form-control text-sm pr-10 {% if form.errors %}is-invalid{% endif %}">
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-muted">
+              <i data-lucide="user" class="w-4 h-4"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password Input with Show/Hide and Caps Lock Detection -->
+        <div class="form-group mb-0">
+          <div class="flex items-center justify-between mb-1">
+            <label for="id_password" class="form-label text-xs uppercase tracking-wider text-charcoal font-bold mb-0">
+              Password
+            </label>
+            <a href="{% url 'password_reset' %}" class="text-xs text-muted hover:text-safety transition font-medium">
+              Forgot password?
+            </a>
+          </div>
+          
+          <div class="relative">
+            <input :type="showPassword ? 'text' : 'password'"
+                   name="password"
+                   id="id_password"
+                   autocomplete="current-password"
+                   required
+                   placeholder="••••••••••••"
+                   @keyup="checkCaps($event)"
+                   @keydown="checkCaps($event)"
+                   class="form-control text-sm pr-11 {% if form.errors %}is-invalid{% endif %}">
+            
+            <!-- Show/Hide Toggle Button -->
+            <button type="button" 
+                    @click="showPassword = !showPassword"
+                    :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted hover:text-charcoal transition"
+                    tabindex="0">
+              <template x-if="!showPassword">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </template>
+              <template x-if="showPassword">
+                <i data-lucide="eye-off" class="w-4 h-4 text-safety"></i>
+              </template>
+            </button>
+          </div>
+
+          <!-- Dynamic Caps Lock Warning Badge -->
+          <div x-show="capsLockOn" 
+               x-transition:enter="transition ease-out duration-150"
+               x-transition:enter-start="opacity-0 -translate-y-1"
+               x-transition:enter-end="opacity-100 translate-y-0"
+               class="mt-2 p-2 rounded bg-brass-light border border-brass text-brass-dark text-xs flex items-center gap-2"
+               style="display: none;"
+               role="status"
+               aria-live="polite">
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-brass-dark flex-shrink-0"></i>
+            <span class="font-semibold">Caps Lock is ON</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+          <button type="submit" 
+                  :disabled="submitting"
+                  class="btn btn-primary w-full text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
+            <template x-if="!submitting">
+              <span class="flex items-center gap-2">
+                <i data-lucide="log-in" class="w-4 h-4"></i>
+                <span>Sign In</span>
+              </span>
+            </template>
+            <template x-if="submitting">
+              <span class="flex items-center gap-2">
+                <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span>Authenticating...</span>
+              </span>
+            </template>
+          </button>
+        </div>
+      </form>
+
+      <!-- System Notice -->
+      <div class="mt-6 pt-5 border-t border-line text-center text-[11px] text-muted space-y-1">
+        <p>This system is strictly invite-only. New accounts must be provisioned by an Administrator.</p>
+        <p class="font-mono text-[10px] text-steel">Jimcan Engineering & Operations Platform · EAT (UTC+3)</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock app_shell %}

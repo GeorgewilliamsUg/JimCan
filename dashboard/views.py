@@ -1,0 +1,284 @@
+"""
+View handlers for Jimcan Operations Dashboard.
+Implements Phase 1 Shell & Feedback views, role-based access checks,
+HTMX trigger endpoints, and branded error boundaries.
+"""
+
+import json
+from django.shortcuts import render
+from django.http import JsonResponse, HttpResponse
+from django.core.exceptions import PermissionDenied
+
+# Role permissions map according to docs/design/roles-permissions.md & navigation.py
+ROLE_PERMISSIONS = {
+    'overview': ['admin', 'manager'],
+    'leads': ['admin', 'manager'],
+    'projects': ['admin', 'manager', 'engineer', 'accountant'],
+    'rates': ['admin', 'manager', 'accountant'],
+    'invoices': ['admin', 'manager', 'accountant'],
+    'expenses': ['admin', 'manager', 'engineer', 'accountant'],
+    'tax': ['admin', 'accountant'],
+    'files': ['admin', 'manager', 'engineer'],
+    'styleguide': ['admin', 'manager', 'engineer', 'accountant'],
+    'shell_demo': ['admin', 'manager', 'engineer', 'accountant'],
+    'settings': ['admin'],
+    'audit': ['admin'],
+}
+
+def _get_active_role(request):
+    """Retrieves current active role from session or request user."""
+    role = request.GET.get('role')
+    if role:
+        request.session['active_role'] = role.lower()
+    current_role = request.session.get('active_role')
+    if not current_role:
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            current_role = getattr(request.user, 'role', 'admin')
+        else:
+            current_role = 'admin'
+    return current_role.lower()
+
+def _check_permission(request, section_id):
+    """Verifies if the current user role is allowed in this section."""
+    current_role = _get_active_role(request)
+    allowed = ROLE_PERMISSIONS.get(section_id, ['admin'])
+    return current_role in allowed
+
+def overview_view(request):
+    """Landing overview view."""
+    if not _check_permission(request, 'overview'):
+        return render(request, '403.html', status=403)
+    context = {
+        'page_title': 'Operational Overview',
+        'is_phase_zero': False,
+    }
+    return render(request, 'styleguide/showroom.html', context)
+
+def styleguide_view(request):
+    """Style Guide and Atomic Showroom (Phase 0)."""
+    context = {
+        'page_title': 'Design System Showroom',
+    }
+    return render(request, 'styleguide/showroom.html', context)
+
+def shell_demo_view(request):
+    """
+    Phase 1 Interactive Showroom:
+    Demonstrates role-aware navigation, toast triggers, confirmation modals,
+    session timeout warning, and error boundaries.
+    """
+    context = {
+        'page_title': 'Shell & Feedback Showroom',
+    }
+    return render(request, 'dashboard/shell_demo.html', context)
+
+# Section Placeholders with Phase 1 Navigation Integration
+def leads_view(request):
+    if not _check_permission(request, 'leads'):
+        return render(request, '403.html', status=403)
+    return render(request, 'dashboard/section_placeholder.html', {
+        'page_title': 'Commercial Leads',
+        'section_name': 'Leads & Inquiries',
+        'phase_num': 'Phase 5',
+        'description': 'Tracking client inquiries, site visit bookings, and commercial quoting pipeline.',
+    })
+
+def projects_view(request):
+    if not _check_permission(request, 'projects'):
+        return render(request, '403.html', status=403)
+    return render(request, 'dashboard/section_placeholder.html', {
+        'page_title': 'Projects & Builds',
+        'section_name': 'Active Construction Builds',
+        'phase_num': 'Phase 6',
+        'description': 'Field milestones, site allocations, daily progress logs, and client sign-offs.',
+    })
+
+def rates_view(request):
+    if not _check_permission(request, 'rates'):
+        return render(request, '403.html', status=403)
+    return render(request, 'dashboard/section_placeholder.html', {
+        'page_title': 'BOQ Master Rates',
+        'section_name': 'Bill of Quantities & Material Rates',
+        'phase_num': 'Phase 7',
+        'description': 'Unit rate cards, standard labor schedules, and construction material catalogs.',
+    })
+
+def invoices_view(request):
+    if not _check_permission(request, 'invoices'):
+        return render(request, '403.html', status=403)
+    return render(request, 'dashboard/section_placeholder.html', {
+        'page_title': 'Invoices & Billing',
+        'section_name': 'Client Invoices & Milestone Claims',
+        'phase_num': 'Phase 8',
+        'description': 'Milestone billing, payment tracking, withholding tax certificates, and PDF invoices.',
+    })
+
+def expenses_view(request):
+    if not _check_permission(request, 'expenses'):
+        return render(request, '403.html', status=403)
+    return render(request, 'dashboard/section_placeholder.html', {
+        'page_title': 'Project Expenses',
+        'section_name': 'Material & Labor Cost Tracking',
+        'phase_num': 'Phase 9',
+        'description': 'Cash vouchers, supplier payments, machine hire, and sub-contractor disbursements.',
+    })
+
+def tax_view(request):
+    if not _check_permission(request, 'tax'):
+        return render(request, '403.html', status=403)
+    return render(request, 'dashboard/section_placeholder.html', {
+        'page_title': 'URA Tax & Financials',
+        'section_name': 'URA VAT & Withholding Tax Reports',
+        'phase_num': 'Phase 10',
+        'description': 'Monthly VAT returns, WHT declarations, and EFRIS fiscal reconciliations.',
+    })
+
+def files_view(request):
+    if not _check_permission(request, 'files'):
+        return render(request, '403.html', status=403)
+    return render(request, 'dashboard/section_placeholder.html', {
+        'page_title': 'Site Uploads & Media',
+        'section_name': 'Field Site Photos & Architectural Drawings',
+        'phase_num': 'Phase 11',
+        'description': 'Mobile camera site captures, GPS-stamped progress photos, and contract attachments.',
+    })
+
+def settings_view(request):
+    if not _check_permission(request, 'settings'):
+        return render(request, '403.html', status=403)
+    return setup_checklist_view(request)
+
+def setup_checklist_view(request):
+    """
+    S-95 Admin Setup Checklist Scaffolding (Phase 2).
+    Renders the initialization steps required before operating the system,
+    with zero unmigrated database model dependencies.
+    """
+    if not _check_permission(request, 'settings'):
+        return render(request, '403.html', status=403)
+
+    checklist_sections = [
+        {
+            'category': 'Organization & Branding (S-93)',
+            'icon': 'building-2',
+            'items': [
+                {'id': 'org_profile', 'title': 'Company Legal Profile', 'desc': 'Jimcan legal name, registered address, phone, and contact email.', 'status': 'completed', 'status_label': 'Ready'},
+                {'id': 'org_tin', 'title': 'URA Tax Identification Number (TIN)', 'desc': '10-digit URA registration for formal tax compliance.', 'status': 'completed', 'status_label': 'Ready'},
+                {'id': 'org_logo', 'title': 'Document Header & Print Branding', 'desc': 'High-resolution logo for client invoices, quotes, and BOQ exports.', 'status': 'pending', 'status_label': 'Pending'},
+            ]
+        },
+        {
+            'category': 'Tax & Calculation Rules (S-94)',
+            'icon': 'calculator',
+            'items': [
+                {'id': 'tax_vat', 'title': 'Standard VAT Rate (18%)', 'desc': 'Applicable to taxable commercial construction supplies in Uganda.', 'status': 'completed', 'status_label': 'Default 18%'},
+                {'id': 'tax_wht', 'title': 'Withholding Tax (WHT 6%)', 'desc': 'Contractor withholding rate on eligible invoice payments.', 'status': 'completed', 'status_label': 'Default 6%'},
+                {'id': 'tax_currency', 'title': 'Operational Currency (UGX)', 'desc': 'Ugandan Shilling configured as system-wide base currency.', 'status': 'completed', 'status_label': 'UGX Fixed'},
+            ]
+        },
+        {
+            'category': 'Document Numbering Sequences (S-95)',
+            'icon': 'hash',
+            'items': [
+                {'id': 'seq_inv', 'title': 'Invoice Sequence Counter', 'desc': 'Prefix: JC-INV-2026- | Current next number: 001', 'status': 'completed', 'status_label': 'Configured'},
+                {'id': 'seq_quo', 'title': 'Quotation / Estimate Sequence', 'desc': 'Prefix: JC-QUO-2026- | Current next number: 001', 'status': 'completed', 'status_label': 'Configured'},
+                {'id': 'seq_prj', 'title': 'Project Code Format', 'desc': 'Prefix: JC-PRJ- | Current next number: 101', 'status': 'completed', 'status_label': 'Configured'},
+            ]
+        },
+        {
+            'category': 'BOQ Master Rates & Units (S-50)',
+            'icon': 'notebook-tabs',
+            'items': [
+                {'id': 'rate_units', 'title': 'Standard Measurement Units', 'desc': 'Meters (m), Square Meters (m²), Cubic Meters (m³), Kilograms (kg), Bags.', 'status': 'completed', 'status_label': 'Loaded'},
+                {'id': 'rate_base', 'title': 'Core Material Master Rates', 'desc': 'Cement, aggregates, rebar, sand, timber, and masonry unit costs.', 'status': 'pending', 'status_label': 'Phase 7'},
+            ]
+        },
+        {
+            'category': 'Initial Team & Role Permissions (S-96)',
+            'icon': 'users',
+            'items': [
+                {'id': 'users_admin', 'title': 'Primary Administrator Account', 'desc': 'Full company view, system settings, and audit visibility.', 'status': 'completed', 'status_label': 'Active'},
+                {'id': 'users_manager', 'title': 'Project Manager Onboarding', 'desc': 'Site supervision, milestone tracking, and commercial quotations.', 'status': 'pending', 'status_label': 'Pending Invite'},
+                {'id': 'users_engineer', 'title': 'Site Engineer Mobile Accounts', 'desc': 'Field execution view, daily progress logs, and site upload queue.', 'status': 'pending', 'status_label': 'Pending Invite'},
+                {'id': 'users_accountant', 'title': 'Accountant Compliance Account', 'desc': 'Financial oversight, tax declarations, and expense disbursements.', 'status': 'pending', 'status_label': 'Pending Invite'},
+            ]
+        },
+    ]
+
+    context = {
+        'page_title': 'Admin Setup Checklist',
+        'sections': checklist_sections,
+        'completed_count': 9,
+        'total_count': 14,
+        'progress_percent': 64,
+    }
+    return render(request, 'accounts/setup_checklist.html', context)
+
+def audit_view(request):
+    if not _check_permission(request, 'audit'):
+        return render(request, '403.html', status=403)
+    return render(request, 'dashboard/section_placeholder.html', {
+        'page_title': 'Audit Trail',
+        'section_name': 'Security & Compliance Activity Log',
+        'phase_num': 'Phase 13',
+        'description': 'Immutable ledger of user actions, financial approvals, and permission updates.',
+    })
+
+from django.views.decorators.csrf import csrf_exempt
+
+# API Endpoints
+def api_heartbeat_view(request):
+    """Lightweight session heartbeat ping."""
+    return JsonResponse({'status': 'alive', 'authenticated': True})
+
+@csrf_exempt
+def api_test_toast_view(request):
+    """
+    HTMX test endpoint demonstrating server-triggered toasts via HX-Trigger header.
+    """
+    response = HttpResponse('', content_type='text/html')
+    trigger_data = {
+        'showToast': {
+            'message': 'Server-side HTMX notification triggered successfully!',
+            'type': 'success'
+        }
+    }
+    response['HX-Trigger'] = json.dumps(trigger_data)
+    return response
+
+@csrf_exempt
+def api_test_htmx_401(request):
+    """Simulates an expired session or unauthenticated request on an HTMX endpoint."""
+    return HttpResponse('Unauthorized: Session expired', status=401)
+
+@csrf_exempt
+def api_test_htmx_403(request):
+    """Simulates a permission denied response on an HTMX endpoint."""
+    return HttpResponse('Forbidden: Access Denied', status=403)
+
+
+# Error Boundary Simulators
+def test_403_view(request):
+    return render(request, '403.html', status=403)
+
+def test_404_view(request):
+    return render(request, '404.html', status=404)
+
+def test_500_view(request):
+    return render(request, '500.html', status=500)
+
+def test_400_view(request):
+    return render(request, '400.html', status=400)
+
+# Django Error Handlers
+def error_400_view(request, exception=None, reason=""):
+    return render(request, '400.html', status=400)
+
+def error_403_view(request, exception=None):
+    return render(request, '403.html', status=403)
+
+def error_404_view(request, exception=None):
+    return render(request, '404.html', status=404)
+
+def error_500_view(request):
+    return render(request, '500.html', status=500)

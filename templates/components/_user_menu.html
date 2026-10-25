@@ -1,0 +1,68 @@
+<!-- User Profile & Session Menu (Enterprise Refactored) -->
+<div x-data="{ userMenuOpen: false, roleSwitcherOpen: false }" class="relative">
+  <button @click="userMenuOpen = !userMenuOpen" 
+          @keydown.escape="userMenuOpen = false"
+          class="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 text-left text-xs transition-colors border border-transparent hover:border-slate-200"
+          aria-haspopup="true" 
+          :aria-expanded="userMenuOpen">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="w-8 h-8 rounded-full bg-slate-900 text-white font-mono font-bold flex items-center justify-center flex-shrink-0 text-xs shadow-sm">
+        {{ request.user.username|default:"G"|slice:":1"|upper }}
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="font-bold text-slate-900 truncate">{{ request.user.username|default:"George" }}</div>
+        <div class="text-[11px] font-mono text-slate-500 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+          <span>{{ current_role_display }}</span>
+        </div>
+      </div>
+    </div>
+    <i data-lucide="chevrons-up-down" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+  </button>
+
+  <!-- Dropdown Menu -->
+  <div x-show="userMenuOpen" 
+       @click.away="userMenuOpen = false"
+       x-transition:enter="transition ease-out duration-150"
+       x-transition:enter-start="opacity-0 transform scale-95 -translate-y-2"
+       x-transition:enter-end="opacity-100 transform scale-100 translate-y-0"
+       x-transition:leave="transition ease-in duration-100"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-slate-200 rounded-lg shadow-xl p-1.5 space-y-1 z-50 text-xs"
+       style="display: none;">
+    
+    <!-- Role Switcher -->
+    <div class="px-2.5 py-1.5 text-[10px] font-mono uppercase text-slate-400 tracking-wider border-b border-slate-100 font-semibold">
+      Active Role
+    </div>
+    {% for r_code, r_label in all_roles %}
+      <a href="?role={{ r_code }}" 
+         class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors {% if current_role == r_code %}font-bold text-blue-700 bg-blue-50{% endif %}">
+        <span>{{ r_label }}</span>
+        {% if current_role == r_code %}<i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i>{% endif %}
+      </a>
+    {% endfor %}
+
+    <div class="border-t border-slate-100 my-1"></div>
+
+    <a href="{% url 'dashboard:shell_demo' %}" class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+      <i data-lucide="sliders" class="w-3.5 h-3.5 text-slate-400"></i>
+      <span>Shell Demo & Tests</span>
+    </a>
+
+    <a href="{% url 'password_change' %}" class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+      <i data-lucide="key-round" class="w-3.5 h-3.5 text-slate-400"></i>
+      <span>Change Password</span>
+    </a>
+
+    <!-- POST Logout Form -->
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-red-600 hover:bg-red-50 text-left transition-colors font-medium">
+        <i data-lucide="log-out" class="w-3.5 h-3.5 text-red-500"></i>
+        <span>Sign Out</span>
+      </button>
+    </form>
+  </div>
+</div>

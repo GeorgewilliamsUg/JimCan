@@ -1,0 +1,69 @@
+<!-- Reusable Native Confirmation & Destructive Dialog (pp.md Phase 1 §9) -->
+<div x-data="{ 
+       confirmOpen: false, 
+       confirmTitle: '', 
+       confirmMessage: '', 
+       confirmActionLabel: 'Confirm', 
+       isDestructive: false,
+       callbackEvent: '' 
+     }"
+     @open-confirm.window="
+       confirmTitle = $event.detail.title || 'Please Confirm';
+       confirmMessage = $event.detail.message || 'Are you sure you want to proceed?';
+       confirmActionLabel = $event.detail.actionLabel || 'Confirm';
+       isDestructive = $event.detail.isDestructive || false;
+       callbackEvent = $event.detail.callbackEvent || '';
+       confirmOpen = true;
+       $nextTick(() => { $refs.cancelBtn.focus(); });
+     "
+     @keydown.escape.window="confirmOpen = false"
+     class="relative">
+
+  <!-- Modal Backdrop & Window -->
+  <div x-show="confirmOpen" 
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-charcoal/75 backdrop-blur-sm"
+       style="display: none;"
+       role="dialog"
+       aria-modal="true"
+       :aria-labelledby="$id('confirm-title')">
+    
+    <div class="bg-white rounded-lg border border-line max-w-md w-full p-6 space-y-4 shadow-2xl"
+         @click.away="confirmOpen = false">
+      
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+             :class="isDestructive ? 'bg-danger-light text-danger' : 'bg-brass-light text-brass-dark'">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 :id="$id('confirm-title')" class="font-bold text-lg text-charcoal" x-text="confirmTitle"></h3>
+          <p class="text-sm text-muted mt-1" x-text="confirmMessage"></p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-line">
+        <button type="button" 
+                x-refs="cancelBtn"
+                class="btn btn-secondary text-sm" 
+                @click="confirmOpen = false">
+          Cancel
+        </button>
+        <button type="button" 
+                class="btn text-sm font-bold"
+                :class="isDestructive ? 'btn-danger' : 'btn-primary'"
+                @click="
+                  confirmOpen = false;
+                  if (callbackEvent) $dispatch(callbackEvent);
+                " 
+                x-text="confirmActionLabel">
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

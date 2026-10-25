@@ -1,0 +1,130 @@
+{
+  "currency": "UGX",
+  "company": {
+    "name": "Jimcan Construction Ltd",
+    "tin": "1002345678",
+    "location": "Plot 14, Jinja Road, Kampala, Uganda",
+    "phone": "+256 772 100 200",
+    "email": "operations@jimcanconstruction.site"
+  },
+  "leads": [
+    {
+      "public_id": "4a71d80c-7b0b-4bfe-85d7-e81e3a101b01",
+      "name": "Dr. Sarah Namukasa",
+      "phone": "+256 701 456 789",
+      "email": "s.namukasa@hospital.co.ug",
+      "project_type": "Residential Villa",
+      "location": "Munyonyo, Kampala",
+      "budget_ugx": 450000000,
+      "status": "won",
+      "created_at": "2026-10-10T08:30:00Z"
+    },
+    {
+      "public_id": "8c22f51b-3d12-4c90-951b-f72a4b202c02",
+      "name": "Apex Healthcare Properties Ltd",
+      "phone": "+256 772 987 654",
+      "email": "procurement@apexhealth.ug",
+      "project_type": "Commercial Clinic",
+      "location": "Kololo, Kampala",
+      "budget_ugx": 890000000,
+      "status": "quoted",
+      "created_at": "2026-10-15T11:15:00Z"
+    },
+    {
+      "public_id": "d133e92c-4e23-4da1-a62c-a83b5c303d03",
+      "name": "Eng. Patrick Kato",
+      "phone": "+256 752 333 444",
+      "email": "pkato@buildcon.com",
+      "project_type": "Warehouse Facility",
+      "location": "Namanve Industrial Park",
+      "budget_ugx": 1250000000,
+      "status": "site_visit",
+      "created_at": "2026-10-20T14:45:00Z"
+    },
+    {
+      "public_id": "e444f03d-5f34-4eb2-b73d-b94c6d404e04",
+      "name": "Grace Akello (Awkward Long Name Character Handling Test)",
+      "phone": "+256 782 555 666",
+      "email": "grace.akello.very.long.domain.name@ministry.gov.ug",
+      "project_type": "Residential Extension",
+      "location": "Entebbe, Wakiso",
+      "budget_ugx": 85000000,
+      "status": "new",
+      "created_at": "2026-10-24T09:00:00Z"
+    }
+  ],
+  "projects": [
+    {
+      "public_id": "b111a01e-1a01-4aa1-801a-c111d111e101",
+      "code": "JC-PRJ-2026-001",
+      "title": "Munyonyo Lakeside Villa",
+      "client": "Dr. Sarah Namukasa",
+      "location": "Plot 88, Munyonyo Rise, Kampala",
+      "current_phase": "foundation",
+      "contract_value_ugx": 450000000,
+      "cost_to_date_ugx": 124500000,
+      "start_date": "2026-09-01",
+      "target_completion": "2027-03-31"
+    },
+    {
+      "public_id": "c222b02f-2b02-4bb2-902b-d222e222f202",
+      "code": "JC-PRJ-2026-002",
+      "title": "Kololo Medical Suites",
+      "client": "Apex Healthcare Properties Ltd",
+      "location": "Plot 12, Wampewo Avenue, Kololo",
+      "current_phase": "superstructure",
+      "contract_value_ugx": 890000000,
+      "cost_to_date_ugx": 410200000,
+      "start_date": "2026-06-15",
+      "target_completion": "2027-01-15"
+    }
+  ],
+  "rate_library": [
+    {
+      "code": "RT-CON-01",
+      "description": "Concrete Grade 25 in reinforced foundations and columns",
+      "unit": "m³",
+      "standard_rate_ugx": 420000
+    },
+    {
+      "code": "RT-STL-02",
+      "description": "High yield deformed steel reinforcement bars Y12 to Y25",
+      "unit": "kg",
+      "standard_rate_ugx": 5800
+    },
+    {
+      "code": "RT-EXC-03",
+      "description": "Mechanical excavation in normal soil not exceeding 2.0m depth",
+      "unit": "m³",
+      "standard_rate_ugx": 28000
+    },
+    {
+      "code": "RT-BLK-04",
+      "description": "200mm solid precast concrete blockwork in cement-sand mortar 1:3",
+      "unit": "m²",
+      "standard_rate_ugx": 65000
+    }
+  ],
+  "sample_invoices": [
+    {
+      "invoice_number": "JC-INV-2026-001",
+      "project_code": "JC-PRJ-2026-001",
+      "net_amount_ugx": 90000000,
+      "vat_18_ugx": 16200000,
+      "gross_amount_ugx": 106200000,
+      "paid_amount_ugx": 106200000,
+      "balance_due_ugx": 0,
+      "status": "paid"
+    },
+    {
+      "invoice_number": "JC-INV-2026-002",
+      "project_code": "JC-PRJ-2026-002",
+      "net_amount_ugx": 120000000,
+      "vat_18_ugx": 21600000,
+      "gross_amount_ugx": 141600000,
+      "paid_amount_ugx": 99600000,
+      "balance_due_ugx": 42000000,
+      "status": "partially_paid"
+    }
+  ]
+}

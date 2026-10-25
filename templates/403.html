@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Access Restricted (403) · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center py-12">
+  <div class="card max-w-lg w-full text-center p-8 space-y-6">
+    <div class="w-16 h-16 rounded-full bg-danger-light text-danger flex items-center justify-center mx-auto">
+      <i data-lucide="shield-alert" class="w-8 h-8"></i>
+    </div>
+    
+    <div>
+      <div class="font-mono text-xs font-bold text-danger uppercase tracking-widest mb-1">HTTP 403 · Permission Denied</div>
+      <h1 class="text-3xl font-display font-bold text-charcoal">Access Restricted</h1>
+      <p class="text-muted text-sm mt-2">
+        Your current user role (<strong class="text-charcoal">{{ current_role_display }}</strong>) does not have authorization to view or edit this operational section.
+      </p>
+    </div>
+
+    <div class="p-4 bg-bone rounded-lg border border-line text-xs text-left text-muted space-y-1">
+      <div class="font-semibold text-charcoal">Security Policy:</div>
+      <div>• Site Engineers are restricted from commercial margins, pricing, and financial statements.</div>
+      <div>• If your operational duties require access, contact your Managing Director.</div>
+    </div>
+
+    <div class="flex items-center justify-center gap-3 pt-2">
+      <a href="{% url 'dashboard:overview' %}" class="btn btn-primary">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Return to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

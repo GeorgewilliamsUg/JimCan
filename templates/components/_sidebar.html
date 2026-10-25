@@ -1,0 +1,81 @@
+<!-- Enterprise Desktop & Mobile Responsive Sidebar -->
+<aside class="fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 border-r border-slate-200 bg-white flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0"
+       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+       role="navigation" 
+       aria-label="Main Navigation">
+
+  <!-- Brand Area -->
+  <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 flex-shrink-0">
+    <a href="{% url 'dashboard:overview' %}" class="flex items-center gap-3 no-underline group">
+      <div class="w-9 h-9 rounded-lg bg-orange-600 text-white font-bold flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-105">
+        J
+      </div>
+      <div class="flex flex-col">
+        <span class="font-bold text-base tracking-tight text-slate-900 leading-none">JIMCAN</span>
+        <span class="text-[10px] font-mono font-medium tracking-wider text-slate-400 uppercase mt-0.5">Operations</span>
+      </div>
+    </a>
+    <button type="button" 
+            class="md:hidden p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            @click="sidebarOpen = false"
+            aria-label="Close sidebar">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <!-- Navigation Scrollable Region -->
+  <div class="flex-1 overflow-y-auto py-4 space-y-6">
+    <!-- Operational Navigation Group -->
+    <div>
+      <div class="px-6 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        Operations
+      </div>
+      <nav class="space-y-0.5" aria-label="Operations Navigation">
+        {% for item in operational_nav %}
+          <a href="{% url item.url_name %}" 
+             class="flex items-center px-3 py-2.5 mx-3 my-1 rounded-md text-sm font-medium transition-colors {% if item.is_active %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}"
+             {% if item.is_active %}aria-current="page"{% endif %}>
+            <i data-lucide="{{ item.icon }}" class="w-5 h-5 mr-3 flex-shrink-0 {% if item.is_active %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}"></i>
+            <span class="truncate">{{ item.name }}</span>
+            {% if item.badge %}
+              <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold {% if item.badge == 'P0' or item.badge == 'P1' %}bg-slate-100 text-slate-600{% else %}bg-orange-50 text-orange-700 font-bold{% endif %}">
+                {{ item.badge }}
+              </span>
+            {% endif %}
+          </a>
+        {% empty %}
+          <div class="px-6 py-2 text-xs text-slate-400 italic">No operational tools assigned.</div>
+        {% endfor %}
+      </nav>
+    </div>
+
+    <!-- Administrative Navigation Group (Role Filtered) -->
+    {% if admin_nav %}
+      <div>
+        <div class="px-6 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          Administration
+        </div>
+        <nav class="space-y-0.5" aria-label="Administration Navigation">
+          {% for item in admin_nav %}
+            <a href="{% url item.url_name %}" 
+               class="flex items-center px-3 py-2.5 mx-3 my-1 rounded-md text-sm font-medium transition-colors {% if item.is_active %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}"
+               {% if item.is_active %}aria-current="page"{% endif %}>
+              <i data-lucide="{{ item.icon }}" class="w-5 h-5 mr-3 flex-shrink-0 {% if item.is_active %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
+              <span class="truncate">{{ item.name }}</span>
+              {% if item.badge %}
+                <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                  {{ item.badge }}
+                </span>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </nav>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar Footer User Menu -->
+  <div class="p-4 border-t border-slate-200 flex-shrink-0">
+    {% include "components/_user_menu.html" %}
+  </div>
+</aside>

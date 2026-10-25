@@ -1,0 +1,39 @@
+<!-- Reusable Page Header Component (pp.md Phase 1 §4) -->
+<header class="border-b border-line pb-6 mb-8">
+  {% if breadcrumbs %}
+    <nav aria-label="Breadcrumbs" class="mb-2">
+      <ol class="flex items-center gap-1.5 text-xs text-muted font-medium">
+        <li>
+          <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1">
+            <i data-lucide="home" class="w-3.5 h-3.5"></i>
+            <span>Home</span>
+          </a>
+        </li>
+        {% for crumb in breadcrumbs %}
+          <li class="flex items-center gap-1.5">
+            <span class="text-steel">/</span>
+            {% if crumb.url %}
+              <a href="{{ crumb.url }}" class="hover:text-charcoal">{{ crumb.label }}</a>
+            {% else %}
+              <span class="text-charcoal font-semibold" aria-current="page">{{ crumb.label }}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ol>
+    </nav>
+  {% endif %}
+
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-charcoal tracking-tight">{{ title }}</h1>
+      {% if subtitle %}
+        <p class="text-muted text-sm mt-1">{{ subtitle }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Action Slot (Primary Action on Right) -->
+    <div class="flex items-center gap-3 flex-wrap">
+      {% block header_actions %}{% endblock %}
+    </div>
+  </div>
+</header>

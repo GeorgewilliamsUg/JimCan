@@ -1,0 +1,122 @@
+<!-- Session Timeout Warning & Draft Recovery Modal (pp.md Phase 1 §12) -->
+<div x-data="{
+       timeoutWarning: false,
+       secondsLeft: 60,
+       timerInterval: null,
+       hasDraft: false,
+       init() {
+         // Check if a restored draft exists in sessionStorage
+         this.hasDraft = !!sessionStorage.getItem('jimcan_form_draft');
+         
+         // In production: Idle warning triggers at 59 minutes (3540 seconds)
+         // For demo/testing: Window event 'trigger-session-warning' can force trigger
+         window.addEventListener('trigger-session-warning', () => this.showWarning());
+       },
+       showWarning() {
+         // Auto-serialize current active form inputs to prevent data loss
+         this.saveDraft();
+         this.secondsLeft = 60;
+         this.timeoutWarning = true;
+         clearInterval(this.timerInterval);
+         this.timerInterval = setInterval(() => {
+           this.secondsLeft--;
+           if (this.secondsLeft <= 0) {
+             clearInterval(this.timerInterval);
+             window.location.href = '/login/?expired=1';
+           }
+         }, 1000);
+       },
+       keepAlive() {
+         clearInterval(this.timerInterval);
+         this.timeoutWarning = false;
+         // Send heartbeat ping to server via HTMX or fetch
+         fetch('/api/heartbeat/', { method: 'GET' }).catch(() => {});
+         this.$dispatch('show-toast', { message: 'Session extended successfully.', type: 'success' });
+       },
+       saveDraft() {
+         const activeForm = Array.from(document.querySelectorAll('form')).find(f => !f.action.includes('logout'));
+         if (activeForm) {
+           const formData = {};
+           new FormData(activeForm).forEach((val, key) => {
+             if (key !== 'csrfmiddlewaretoken') formData[key] = val;
+           });
+           sessionStorage.setItem('jimcan_form_draft', JSON.stringify({
+             url: window.location.pathname,
+             data: formData,
+             timestamp: new Date().toISOString()
+           }));
+           this.hasDraft = true;
+         }
+       },
+       restoreDraft() {
+         const draftRaw = sessionStorage.getItem('jimcan_form_draft');
+         if (!draftRaw) return;
+         const draft = JSON.parse(draftRaw);
+         const activeForm = Array.from(document.querySelectorAll('form')).find(f => !f.action.includes('logout'));
+         if (activeForm && draft.data) {
+           Object.entries(draft.data).forEach(([key, val]) => {
+             const input = activeForm.elements[key];
+             if (input) input.value = val;
+           });
+           sessionStorage.removeItem('jimcan_form_draft');
+           this.hasDraft = false;
+           this.$dispatch('show-toast', { message: 'Draft restored into form.', type: 'success' });
+         }
+       }
+     }"
+     class="relative">
+
+  <!-- Session Warning Modal (Highest z-index: z-70) -->
+  <div x-show="timeoutWarning" 
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-md"
+       style="display: none;"
+       role="alertdialog"
+       aria-modal="true"
+       aria-labelledby="session-warning-title">
+    
+    <div class="bg-white rounded-lg border-2 border-safety max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-orange-100 text-safety flex items-center justify-center flex-shrink-0">
+          <i data-lucide="clock" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 id="session-warning-title" class="font-bold text-lg text-charcoal">Session Expiring Soon</h3>
+          <p class="text-xs text-muted">Inactivity detected on this device.</p>
+        </div>
+      </div>
+
+      <p class="text-sm text-charcoal">
+        Your secure session will terminate in 
+        <strong class="font-mono text-safety text-lg" x-text="secondsLeft"></strong> seconds. 
+        Your current form inputs have been saved to local draft storage.
+      </p>
+
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-line">
+        <a href="/login/" class="btn btn-secondary text-xs">Sign Out Now</a>
+        <button type="button" class="btn btn-primary text-xs font-bold" @click="keepAlive()">
+          Continue Working
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Draft Restoration Banner (Appears if an unsaved draft exists) -->
+  <div x-show="hasDraft" 
+       class="mb-6 p-4 bg-brass-light/40 border border-brass rounded-lg flex items-center justify-between gap-4 text-xs">
+    <div class="flex items-center gap-2.5 text-brass-dark">
+      <i data-lucide="save" class="w-4 h-4 flex-shrink-0"></i>
+      <span>An unsaved form draft from a previous session was found.</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button type="button" class="btn btn-secondary text-xs py-1 px-3 min-h-0" @click="restoreDraft()">
+        Restore Draft
+      </button>
+      <button type="button" class="text-muted hover:text-charcoal p-1" @click="sessionStorage.removeItem('jimcan_form_draft'); hasDraft = false;">
+        &times;
+      </button>
+    </div>
+  </div>
+</div>

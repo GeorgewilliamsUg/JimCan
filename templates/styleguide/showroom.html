@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Design System & Style Guide Showroom{% endblock %}
+
+{% block content %}
+<div class="space-y-12">
+  <!-- Page Header -->
+  <div class="border-b border-line pb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-display font-bold text-charcoal">Design System Showroom</h1>
+        <p class="text-muted text-sm mt-1">Interactive component catalog, token verification, and UI states for Phase 0.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="chip chip-won">Phase 0 Foundation</span>
+        <button class="btn btn-secondary" onclick="window.print()">
+          <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Print Guide
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 1: Color Tokens -->
+  <section class="space-y-4">
+    <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+      <i data-lucide="palette" class="w-5 h-5 text-safety"></i>
+      1. Color Palette Tokens
+    </h2>
+    <p class="text-muted text-sm">Defined in <code class="font-mono text-xs bg-bone px-1 py-0.5 rounded">tailwind.config.js</code> and calibrated for WCAG 2.1 AA contrast compliance.</p>
+    
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div class="card p-3 space-y-2">
+        <div class="h-16 rounded-md bg-charcoal"></div>
+        <div>
+          <div class="font-bold text-xs">charcoal</div>
+          <div class="font-mono text-[11px] text-muted">#16181C</div>
+        </div>
+      </div>
+      <div class="card p-3 space-y-2">
+        <div class="h-16 rounded-md bg-graphite"></div>
+        <div>
+          <div class="font-bold text-xs">graphite</div>
+          <div class="font-mono text-[11px] text-muted">#23262C</div>
+        </div>
+      </div>
+      <div class="card p-3 space-y-2">
+        <div class="h-16 rounded-md bg-steel"></div>
+        <div>
+          <div class="font-bold text-xs">steel</div>
+          <div class="font-mono text-[11px] text-muted">#3A3F47</div>
+        </div>
+      </div>
+      <div class="card p-3 space-y-2">
+        <div class="h-16 rounded-md bg-safety"></div>
+        <div>
+          <div class="font-bold text-xs">safety</div>
+          <div class="font-mono text-[11px] text-muted">#F26A1B</div>
+        </div>
+      </div>
+      <div class="card p-3 space-y-2">
+        <div class="h-16 rounded-md bg-brass"></div>
+        <div>
+          <div class="font-bold text-xs">brass</div>
+          <div class="font-mono text-[11px] text-muted">#B8914A</div>
+        </div>
+      </div>
+      <div class="card p-3 space-y-2">
+        <div class="h-16 rounded-md bg-bone border border-line"></div>
+        <div>
+          <div class="font-bold text-xs">bone (canvas)</div>
+          <div class="font-mono text-[11px] text-muted">#F4F1EA</div>
+        </div>
+      </div>
+      <div class="card p-3 space-y-2">
+        <div class="h-16 rounded-md bg-go"></div>
+        <div>
+          <div class="font-bold text-xs">go (green)</div>
+          <div class="font-mono text-[11px] text-muted">#3E8E5A</div>
+        </div>
+      </div>
+      <div class="card p-3 space-y-2">
+        <div class="h-16 rounded-md bg-danger"></div>
+        <div>
+          <div class="font-bold text-xs">danger (red)</div>
+          <div class="font-mono text-[11px] text-muted">#B23A3A</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Typography & Figures -->
+  <section class="space-y-4">
+    <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+      <i data-lucide="type" class="w-5 h-5 text-safety"></i>
+      2. Typography & Monetary Figures
+    </h2>
+    <div class="card space-y-6">
+      <div>
+        <span class="text-xs font-mono text-muted uppercase">Display: Big Shoulders Bold (36px)</span>
+        <div class="font-display text-4xl font-bold text-charcoal">JIMCAN OPERATIONS DASHBOARD</div>
+      </div>
+      <div>
+        <span class="text-xs font-mono text-muted uppercase">UI Interface: Instrument Sans (16px / 14px)</span>
+        <div class="font-sans text-base text-charcoal">
+          Every screen prioritizes commercial clarity, fast mobile site recording, and auditable financial totals.
+        </div>
+      </div>
+      <div>
+        <span class="text-xs font-mono text-muted uppercase">Monetary Tabular: Geist Mono (30px KPI / 14px Table)</span>
+        <div class="font-mono text-2xl font-bold text-charcoal tabular-nums">
+          UGX 450,820,000 <span class="text-muted text-sm font-normal">Gross Contract Value</span>
+        </div>
+        <div class="font-mono text-sm text-danger font-bold tabular-nums mt-1">
+          (UGX 14,200,000) <span class="text-muted font-normal">Negative variance in brackets</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Buttons & Actions -->
+  <section class="space-y-4">
+    <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+      <i data-lucide="mouse-pointer" class="w-5 h-5 text-safety"></i>
+      3. Action Buttons & Feedback
+    </h2>
+    <div class="card">
+      <div class="flex flex-wrap items-center gap-4">
+        <button class="btn btn-primary">
+          <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Primary Action
+        </button>
+        <button class="btn btn-secondary">
+          <i data-lucide="download" class="w-4 h-4 mr-2"></i> Secondary
+        </button>
+        <button class="btn btn-ghost">
+          <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Ghost Action
+        </button>
+        <button class="btn btn-danger">
+          <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Void / Delete
+        </button>
+        <button class="btn btn-primary" disabled>
+          Disabled Button
+        </button>
+        <button class="btn btn-primary" @click="$dispatch('show-toast', { message: 'Demo Toast: Payment recorded successfully.', type: 'success' })">
+          Trigger Success Toast
+        </button>
+        <button class="btn btn-danger" @click="$dispatch('show-toast', { message: 'Demo Error: Connection timeout.', type: 'error' })">
+          Trigger Error Toast
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Status Chips -->
+  <section class="space-y-4">
+    <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+      <i data-lucide="tag" class="w-5 h-5 text-safety"></i>
+      4. Semantic Status Chips
+    </h2>
+    <div class="card">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="chip chip-new"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> New</span>
+        <span class="chip chip-contacted"><i data-lucide="phone" class="w-3.5 h-3.5"></i> Contacted</span>
+        <span class="chip chip-site-visit"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Site Visit</span>
+        <span class="chip chip-quoted"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> Quoted</span>
+        <span class="chip chip-won"><i data-lucide="check" class="w-3.5 h-3.5"></i> Won / Paid</span>
+        <span class="chip chip-lost"><i data-lucide="x" class="w-3.5 h-3.5"></i> Lost / Overdue</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Form Fields & Validation -->
+  <section class="space-y-4">
+    <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+      <i data-lucide="check-square" class="w-5 h-5 text-safety"></i>
+      5. Form Inputs & Error States
+    </h2>
+    <div class="card">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="form-group">
+          <label for="demo-project" class="form-label">Project Title</label>
+          <input type="text" id="demo-project" class="form-control" value="Munyonyo Lakeside Villa">
+          <p class="text-xs text-muted mt-1">Official build reference name.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="demo-money" class="form-label">Contract Amount (UGX)</label>
+          <input type="text" id="demo-money" class="form-control font-mono tabular-nums text-right" value="450,000,000">
+          <p class="text-xs text-muted mt-1">Exact shilling value.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="demo-invalid" class="form-label">Client Phone (Error State Demo)</label>
+          <input type="tel" id="demo-invalid" class="form-control is-invalid" value="1234">
+          <p class="form-error">Enter a valid 10-digit Uganda phone number (e.g. +256 700 000 000).</p>
+        </div>
+
+        <div class="form-group">
+          <label for="demo-select" class="form-label">Current Phase</label>
+          <select id="demo-select" class="form-control">
+            <option>Brief</option>
+            <option>Design</option>
+            <option selected>Foundation</option>
+            <option>Superstructure</option>
+            <option>Finishes</option>
+            <option>Handover</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Metric KPI Cards -->
+  <section class="space-y-4">
+    <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+      <i data-lucide="bar-chart-2" class="w-5 h-5 text-safety"></i>
+      6. Metric KPI Cards
+    </h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="kpi-card accent-safety">
+        <div class="kpi-label">Active Projects</div>
+        <div class="kpi-value">4</div>
+        <div class="text-xs text-muted mt-2">All builds in progress</div>
+      </div>
+      <div class="kpi-card accent-go">
+        <div class="kpi-label">Cash Collected (30D)</div>
+        <div class="kpi-value text-go">UGX 184.2M</div>
+        <div class="text-xs text-muted mt-2 font-mono">100% Reconciled</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Unpaid Invoices</div>
+        <div class="kpi-value text-danger">UGX 42.0M</div>
+        <div class="text-xs text-danger font-semibold mt-2">2 Overdue Claims</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active Pipeline</div>
+        <div class="kpi-value">UGX 1.25B</div>
+        <div class="text-xs text-muted mt-2">6 Qualified Inquiries</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Tabular Data Display -->
+  <section class="space-y-4">
+    <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+      <i data-lucide="table" class="w-5 h-5 text-safety"></i>
+      7. Responsive Data Table
+    </h2>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>PROJECT CODE</th>
+            <th>PROJECT NAME</th>
+            <th>CLIENT</th>
+            <th>CURRENT PHASE</th>
+            <th class="text-right">CONTRACT VALUE</th>
+            <th class="text-right">COST TO DATE</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="font-mono text-xs font-bold">JC-PRJ-2026-001</td>
+            <td class="font-bold">Munyonyo Lakeside Villa</td>
+            <td>Dr. Mukasa</td>
+            <td><span class="chip chip-won">Foundation</span></td>
+            <td class="font-mono text-right tabular-nums font-bold">UGX 450,000,000</td>
+            <td class="font-mono text-right tabular-nums text-muted">UGX 124,500,000</td>
+            <td><button class="btn btn-ghost text-xs p-1">View</button></td>
+          </tr>
+          <tr>
+            <td class="font-mono text-xs font-bold">JC-PRJ-2026-002</td>
+            <td class="font-bold">Kololo Medical Suites</td>
+            <td>Apex Healthcare</td>
+            <td><span class="chip chip-site-visit">Superstructure</span></td>
+            <td class="font-mono text-right tabular-nums font-bold">UGX 890,000,000</td>
+            <td class="font-mono text-right tabular-nums text-muted">UGX 410,200,000</td>
+            <td><button class="btn btn-ghost text-xs p-1">View</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Section 8: Interactive Modal Pattern -->
+  <section class="space-y-4" x-data="{ modalOpen: false }">
+    <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+      <i data-lucide="layers" class="w-5 h-5 text-safety"></i>
+      8. Modal Dialog Pattern (Alpine.js with Focus Trapping & Esc Key)
+    </h2>
+    <div class="card">
+      <button class="btn btn-primary" @click="modalOpen = true">
+        Open Demo Modal Dialog
+      </button>
+
+      <!-- Modal Overlay -->
+      <div x-show="modalOpen" 
+           x-transition:enter="transition ease-out duration-200"
+           x-transition:enter-start="opacity-0"
+           x-transition:enter-end="opacity-100"
+           x-transition:leave="transition ease-in duration-150"
+           x-transition:leave-start="opacity-100"
+           x-transition:leave-end="opacity-0"
+           @keydown.escape.window="modalOpen = false"
+           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/70 backdrop-blur-sm"
+           style="display: none;">
+        
+        <div class="bg-white rounded-lg border border-line max-w-lg w-full p-6 space-y-4"
+             @click.away="modalOpen = false">
+          <div class="flex items-center justify-between pb-3 border-b border-line">
+            <h3 class="font-bold text-lg text-charcoal">Demo Dialog: Record Payment</h3>
+            <button @click="modalOpen = false" class="text-muted hover:text-charcoal p-1" aria-label="Close dialog">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <p class="text-sm text-muted">
+            This dialog demonstrates keyboard focus containment, backdrop click dismissal, and escape key handling matching Section 3 of <code class="text-xs font-mono">docs/design/accessibility.md</code>.
+          </p>
+          <div class="flex justify-end gap-3 pt-3 border-t border-line">
+            <button class="btn btn-secondary" @click="modalOpen = false">Cancel</button>
+            <button class="btn btn-primary" @click="modalOpen = false; $dispatch('show-toast', { message: 'Payment recorded.', type: 'success' })">Confirm Action</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

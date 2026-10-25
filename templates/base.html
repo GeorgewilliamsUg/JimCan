@@ -1,0 +1,230 @@
+{% load static %}
+<!doctype html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="description" content="Jimcan Construction & Engineering Operations Dashboard">
+  <title>{% block title %}{{ page_title|default:"Overview" }}{% endblock %} · Jimcan Operations</title>
+  
+  <!-- Modern Clean Typography: Inter & Geist Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core Progressive Libraries (TRD Section 4) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['"Geist Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest" defer></script>
+
+  <!-- Base stylesheet for CSS variables and print/reduction rules -->
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body x-data="{ 
+        sidebarOpen: false, 
+        mobileNav: false,
+        toastMessage: '', 
+        toastType: 'success',
+        showToast(msg, type = 'success') {
+          this.toastMessage = msg;
+          this.toastType = type;
+          setTimeout(() => { if (this.toastMessage === msg) this.toastMessage = ''; }, 4500);
+        }
+      }" 
+      @show-toast.window="showToast($event.detail.message, $event.detail.type || 'success')"
+      @keydown.escape.window="sidebarOpen = false"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+      class="h-full bg-slate-50 antialiased text-slate-900 font-sans">
+
+  <!-- Accessible Skip Link (WCAG 2.1 AA) -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+
+  <!-- Global Top Progress Indicator for HTMX Requests -->
+  <div id="global-progress" aria-hidden="true"></div>
+
+  <!-- Global Toast Notification Container (Anchored Top-Right, z-60) -->
+  <div id="toast-container" aria-live="polite" aria-atomic="true" class="fixed top-4 right-4 z-[60]">
+    <div x-show="toastMessage" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         :class="{
+           'bg-emerald-600 text-white': toastType === 'success',
+           'bg-red-600 text-white': toastType === 'error',
+           'bg-amber-600 text-white': toastType === 'warning',
+           'bg-blue-600 text-white': toastType === 'info'
+         }"
+         class="px-4 py-3 rounded-lg shadow-xl font-medium flex items-center gap-3 border border-white/10"
+         style="display: none;"
+         role="status">
+      <div class="flex items-center gap-2">
+        <template x-if="toastType === 'success'">
+          <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0"></i>
+        </template>
+        <template x-if="toastType === 'error'">
+          <i data-lucide="alert-octagon" class="w-4 h-4 flex-shrink-0"></i>
+        </template>
+        <template x-if="toastType === 'warning'">
+          <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i>
+        </template>
+        <template x-if="toastType === 'info'">
+          <i data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>
+        </template>
+        <span x-text="toastMessage" class="text-sm"></span>
+      </div>
+      <button @click="toastMessage = ''" class="ml-3 text-white/80 hover:text-white p-1 text-base leading-none" aria-label="Dismiss notification">&times;</button>
+    </div>
+  </div>
+
+{% block app_shell %}
+  <!-- Enterprise Full-Viewport Application Shell -->
+  <div class="h-screen w-full flex overflow-hidden bg-slate-50 antialiased text-slate-900">
+    
+    <!-- Mobile Drawer Backdrop (z-40) -->
+    <div x-show="sidebarOpen" 
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="sidebarOpen = false"
+         class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+         style="display: none;"
+         aria-hidden="true"></div>
+
+    <!-- Fixed Desktop & Off-Canvas Mobile Sidebar (Semantic Landmark: role="navigation") -->
+    <div class="contents" role="navigation" aria-label="Main Navigation">
+      {% include "components/_sidebar.html" %}
+    </div>
+
+    <!-- Main Content Column -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <!-- Top Enterprise Header -->
+      {% include "components/_header.html" %}
+
+      <!-- Independently Scrollable Canvas -->
+      <main role="main" id="main-content" class="flex-1 overflow-y-auto focus:outline-none" tabindex="-1">
+        <div class="p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+    </div>
+
+  </div>
+{% endblock app_shell %}
+
+  <!-- Reusable Confirmation Dialog Modal (z-70) -->
+  {% include "components/_confirm_dialog.html" %}
+
+  <!-- Session Inactivity Warning & Draft Recovery (z-80) -->
+  {% include "components/_session_timeout.html" %}
+
+  <!-- Django Messages to Toast Conversion -->
+  {% if messages %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        {% for message in messages %}
+          window.dispatchEvent(new CustomEvent('show-toast', { 
+            detail: { message: "{{ message|escapejs }}", type: "{{ message.tags|default:'success' }}" } 
+          }));
+        {% endfor %}
+      });
+    </script>
+  {% endif %}
+
+  <!-- Global Client Event Handlers & HTMX Listeners -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+
+    document.body.addEventListener('htmx:afterSwap', function() {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+
+    // Server-triggered toasts via HTMX HX-Trigger
+    document.body.addEventListener('showToast', function(evt) {
+      window.dispatchEvent(new CustomEvent('show-toast', { detail: evt.detail }));
+    });
+
+    // Offline & Network Failure Feedback (pp.md Phase 1 §10)
+    document.body.addEventListener('htmx:sendError', function() {
+      window.dispatchEvent(new CustomEvent('show-toast', { 
+        detail: { message: 'Network connection lost or server unreachable.', type: 'error' } 
+      }));
+    });
+
+    // Phase 2 HTMX Guardrails: Intercept 401/403 and force full-page redirect to login
+    document.body.addEventListener('htmx:beforeSwap', function(evt) {
+      const status = evt.detail.xhr ? evt.detail.xhr.status : 200;
+      if (status === 401 || status === 403) {
+        // Prevent HTMX from injecting login HTML into partial widget/modal
+        evt.detail.shouldSwap = false;
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = '/login/?next=' + encodeURIComponent(currentPath);
+      }
+    });
+
+    document.body.addEventListener('htmx:responseError', function(evt) {
+      const status = evt.detail.xhr ? evt.detail.xhr.status : 500;
+      if (status === 401 || status === 403) {
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = '/login/?next=' + encodeURIComponent(currentPath);
+        return;
+      }
+      window.dispatchEvent(new CustomEvent('show-toast', { 
+        detail: { message: 'Server returned error (' + status + '). Action paused.', type: 'error' } 
+      }));
+    });
+
+    window.addEventListener('offline', function() {
+      window.dispatchEvent(new CustomEvent('show-toast', { 
+        detail: { message: 'Device is offline. Changes cannot be synced.', type: 'warning' } 
+      }));
+    });
+
+    // Dirty Form Unsaved Changes Warning (pp.md Phase 1 §12)
+    let isFormDirty = false;
+    document.addEventListener('input', function(e) {
+      if (e.target.closest('form:not([action*="logout"])')) {
+        isFormDirty = true;
+      }
+    });
+    window.addEventListener('beforeunload', function(e) {
+      if (isFormDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+    document.addEventListener('submit', function() {
+      isFormDirty = false;
+    });
+  </script>
+</body>
+</html>

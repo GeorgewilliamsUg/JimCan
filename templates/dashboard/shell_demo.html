@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Shell & Feedback Patterns · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div class="space-y-10 max-w-6xl">
+  <!-- Page Header -->
+  <header class="border-b border-line pb-6">
+    <nav aria-label="Breadcrumbs" class="mb-2">
+      <ol class="flex items-center gap-1.5 text-xs text-muted font-medium">
+        <li>
+          <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1">
+            <i data-lucide="home" class="w-3.5 h-3.5"></i>
+            <span>Home</span>
+          </a>
+        </li>
+        <li class="flex items-center gap-1.5">
+          <span class="text-steel">/</span>
+          <span class="text-charcoal font-semibold" aria-current="page">Phase 1: Shell & Feedback</span>
+        </li>
+      </ol>
+    </nav>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-steel text-white">PHASE 1</span>
+          <span class="text-xs font-mono text-muted">Implementation & Validation</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-display font-bold text-charcoal tracking-tight">App Shell & Feedback Patterns</h1>
+        <p class="text-muted text-sm mt-1">
+          Role-aware navigation, accessible toasts, confirmation dialogs, session timeout draft recovery, and branded error boundaries.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-brass-light text-brass-dark border border-brass">
+          <span class="w-2 h-2 rounded-full bg-brass-dark"></span>
+          <span>Role: {{ current_role_display }}</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section 1: Role Switcher & Navigation Matrix -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-display font-bold text-charcoal">1. Role-Aware Navigation & Visibility</h2>
+        <p class="text-xs text-muted">Mitigates Risk #1: Single source of truth in <code class="font-mono text-charcoal">navigation.py</code> prevents permission duplication.</p>
+      </div>
+      <span class="text-xs font-mono text-muted">Switch Role below to verify:</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Admin Card -->
+      <a href="?role=admin" class="card p-4 transition text-left block relative {% if current_role == 'admin' %}border-safety ring-2 ring-safety/20 bg-safety/5{% else %}hover:border-steel{% endif %}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-sm text-charcoal">Admin</span>
+          {% if current_role == 'admin' %}<span class="px-1.5 py-0.5 rounded bg-safety text-white text-[10px] font-mono font-bold">ACTIVE</span>{% endif %}
+        </div>
+        <p class="text-xs text-muted mb-3">Full company view. Unrestricted access to all operational & administration tools.</p>
+        <div class="text-[11px] font-mono text-muted">12 Menu Items Permitted</div>
+      </a>
+
+      <!-- Manager Card -->
+      <a href="?role=manager" class="card p-4 transition text-left block relative {% if current_role == 'manager' %}border-safety ring-2 ring-safety/20 bg-safety/5{% else %}hover:border-steel{% endif %}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-sm text-charcoal">Manager</span>
+          {% if current_role == 'manager' %}<span class="px-1.5 py-0.5 rounded bg-safety text-white text-[10px] font-mono font-bold">ACTIVE</span>{% endif %}
+        </div>
+        <p class="text-xs text-muted mb-3">Manages assigned builds, leads, BOQ, invoices, expenses, and site media.</p>
+        <div class="text-[11px] font-mono text-muted">9 Menu Items (Settings/Audit hidden)</div>
+      </a>
+
+      <!-- Site Engineer Card -->
+      <a href="?role=engineer" class="card p-4 transition text-left block relative {% if current_role == 'engineer' %}border-safety ring-2 ring-safety/20 bg-safety/5{% else %}hover:border-steel{% endif %}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-sm text-charcoal">Site Engineer</span>
+          {% if current_role == 'engineer' %}<span class="px-1.5 py-0.5 rounded bg-safety text-white text-[10px] font-mono font-bold">ACTIVE</span>{% endif %}
+        </div>
+        <p class="text-xs text-muted mb-3">Field execution view. Restricted from commercial margins, pricing, and tax.</p>
+        <div class="text-[11px] font-mono text-danger font-semibold">6 Items (BOQ/Tax/Invoices hidden)</div>
+      </a>
+
+      <!-- Accountant Card -->
+      <a href="?role=accountant" class="card p-4 transition text-left block relative {% if current_role == 'accountant' %}border-safety ring-2 ring-safety/20 bg-safety/5{% else %}hover:border-steel{% endif %}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-sm text-charcoal">Accountant</span>
+          {% if current_role == 'accountant' %}<span class="px-1.5 py-0.5 rounded bg-safety text-white text-[10px] font-mono font-bold">ACTIVE</span>{% endif %}
+        </div>
+        <p class="text-xs text-muted mb-3">Financial oversight & compliance. Access to BOQ rates, billing, expenses, and tax.</p>
+        <div class="text-[11px] font-mono text-muted">7 Items (Site Files/Admin hidden)</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Section 2: Accessible Toast Notifications -->
+  <section class="space-y-4">
+    <div>
+      <h2 class="text-xl font-display font-bold text-charcoal">2. Accessible Toast Notification System</h2>
+      <p class="text-xs text-muted">Anchored top-right (<code class="font-mono">z-60</code>) to avoid covering mobile sticky bottom action bars. Accessible with <code class="font-mono">aria-live="polite"</code>.</p>
+    </div>
+
+    <div class="card p-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <button type="button" 
+                class="btn btn-secondary text-xs flex items-center justify-center gap-2 border-go/40 text-go hover:bg-go-light"
+                @click="$dispatch('show-toast', { message: 'Milestone claim JC-2026-004 approved successfully.', type: 'success' })">
+          <i data-lucide="check-circle" class="w-4 h-4 text-go"></i>
+          <span>Success Toast</span>
+        </button>
+
+        <button type="button" 
+                class="btn btn-secondary text-xs flex items-center justify-center gap-2 border-brass/40 text-brass-dark hover:bg-brass-light"
+                @click="$dispatch('show-toast', { message: 'Subcontractor expense exceeds BOQ limit by 12%.', type: 'warning' })">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-brass-dark"></i>
+          <span>Warning Toast</span>
+        </button>
+
+        <button type="button" 
+                class="btn btn-secondary text-xs flex items-center justify-center gap-2 border-danger/40 text-danger hover:bg-danger-light"
+                @click="$dispatch('show-toast', { message: 'Photo upload failed: Network timeout encountered.', type: 'error' })">
+          <i data-lucide="alert-octagon" class="w-4 h-4 text-danger"></i>
+          <span>Error Toast</span>
+        </button>
+
+        <!-- HTMX Server-Triggered Toast via HX-Trigger Header -->
+        <button type="button" 
+                class="btn btn-primary text-xs flex items-center justify-center gap-2"
+                hx-post="{% url 'dashboard:test_toast' %}"
+                hx-swap="none">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          <span>HTMX Server Toast</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Native Confirmation Dialogs -->
+  <section class="space-y-4">
+    <div>
+      <h2 class="text-xl font-display font-bold text-charcoal">3. Confirmation & Destructive Action Dialogs</h2>
+      <p class="text-xs text-muted">Focus-trapped modals with Escape dismissal, backdrop click closing, and keyboard navigation.</p>
+    </div>
+
+    <div class="card p-6 flex flex-wrap items-center gap-4">
+      <button type="button" 
+              class="btn btn-secondary text-xs flex items-center gap-2"
+              @click="$dispatch('open-confirm', {
+                title: 'Publish Site Inspection Report',
+                message: 'This will lock the milestone report and generate a signed PDF for the client. Proceed?',
+                actionLabel: 'Publish Report',
+                isDestructive: false,
+                callbackEvent: 'report-published'
+              })">
+        <i data-lucide="file-check" class="w-4 h-4 text-brass-dark"></i>
+        <span>Standard Confirm Dialog</span>
+      </button>
+
+      <button type="button" 
+              class="btn btn-danger text-xs flex items-center gap-2"
+              @click="$dispatch('open-confirm', {
+                title: 'Delete Site Progress Photo',
+                message: 'Are you sure you want to delete this photographic record? This action is recorded in the immutable audit log and cannot be undone.',
+                actionLabel: 'Permanently Delete',
+                isDestructive: true,
+                callbackEvent: 'photo-deleted'
+              })">
+        <i data-lucide="trash-2" class="w-4 h-4 text-danger"></i>
+        <span>Destructive Action Dialog</span>
+      </button>
+
+      <div x-data="{ lastAction: '' }" 
+           @report-published.window="lastAction = 'Report published event received!'; $dispatch('show-toast', { message: lastAction, type: 'success' })"
+           @photo-deleted.window="lastAction = 'Destructive delete event confirmed and executed!'; $dispatch('show-toast', { message: lastAction, type: 'error' })"
+           class="text-xs font-mono text-muted italic ml-auto" 
+           x-text="lastAction ? 'Callback: ' + lastAction : 'Awaiting confirmation event...'">
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Session Inactivity Warning & Form Draft Recovery -->
+  <section class="space-y-4">
+    <div>
+      <h2 class="text-xl font-display font-bold text-charcoal">4. Session Inactivity Timeout & Draft Recovery</h2>
+      <p class="text-xs text-muted">Mitigates session data loss. Auto-serializes active inputs into <code class="font-mono">sessionStorage</code> before expiry.</p>
+    </div>
+
+    <div class="card p-6 space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-bone rounded-lg border border-line">
+        <div>
+          <div class="font-bold text-sm text-charcoal">Simulate Inactivity Warning</div>
+          <p class="text-xs text-muted">Triggers the 60-second countdown alert, saves inputs to draft storage, and displays draft recovery banner.</p>
+        </div>
+        <button type="button" 
+                class="btn btn-primary text-xs font-bold"
+                onclick="window.dispatchEvent(new CustomEvent('trigger-session-warning'))">
+          <i data-lucide="clock" class="w-4 h-4 mr-2"></i> Trigger 60s Warning
+        </button>
+      </div>
+
+      <!-- Test Form to Demonstrate Draft Serialization -->
+      <form class="space-y-4 max-w-xl">
+        <div class="font-semibold text-sm text-charcoal border-b border-line pb-2 flex items-center justify-between">
+          <span>Interactive Test Form</span>
+          <span class="text-[10px] font-mono text-muted">Protected by dirty form warning</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="project-name">Project Identifier / Title</label>
+          <input type="text" id="project-name" name="projectName" class="form-control" value="JC-2026-004 Kololo Residential Build">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="site-notes">Field Inspection Observations</label>
+          <textarea id="site-notes" name="siteNotes" class="form-control" rows="3">Foundation concrete cured to 25MPa. Reinforcement steel inspection passed by supervising engineer.</textarea>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="button" class="btn btn-secondary text-xs" onclick="window.dispatchEvent(new CustomEvent('trigger-session-warning'))">
+            Save Draft & Test Timeout
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Section 5: Branded Error Boundary Simulators -->
+  <section class="space-y-4">
+    <div>
+      <h2 class="text-xl font-display font-bold text-charcoal">5. Branded Error Boundaries (WCAG 2.1 AA Compliant)</h2>
+      <p class="text-xs text-muted">Every error page maintains Jimcan layout branding, clear next actions, and incident correlation IDs.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <a href="{% url 'dashboard:test_403' %}" class="card p-5 hover:border-danger transition text-center space-y-2 block">
+        <div class="w-10 h-10 rounded-full bg-danger-light text-danger flex items-center justify-center mx-auto">
+          <i data-lucide="shield-alert" class="w-5 h-5"></i>
+        </div>
+        <div class="font-bold text-sm text-charcoal">HTTP 403 Forbidden</div>
+        <p class="text-xs text-muted">Role permission restriction with escalation guidance.</p>
+      </a>
+
+      <a href="{% url 'dashboard:test_404' %}" class="card p-5 hover:border-steel transition text-center space-y-2 block">
+        <div class="w-10 h-10 rounded-full bg-bone text-charcoal flex items-center justify-center mx-auto border border-line">
+          <i data-lucide="file-question" class="w-5 h-5"></i>
+        </div>
+        <div class="font-bold text-sm text-charcoal">HTTP 404 Not Found</div>
+        <p class="text-xs text-muted">Clear next actions to return to active operational dashboards.</p>
+      </a>
+
+      <a href="{% url 'dashboard:test_500' %}" class="card p-5 hover:border-danger transition text-center space-y-2 block">
+        <div class="w-10 h-10 rounded-full bg-danger-light text-danger flex items-center justify-center mx-auto">
+          <i data-lucide="server-crash" class="w-5 h-5"></i>
+        </div>
+        <div class="font-bold text-sm text-charcoal">HTTP 500 System Error</div>
+        <p class="text-xs text-muted">Branded error page with unique incident correlation ID.</p>
+      </a>
+
+      <a href="{% url 'dashboard:test_400' %}" class="card p-5 hover:border-brass transition text-center space-y-2 block">
+        <div class="w-10 h-10 rounded-full bg-brass-light text-brass-dark flex items-center justify-center mx-auto">
+          <i data-lucide="shield-off" class="w-5 h-5"></i>
+        </div>
+        <div class="font-bold text-sm text-charcoal">HTTP 400 Bad Request</div>
+        <p class="text-xs text-muted">CSRF token expiry recovery with back-navigation safety.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- Section 6: Security & Cache Verification Panel -->
+  <section class="space-y-4 pb-12">
+    <div>
+      <h2 class="text-xl font-display font-bold text-charcoal">6. Security & Cache Verification</h2>
+      <p class="text-xs text-muted">Mitigates Risk #5: Stale private data exposed via browser history after sign-out.</p>
+    </div>
+
+    <div class="card p-6 bg-graphite text-white space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-go/20 text-go flex items-center justify-center">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="font-bold text-sm">PrivateCacheControlMiddleware Active</div>
+          <div class="text-xs text-muted">All HTML responses injected with strict private headers</div>
+        </div>
+      </div>
+
+      <div class="p-3 bg-charcoal rounded-md border border-steel font-mono text-xs space-y-1 text-bone">
+        <div><span class="text-safety">Cache-Control:</span> no-cache, no-store, must-revalidate, private</div>
+        <div><span class="text-safety">Pragma:</span> no-cache</div>
+        <div><span class="text-safety">Expires:</span> 0</div>
+      </div>
+
+      <p class="text-xs text-muted leading-relaxed">
+        When an employee signs out or session expires, back-button history navigation cannot redisplay cached financial statements, commercial margins, or personal contact info.
+      </p>
+    </div>
+  </section>
+</div>
+{% endblock %}
