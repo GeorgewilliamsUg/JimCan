@@ -51,8 +51,10 @@ else:
         "Wildcard '*' is forbidden in production."
     )
 
-# When running tests or in development, ensure test client host is allowed
-if is_running_tests or DEBUG:
+is_running_runserver = 'runserver' in sys.argv
+
+# When running tests, development server, or with DEBUG=True, ensure local host is allowed
+if is_running_tests or DEBUG or is_running_runserver:
     for local_host in ['testserver', 'localhost', '127.0.0.1', '[::1]']:
         if local_host not in ALLOWED_HOSTS:
             ALLOWED_HOSTS.append(local_host)

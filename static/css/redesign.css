@@ -1032,7 +1032,7 @@
 .auth-brand-pane {
   display: none;
   position: relative;
-  width: 44%;
+  width: 48%;
   min-height: 100vh;
   background-color: var(--ink);
   background-image: url('../img/auth_bg.jpg');
