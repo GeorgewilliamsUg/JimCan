@@ -27,11 +27,30 @@ ENV/
 .venv/
 
 # Django local database & staticfiles
+*.sqlite3
+*.sqlite3-journal
 db.sqlite3
 db.sqlite3-journal
 staticfiles/
 media/
 *.log
+logs/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.cert
+*.crt
+
+# Backups & dumps
+*.bak
+*.backup
+*backup*
+*.sql
+*.dump
 
 # Playwright & test captures
 tests/visual/screenshots/

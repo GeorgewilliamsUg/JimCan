@@ -1,5 +1,7 @@
 import os
+import sys
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Load environment variables from .env file if present
 try:
@@ -10,23 +12,60 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'jimcan-dev-insecure-key-2026-phase-0-scaffolding')
+# Detect test execution mode
+is_running_tests = 'test' in sys.argv
 
-DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
+# ------------------------------------------------------------------------------
+# 1. Core Cryptographic Secrets & Rotation
+# ------------------------------------------------------------------------------
+# SECRET_KEY has no default. If missing, raise ImproperlyConfigured so the app refuses to start.
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "The SECRET_KEY environment variable is not set. "
+        "The application refuses to start without a valid secret key."
+    )
 
-allowed_hosts_str = os.environ.get('ALLOWED_HOSTS', '*')
-if allowed_hosts_str == '*':
-    ALLOWED_HOSTS = ['*']
+# Support SECRET_KEY_FALLBACKS from an environment variable for zero-downtime rotation.
+secret_key_fallbacks_raw = os.environ.get('SECRET_KEY_FALLBACKS', '').strip()
+if secret_key_fallbacks_raw:
+    SECRET_KEY_FALLBACKS = [k.strip() for k in secret_key_fallbacks_raw.split(',') if k.strip()]
 else:
-    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(',') if h.strip()]
-    for local_dev in ['localhost', '127.0.0.1', '[::1]']:
-        if local_dev not in ALLOWED_HOSTS:
-            ALLOWED_HOSTS.append(local_dev)
+    SECRET_KEY_FALLBACKS = []
 
-csrf_trusted_str = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
-if csrf_trusted_str:
-    CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_trusted_str.split(',') if o.strip()]
+# ------------------------------------------------------------------------------
+# 2. Debug & Host Security
+# ------------------------------------------------------------------------------
+# DEBUG defaults to False. Only an explicit case-insensitive 'true', '1', or 'yes' enables it.
+DEBUG = os.environ.get('DEBUG', 'False').strip().lower() in ('true', '1', 'yes')
 
+allowed_hosts_raw = os.environ.get('ALLOWED_HOSTS', '').strip()
+if allowed_hosts_raw and allowed_hosts_raw != '*':
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_raw.split(',') if h.strip()]
+elif DEBUG:
+    # Safe defaults for local development
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+else:
+    raise ImproperlyConfigured(
+        "ALLOWED_HOSTS must be set in the environment when DEBUG is False. "
+        "Wildcard '*' is forbidden in production."
+    )
+
+# When running tests or in development, ensure test client host is allowed
+if is_running_tests or DEBUG:
+    for local_host in ['testserver', 'localhost', '127.0.0.1', '[::1]']:
+        if local_host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(local_host)
+
+csrf_trusted_raw = os.environ.get('CSRF_TRUSTED_ORIGINS', '').strip()
+if csrf_trusted_raw:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_trusted_raw.split(',') if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = []
+
+# ------------------------------------------------------------------------------
+# 3. Application Definition
+# ------------------------------------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -78,7 +117,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'jimcan.wsgi.application'
 
-# Database Configuration (supports MySQL via cPanel or SQLite default)
+# ------------------------------------------------------------------------------
+# 4. Database Configuration (supports MySQL via cPanel or SQLite default)
+# ------------------------------------------------------------------------------
 DB_NAME = os.environ.get('DB_NAME')
 DB_USER = os.environ.get('DB_USER')
 
@@ -110,6 +151,59 @@ else:
         }
     }
 
+# ------------------------------------------------------------------------------
+# 5. Security & Browser Headers (Strict Production Guardrails)
+# ------------------------------------------------------------------------------
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'same-origin'
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 300  # Staged: raised later in the production runbook
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+else:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'same-origin'
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+
+# SECURE_SSL_REDIRECT: defaults to True in production (DEBUG=False); overridable via environment variable
+is_running_tests = 'test' in sys.argv
+if is_running_tests:
+    default_ssl_redirect = 'False'
+elif not DEBUG:
+    default_ssl_redirect = 'True'
+else:
+    default_ssl_redirect = 'False'
+
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', default_ssl_redirect).strip().lower() in ('true', '1', 'yes')
+
+# SECURE_PROXY_SSL_HEADER is deliberately NOT set:
+# Phase 0 proved that reverse proxy headers on Namecheap are unverified.
+# Setting it without a confirmed, sanitizing upstream proxy enables attackers to spoof HTTPS.
+
+# ------------------------------------------------------------------------------
+# 6. Admin Configuration Switch
+# ------------------------------------------------------------------------------
+# ENABLE_ADMIN environment switch, defaults to False.
+ENABLE_ADMIN = os.environ.get('ENABLE_ADMIN', 'False').lower() in ('true', '1', 'yes')
+DJANGO_ADMIN_PATH = os.environ.get('DJANGO_ADMIN_PATH', 'admin/').strip('/')
+
+# ------------------------------------------------------------------------------
+# 7. Password Validation
+# ------------------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -117,11 +211,17 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# ------------------------------------------------------------------------------
+# 8. Internationalization & Localization
+# ------------------------------------------------------------------------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Africa/Kampala'
 USE_I18N = True
 USE_TZ = True
 
+# ------------------------------------------------------------------------------
+# 9. Static & Media Storage
+# ------------------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -145,14 +245,71 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard:overview'
 LOGOUT_REDIRECT_URL = 'login'
 
-# Email backend configuration
+# ------------------------------------------------------------------------------
+# 10. Logging Configuration (Outside Web-Served Directory with Rotation)
+# ------------------------------------------------------------------------------
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+SECURITY_LOG_PATH = os.environ.get('SECURITY_LOG_PATH', str(LOGS_DIR / 'security.log'))
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} [{name}] [PID:{process}] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'security_file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': SECURITY_LOG_PATH,
+            'maxBytes': 5 * 1024 * 1024,  # 5 MB rotation
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django.security': {
+            'handlers': ['security_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['security_file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'jimcan.security': {
+            'handlers': ['security_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# ------------------------------------------------------------------------------
+# 11. Email Backend Configuration
+# ------------------------------------------------------------------------------
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND',
     'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
 )
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
+if EMAIL_USE_SSL:
+    EMAIL_USE_TLS = False
+else:
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@jimcan.com')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@jimcanconstruction.site')

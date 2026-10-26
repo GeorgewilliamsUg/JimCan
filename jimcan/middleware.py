@@ -8,6 +8,7 @@ from urllib.parse import quote
 from django.conf import settings
 from django.urls import reverse
 
+
 class HtmxAuthRedirectMiddleware:
     """
     Guards against HTMX partial requests rendering login HTML into inner components.
@@ -51,19 +52,53 @@ class HtmxAuthRedirectMiddleware:
 
 
 class PrivateCacheControlMiddleware:
+    """
+    Enforces 'Cache-Control: no-store, private' on:
+    - Every response to an authenticated request.
+    - All login, logout, password change/reset, and two-factor pages.
+    - All rendered HTML responses to prevent browser back-button caching of sensitive data.
+    Static files and media assets are never modified.
+    """
+    SENSITIVE_PREFIXES = (
+        '/login',
+        '/logout',
+        '/password_change',
+        '/password_reset',
+        '/reset',
+        '/two-factor',
+        '/account',
+    )
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         response = self.get_response(request)
 
-        # Apply strict private no-cache headers to all HTML responses
-        # Static files and media are handled separately by WhiteNoise/Apache
+        # Do not modify static files or media assets
+        path = request.path_info
+        static_url = getattr(settings, 'STATIC_URL', '/static/')
+        media_url = getattr(settings, 'MEDIA_URL', '/media/')
+        
+        if (static_url and static_url != '/' and path.startswith(static_url)) or \
+           (media_url and media_url != '/' and path.startswith(media_url)):
+            return response
+
+        # Check authentication state
+        is_authenticated = hasattr(request, 'user') and request.user.is_authenticated
+
+        # Check sensitive authentication/credential endpoints (even unauthenticated)
+        is_sensitive = any(path.startswith(prefix) for prefix in self.SENSITIVE_PREFIXES)
+        if path in ('/', ''):
+            is_sensitive = True
+
+        # Check HTML response
         content_type = response.headers.get('Content-Type', '')
-        if 'text/html' in content_type:
-            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
+        is_html = 'text/html' in content_type
+
+        if is_authenticated or is_sensitive or is_html:
+            response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
             response['Pragma'] = 'no-cache'
             response['Expires'] = '0'
 
         return response
-

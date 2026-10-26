@@ -7,10 +7,10 @@ def navigation_context(request):
     """
     # Check if a role override is active in session or query param (for testing/demo)
     role = request.GET.get('role')
-    if role:
+    if role and hasattr(request, 'session'):
         request.session['active_role'] = role.lower()
     
-    current_role = request.session.get('active_role')
+    current_role = request.session.get('active_role') if hasattr(request, 'session') else None
     if not current_role:
         if hasattr(request, 'user') and request.user.is_authenticated:
             current_role = getattr(request.user, 'role', 'admin')
