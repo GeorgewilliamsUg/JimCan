@@ -66,3 +66,45 @@ Before opening the production system to real users on Namecheap:
 3. Verify that:
    - Peak memory per hash stays under **25 MB** (well within Namecheap's 1GB process limit).
    - Compute duration per hash is between **150 ms and 600 ms**.
+
+---
+
+## 4. Audit Chain Operations & Maintenance (Phase 3)
+
+### 4.1 Verifying Cryptographic Chain Integrity
+To recompute HMAC-SHA256 hashes across all audit rows and detect any unauthorized SQL updates or gaps:
+
+```bash
+python manage.py verify_audit_chain
+```
+- If the chain is clean, returns exit code 0.
+- If tampering or a deleted row is detected, prints the exact sequence number and immediately sends an alert email to all active Owners.
+
+### 4.2 Weekly Off-Site Audit Anchor (`audit_anchor`)
+To detect unauthorized deletion of the newest audit rows, take a weekly snapshot of the latest sequence number and head hash:
+
+```bash
+python manage.py audit_anchor
+```
+**Recommended Cron Setup (cPanel):**
+Configure a weekly cron job (e.g., Sundays at 04:00 UTC) that runs this command and emails the output to the Owner outside the server:
+```bash
+0 4 * * 0 cd /home/<cpanel_user>/jimcan && source /home/<cpanel_user>/virtualenv/jimcan/<python_version>/bin/activate && python manage.py audit_anchor
+```
+
+### 4.3 Pruning Noisy Events (`prune_noise`)
+To prune high-volume `SecurityNoise` records (failed logins and 403 permission denied) older than 90 days without touching the immutable `AuditEvent` table:
+
+```bash
+# Prune entries older than 90 days (default)
+python manage.py prune_noise
+
+# Prune entries older than 60 days
+python manage.py prune_noise --days=60
+```
+**Recommended Cron Setup:**
+Schedule quarterly or monthly cleanup in cPanel Cron:
+```bash
+0 2 1 * * cd /home/<cpanel_user>/jimcan && source /home/<cpanel_user>/virtualenv/jimcan/<python_version>/bin/activate && python manage.py prune_noise > /dev/null 2>&1
+```
+

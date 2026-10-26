@@ -40,6 +40,19 @@ else:
 # DEBUG defaults to False. Only an explicit case-insensitive 'true', '1', or 'yes' enables it.
 DEBUG = os.environ.get('DEBUG', 'False').strip().lower() in ('true', '1', 'yes')
 
+# Keyed audit log HMAC secret (Phase 3). A different secret from SECRET_KEY.
+AUDIT_HMAC_KEY = os.environ.get('AUDIT_HMAC_KEY', '').strip()
+if not AUDIT_HMAC_KEY:
+    if is_running_tests:
+        AUDIT_HMAC_KEY = 'test-audit-hmac-key-only-never-use-in-production'
+    elif DEBUG:
+        AUDIT_HMAC_KEY = 'dev-audit-hmac-key-only-never-use-in-production'
+    else:
+        raise ImproperlyConfigured(
+            "The AUDIT_HMAC_KEY environment variable is not set. "
+            "The application refuses to start in production without an audit HMAC key."
+        )
+
 allowed_hosts_raw = os.environ.get('ALLOWED_HOSTS', '').strip()
 if allowed_hosts_raw and allowed_hosts_raw != '*':
     ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_raw.split(',') if h.strip()]
@@ -81,6 +94,7 @@ INSTALLED_APPS = [
     'axes',
     # Local Apps
     'accounts.apps.AccountsConfig',
+    'audit.apps.AuditConfig',
     'dashboard.apps.DashboardConfig',
 ]
 
@@ -94,6 +108,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.LoginRequiredMiddleware',
     'jimcan.middleware.SessionTimeoutMiddleware',
+    'audit.middleware.AuditContextMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
     'jimcan.middleware.HtmxAuthRedirectMiddleware',

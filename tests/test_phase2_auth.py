@@ -472,6 +472,7 @@ class Phase2SpecificationSecurityTests(TestCase):
             'django.contrib.messages.middleware.MessageMiddleware',
             'django.contrib.auth.middleware.LoginRequiredMiddleware',
             'jimcan.middleware.SessionTimeoutMiddleware',
+            'audit.middleware.AuditContextMiddleware',
             'django.middleware.clickjacking.XFrameOptionsMiddleware',
             'django_htmx.middleware.HtmxMiddleware',
             'jimcan.middleware.HtmxAuthRedirectMiddleware',

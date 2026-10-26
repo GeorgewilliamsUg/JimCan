@@ -28,6 +28,7 @@ class ProductionSettingsTests(TestCase):
         env['SECRET_KEY'] = 'test-prod-key-with-sufficient-entropy-1234567890-test'
         env['ALLOWED_HOSTS'] = 'jimcanconstruction.site'
         env['ENABLE_ADMIN'] = 'False'
+        env['AUDIT_HMAC_KEY'] = 'test-prod-audit-hmac-key-1234567890'
 
         code = (
             "import django, os; os.environ['DJANGO_SETTINGS_MODULE']='jimcan.settings'; "

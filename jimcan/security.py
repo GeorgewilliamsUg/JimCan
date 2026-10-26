@@ -1,7 +1,7 @@
 """
 Core Security Utilities & Audit Hook for Jimcan Operations Dashboard.
-Implements Phase 2: Lightweight security_event hook writing structured events to the security logger.
-(Phase 3 will connect this hook to the persistent immutable AuditLog database model).
+Connects the lightweight security_event hook directly to Phase 3's immutable
+AuditEvent and SecurityNoise tables via record_event().
 """
 
 import logging
@@ -10,11 +10,10 @@ from django.utils import timezone
 logger = logging.getLogger('django.security')
 
 
-def security_event(event_type: str, user=None, username: str = None, request=None, ip_address: str = None, **details):
+def security_event(event_type: str, user=None, username: str = None, request=None, ip_address: str = None, is_data_change: bool = False, **details):
     """
-    Emits a structured security event.
-    In Phase 2, writes to the rotating security log file.
-    In Phase 3, this will also persist to the immutable audit database table.
+    Emits a structured security event to the log file and directly persists
+    to the AuditEvent / SecurityNoise database tables via record_event().
     """
     actor_username = username
     if not actor_username and user and hasattr(user, 'get_username'):
@@ -35,3 +34,21 @@ def security_event(event_type: str, user=None, username: str = None, request=Non
 
     log_entry = f"[SECURITY_EVENT] timestamp={timestamp} event={event_type} user={actor_username} ip={client_ip} {extra_str}".strip()
     logger.warning(log_entry)
+
+    # Persist directly into the Phase 3 Audit Core
+    try:
+        from audit.services import record_event
+        record_event(
+            event_type=event_type,
+            actor=user,
+            actor_username=actor_username if actor_username != "anonymous" else None,
+            client_ip=client_ip if client_ip != "unknown" else None,
+            request=request,
+            changes=details,
+            is_data_change=is_data_change,
+            attempted_username=username
+        )
+    except Exception as e:
+        if is_data_change:
+            raise
+        logger.error(f"[SECURITY_EVENT_AUDIT_ERROR] Could not record event to audit table: {e}")

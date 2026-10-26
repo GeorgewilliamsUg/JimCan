@@ -207,6 +207,65 @@ class Command(BaseCommand):
             failed += 1
 
         # ----------------------------------------------------------------------
+        # Phase 3: Audit Core & Owner Alerts Checks
+        # ----------------------------------------------------------------------
+
+        # 14. AUDIT_HMAC_KEY Configuration
+        audit_key = getattr(settings, 'AUDIT_HMAC_KEY', '').strip()
+        if audit_key:
+            self.stdout.write(self.style.SUCCESS("[PASS] AUDIT_HMAC_KEY is configured"))
+            passed += 1
+        else:
+            self.stdout.write(self.style.ERROR("[FAIL] AUDIT_HMAC_KEY is not configured in settings/environment"))
+            failed += 1
+
+        # 15. Cryptographic Audit Chain Integrity
+        try:
+            from audit.services import verify_chain
+            is_valid, msg, fail_seq = verify_chain()
+            if is_valid:
+                self.stdout.write(self.style.SUCCESS(f"[PASS] Cryptographic audit chain: {msg}"))
+                passed += 1
+            else:
+                self.stdout.write(self.style.ERROR(f"[FAIL] Cryptographic audit chain broken at seq {fail_seq}: {msg}"))
+                failed += 1
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"[FAIL] Could not verify audit chain: {e}"))
+            failed += 1
+
+        # 16. Security Alerts Count
+        try:
+            from audit.models import AuditEvent
+            alerts_count = AuditEvent.objects.filter(alert=True).count()
+            if alerts_count == 0:
+                self.stdout.write(self.style.SUCCESS("[PASS] Zero unreviewed security alerts in audit log"))
+                passed += 1
+            else:
+                self.stdout.write(self.style.WARNING(f"[WARN] {alerts_count} security alert(s) present in audit log"))
+                warned += 1
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"[FAIL] Could not query audit alerts: {e}"))
+            failed += 1
+
+        # 17. Last Audit Anchor Snapshot
+        try:
+            from audit.models import AuditAnchorRecord
+            last_anchor = AuditAnchorRecord.objects.order_by('-created_at').first()
+            if last_anchor:
+                self.stdout.write(self.style.SUCCESS(
+                    f"[PASS] Last audit anchor snapshot recorded at {last_anchor.created_at.isoformat()} (seq={last_anchor.sequence})"
+                ))
+                passed += 1
+            else:
+                self.stdout.write(self.style.WARNING(
+                    "[WARN] No audit anchor snapshot recorded yet (schedule 'python manage.py audit_anchor')"
+                ))
+                warned += 1
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"[FAIL] Could not query audit anchor records: {e}"))
+            failed += 1
+
+        # ----------------------------------------------------------------------
         # Summary & Exit Code
         # ----------------------------------------------------------------------
         self.stdout.write("")

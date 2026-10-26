@@ -29,8 +29,8 @@ ROLE_PERMISSIONS = {
     'files': ['admin', 'manager', 'engineer'],
     'styleguide': ['admin', 'manager', 'engineer', 'accountant'],
     'shell_demo': ['admin', 'manager', 'engineer', 'accountant'],
-    'settings': ['admin'],
-    'audit': ['admin'],
+    'settings': ['admin', 'owner'],
+    'audit': ['admin', 'owner'],
 }
 
 @method_decorator(login_not_required, name='dispatch')
@@ -449,17 +449,66 @@ def setup_checklist_view(request):
     return render(request, 'accounts/setup_checklist.html', context)
 
 def audit_view(request):
+    """
+    S-97 Immutable Audit Trail & Security Notices Ledger (Phase 3).
+    Restricted to Owner/Admin roles. Provides filtering, pagination,
+    Kampala timezone formatting, and alert notice inspection.
+    """
     auth_redirect = _require_auth(request)
     if auth_redirect:
         return auth_redirect
     if not _check_permission(request, 'audit'):
         return render(request, '403.html', status=403)
-    return render(request, 'dashboard/section_placeholder.html', {
-        'page_title': 'Audit Trail',
-        'section_name': 'Security & Compliance Activity Log',
-        'phase_num': 'Phase 13',
-        'description': 'Immutable ledger of user actions, financial approvals, and permission updates.',
-    })
+
+    from django.core.paginator import Paginator
+    from audit.models import AuditEvent
+
+    tab = request.GET.get('tab', 'all')
+    filter_event_type = request.GET.get('event_type', '').strip()
+    filter_user = request.GET.get('user', '').strip()
+    filter_date_from = request.GET.get('date_from', '').strip()
+    filter_date_to = request.GET.get('date_to', '').strip()
+
+    queryset = AuditEvent.objects.all().order_by('-sequence')
+
+    if tab == 'alerts':
+        queryset = queryset.filter(alert=True)
+
+    if filter_event_type:
+        queryset = queryset.filter(event_type=filter_event_type)
+
+    if filter_user:
+        queryset = queryset.filter(actor_username__icontains=filter_user)
+
+    if filter_date_from:
+        queryset = queryset.filter(timestamp__date__gte=filter_date_from)
+
+    if filter_date_to:
+        queryset = queryset.filter(timestamp__date__lte=filter_date_to)
+
+    total_events_count = AuditEvent.objects.count()
+    alerts_count = AuditEvent.objects.filter(alert=True).count()
+    distinct_event_types = list(
+        AuditEvent.objects.order_by().values_list('event_type', flat=True).distinct()
+    )
+
+    paginator = Paginator(queryset, 25)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'events': page_obj.object_list,
+        'page_obj': page_obj,
+        'active_tab': tab,
+        'alerts_count': alerts_count,
+        'total_events_count': total_events_count,
+        'distinct_event_types': distinct_event_types,
+        'filter_event_type': filter_event_type,
+        'filter_user': filter_user,
+        'filter_date_from': filter_date_from,
+        'filter_date_to': filter_date_to,
+    }
+    return render(request, 'dashboard/audit_log.html', context)
 
 from django.views.decorators.csrf import csrf_exempt
 

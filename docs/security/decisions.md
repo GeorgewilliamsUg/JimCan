@@ -24,5 +24,13 @@ Each entry is one line with the decision and the reason.
 | 2026-10-26 | Phase 2 | Enable LoginRequiredMiddleware with explicit public URL allowlist | Implements deny-by-default access control where all internal views require authentication unless decorated with @login_not_required. |
 | 2026-10-26 | Phase 2 | Step-up re-authentication requirement (@require_recent_auth) within 10 minutes for high-risk actions | Prevents session hijacking from unattended workstations during sensitive operations. |
 | 2026-10-26 | Phase 2 | Enforce zero superusers across database and test suite | Demotes superusers to Owner group with explicit permissions; Django is_superuser flag treated as dead code. |
+| 2026-10-26 | Phase 3 | Split audit architecture into AuditEvent and SecurityNoise tables | Separates immutable, cryptographically chained governance events from noisy, prunable high-volume records (403s, bad logins) to prevent DB exhaustion and chain breakage. |
+| 2026-10-26 | Phase 3 | Keyed HMAC-SHA256 audit chaining using AUDIT_HMAC_KEY | Secret HMAC key prevents attackers with direct database write access from recomputing valid hashes after tampering with stored rows. |
+| 2026-10-26 | Phase 3 | AuditChainHead table with select_for_update() and thread locking | Guarantees monotonic sequence ordering (1, 2, 3...) and prevents sequence forks during concurrent multi-threaded requests. |
+| 2026-10-26 | Phase 3 | Hardcoded DENYLIST_FIELDS for audit changes diffs | Automatically scrubs passwords, tokens, session keys, and secrets from audit change payloads before persistence. |
+| 2026-10-26 | Phase 3 | Redact unknown login failure usernames to '[unknown account]' | Protects credentials when users accidentally type their password into the username field. |
+| 2026-10-26 | Phase 3 | AuditContextMiddleware using Python contextvars at middleware position 10 | Captures ambient user, client IP, and request UUID across asynchronous and decoupled code paths without manual argument passing. |
+| 2026-10-26 | Phase 3 | Non-blocking notify_owners alert dispatcher | Delivers critical security alerts (lockouts, alerts) via email without blocking the HTTP request or raising unhandled exceptions. |
+
 
 

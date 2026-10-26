@@ -14,8 +14,9 @@ Any change to this pipeline must be deliberate, documented here, and validated a
 | 7 | `django.contrib.messages.middleware.MessageMiddleware` | Flash notification storage. Must precede downstream middleware and views so flash notices can be queued on redirects. |
 | 8 | `django.contrib.auth.middleware.LoginRequiredMiddleware` | Deny-by-default architecture. Automatically rejects unauthenticated requests across all routes unless explicitly exempted via `@login_not_required`. |
 | 9 | `jimcan.middleware.SessionTimeoutMiddleware` | Enforces 30-minute idle inactivity timeout and 8-hour absolute session ceiling. Terminates expired sessions and queues user notification. |
-| 10 | `django.middleware.clickjacking.XFrameOptionsMiddleware` | Emits `X-Frame-Options: DENY` header to mitigate clickjacking and unauthorized iframe framing. |
-| 11 | `django_htmx.middleware.HtmxMiddleware` | Parses incoming HTMX headers and attaches `request.htmx` helper attributes. |
-| 12 | `jimcan.middleware.HtmxAuthRedirectMiddleware` | Guards against HTMX requests rendering HTML login forms inside partial widget containers; emits `HX-Redirect` for full-window navigation. |
-| 13 | `jimcan.middleware.PrivateCacheControlMiddleware` | Injects `Cache-Control: no-store, no-cache, must-revalidate, private` on authenticated responses and credential pages to prevent browser history back-button exposure. |
-| 14 | `axes.middleware.AxesMiddleware` | Brute-force lockout and attempt tracking. Per official django-axes documentation, AxesMiddleware must run last to accurately monitor completed responses and credentials. |
+| 10 | `audit.middleware.AuditContextMiddleware` | Ambient request context capture. Attaches authenticated user, client IP, user agent, and request UUID to thread/coroutine contextvars for tamper-evident audit logging. |
+| 11 | `django.middleware.clickjacking.XFrameOptionsMiddleware` | Emits `X-Frame-Options: DENY` header to mitigate clickjacking and unauthorized iframe framing. |
+| 12 | `django_htmx.middleware.HtmxMiddleware` | Parses incoming HTMX headers and attaches `request.htmx` helper attributes. |
+| 13 | `jimcan.middleware.HtmxAuthRedirectMiddleware` | Guards against HTMX requests rendering HTML login forms inside partial widget containers; emits `HX-Redirect` for full-window navigation. |
+| 14 | `jimcan.middleware.PrivateCacheControlMiddleware` | Injects `Cache-Control: no-store, no-cache, must-revalidate, private` on authenticated responses and credential pages to prevent browser history back-button exposure. |
+| 15 | `axes.middleware.AxesMiddleware` | Brute-force lockout and attempt tracking. Per official django-axes documentation, AxesMiddleware must run last to accurately monitor completed responses and credentials. |
