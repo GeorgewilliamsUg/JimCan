@@ -1,3 +1,4 @@
+import datetime
 import os
 import sys
 from pathlib import Path
@@ -77,7 +78,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Third-party
     'django_htmx',
+    'axes',
     # Local Apps
+    'accounts.apps.AccountsConfig',
     'dashboard.apps.DashboardConfig',
 ]
 
@@ -89,10 +92,13 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.LoginRequiredMiddleware',
+    'jimcan.middleware.SessionTimeoutMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
     'jimcan.middleware.HtmxAuthRedirectMiddleware',
     'jimcan.middleware.PrivateCacheControlMiddleware',
+    'axes.middleware.AxesMiddleware',
 ]
 
 ROOT_URLCONF = 'jimcan.urls'
@@ -204,14 +210,47 @@ ENABLE_ADMIN = os.environ.get('ENABLE_ADMIN', 'False').lower() in ('true', '1', 
 DJANGO_ADMIN_PATH = os.environ.get('DJANGO_ADMIN_PATH', 'admin/').strip('/')
 
 # ------------------------------------------------------------------------------
-# 7. Password Validation
+# 7. Authentication Backends, Password Hashers & Validation (Phase 2)
 # ------------------------------------------------------------------------------
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.JimcanAxesBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+PASSWORD_HASHERS = [
+    'jimcan.hashers.JimcanArgon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 12},
+    },
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+PASSWORD_RESET_TIMEOUT = 3600
+
+# Session Engine & Storage (Database-backed)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 28800  # 8 hours absolute session ceiling
+
+# ------------------------------------------------------------------------------
+# 7b. Brute-Force Attack Protection (django-axes)
+# ------------------------------------------------------------------------------
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = datetime.timedelta(minutes=30)
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_IPWARE_META_PRECEDENCE_ORDER = ("REMOTE_ADDR",)
+AXES_LOCKOUT_CALLABLE = None
+AXES_VERBOSE = True
 
 # ------------------------------------------------------------------------------
 # 8. Internationalization & Localization

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Link Expired or Invalid · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-16 text-center space-y-5">
+  <div class="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+    <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+  </div>
+  <h1 class="text-2xl font-display font-bold text-charcoal">Invitation Link Expired or Invalid</h1>
+  <p class="text-sm text-muted leading-relaxed">
+    This account setup link has expired (links remain active for 1 hour) or has already been used.
+    Please contact your Managing Director to request a new activation link.
+  </p>
+  <div class="pt-4">
+    <a href="{% url 'login' %}" class="btn btn-secondary text-xs py-2.5 px-6">
+      Return to Sign In
+    </a>
+  </div>
+</div>
+{% endblock %}

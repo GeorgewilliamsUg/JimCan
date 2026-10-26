@@ -14,4 +14,15 @@ Each entry is one line with the decision and the reason.
 | 2026-10-26 | Phase 1 | Disable Django Admin by default on non-default path | Attack surface reduction; admin is conditionally mounted and rejects 'admin/' in production. |
 | 2026-10-26 | Phase 1 | Enforce no-store cache headers on authenticated/auth pages | Prevents back-button browser cache disclosure of sensitive financial/auth data without impacting static assets. |
 | 2026-10-26 | Phase 1 | Configure rotating file logger outside web-served root | Captures django.security and django.request events (5MB x 5 backups) without exposing logs to HTTP GET requests. |
+| 2026-10-26 | Phase 2 | Custom JimcanArgon2PasswordHasher (memory_cost=19456, time_cost=2, parallelism=1) | Tuned for cPanel shared hosting 1GB RAM budget (~19MB RAM footprint, 45.7ms execution vs PBKDF2 623ms and default Argon2 124ms). |
+| 2026-10-26 | Phase 2 | Set minimum password length to 12 with 1-hour reset token timeout | Eliminates weak/dictionary passwords while bounding token exposure window without introducing complex character puzzles. |
+| 2026-10-26 | Phase 2 | Disallow public registration and route user provisioning via bootstrap_owner and one-time setup tokens | Enforces Owner-only account creation; bootstrap_owner refuses to run if any account exists; tokens are single-use and emailed/printed to console. |
+| 2026-10-26 | Phase 2 | Standardize authentication failure messages to 'Incorrect username or password.' | Mitigates user enumeration across login and password reset boundaries. |
+| 2026-10-26 | Phase 2 | Enforce 30-minute idle inactivity timeout and 8-hour absolute session ceiling | Database-backed sessions expire automatically on inactivity or duration; throttled at 60s intervals to minimize DB overhead. |
+| 2026-10-26 | Phase 2 | Terminate secondary sessions upon password change via sign_out_everywhere | Preserves the active user's session while revoking stolen or stale sessions across other devices. |
+| 2026-10-26 | Phase 2 | Configure django-axes with 5-failure threshold and 30-minute cooloff per username+IP | Mitigates brute-force credential stuffing attacks using REMOTE_ADDR client tracking with automated security event emission. |
+| 2026-10-26 | Phase 2 | Enable LoginRequiredMiddleware with explicit public URL allowlist | Implements deny-by-default access control where all internal views require authentication unless decorated with @login_not_required. |
+| 2026-10-26 | Phase 2 | Step-up re-authentication requirement (@require_recent_auth) within 10 minutes for high-risk actions | Prevents session hijacking from unattended workstations during sensitive operations. |
+| 2026-10-26 | Phase 2 | Enforce zero superusers across database and test suite | Demotes superusers to Owner group with explicit permissions; Django is_superuser flag treated as dead code. |
+
 

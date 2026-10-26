@@ -128,6 +128,85 @@ class Command(BaseCommand):
             failed += 1
 
         # ----------------------------------------------------------------------
+        # Phase 2: Authentication & Guardrails Checks
+        # ----------------------------------------------------------------------
+
+        # 9. Password Hasher in Use
+        hashers = getattr(settings, 'PASSWORD_HASHERS', [])
+        primary_hasher = hashers[0] if hashers else ''
+        if 'JimcanArgon2PasswordHasher' in primary_hasher or 'Argon2PasswordHasher' in primary_hasher:
+            self.stdout.write(self.style.SUCCESS(f"[PASS] Primary password hasher: {primary_hasher}"))
+            passed += 1
+        elif 'PBKDF2PasswordHasher' in primary_hasher:
+            self.stdout.write(self.style.WARNING(f"[WARN] Primary password hasher is PBKDF2: {primary_hasher}"))
+            warned += 1
+        else:
+            self.stdout.write(self.style.ERROR(f"[FAIL] Insecure or unknown primary password hasher: {primary_hasher}"))
+            failed += 1
+
+        # 10. Password Validator Minimum Length
+        validators = getattr(settings, 'AUTH_PASSWORD_VALIDATORS', [])
+        min_length = None
+        for val in validators:
+            if 'MinimumLengthValidator' in val.get('NAME', ''):
+                min_length = val.get('OPTIONS', {}).get('min_length', 8)
+                break
+
+        if min_length and min_length >= 12:
+            self.stdout.write(self.style.SUCCESS(f"[PASS] Password minimum length validator is {min_length} chars (>= 12)"))
+            passed += 1
+        else:
+            self.stdout.write(self.style.ERROR(f"[FAIL] Password minimum length validator is {min_length} (must be >= 12)"))
+            failed += 1
+
+        # 11. Session Storage & Lifetime Limits
+        session_engine = getattr(settings, 'SESSION_ENGINE', '')
+        if session_engine == 'django.contrib.sessions.backends.db':
+            self.stdout.write(self.style.SUCCESS("[PASS] Session engine: database-backed (django.contrib.sessions.backends.db)"))
+            passed += 1
+        else:
+            self.stdout.write(self.style.ERROR(f"[FAIL] Session engine is not database-backed: {session_engine}"))
+            failed += 1
+
+        from jimcan.middleware import SESSION_IDLE_TIMEOUT_SECONDS, SESSION_ABSOLUTE_TIMEOUT_SECONDS
+        if SESSION_IDLE_TIMEOUT_SECONDS == 1800 and SESSION_ABSOLUTE_TIMEOUT_SECONDS == 28800:
+            self.stdout.write(self.style.SUCCESS(
+                f"[PASS] Session limits verified (Idle: {SESSION_IDLE_TIMEOUT_SECONDS // 60}m, "
+                f"Absolute: {SESSION_ABSOLUTE_TIMEOUT_SECONDS // 3600}h)"
+            ))
+            passed += 1
+        else:
+            self.stdout.write(self.style.ERROR(
+                f"[FAIL] Invalid session timeout constants: Idle={SESSION_IDLE_TIMEOUT_SECONDS}s, Absolute={SESSION_ABSOLUTE_TIMEOUT_SECONDS}s"
+            ))
+            failed += 1
+
+        # 12. Brute-Force Lockout (django-axes) Configuration
+        middleware_list = getattr(settings, 'MIDDLEWARE', [])
+        axes_installed = 'axes' in getattr(settings, 'INSTALLED_APPS', [])
+        axes_middleware_last = middleware_list and middleware_list[-1] == 'axes.middleware.AxesMiddleware'
+        axes_limit = getattr(settings, 'AXES_FAILURE_LIMIT', None)
+        axes_reset = getattr(settings, 'AXES_RESET_ON_SUCCESS', False)
+
+        if axes_installed and axes_middleware_last and axes_limit == 5 and axes_reset is True:
+            self.stdout.write(self.style.SUCCESS("[PASS] django-axes configured (5 failure limit, reset on success, last in middleware)"))
+            passed += 1
+        else:
+            self.stdout.write(self.style.ERROR(
+                f"[FAIL] Incomplete axes configuration: installed={axes_installed}, "
+                f"last_middleware={axes_middleware_last}, limit={axes_limit}, reset={axes_reset}"
+            ))
+            failed += 1
+
+        # 13. Deny-by-Default (LoginRequiredMiddleware)
+        if 'django.contrib.auth.middleware.LoginRequiredMiddleware' in middleware_list:
+            self.stdout.write(self.style.SUCCESS("[PASS] LoginRequiredMiddleware active (site is deny-by-default)"))
+            passed += 1
+        else:
+            self.stdout.write(self.style.ERROR("[FAIL] LoginRequiredMiddleware is missing from MIDDLEWARE (site is not deny-by-default)"))
+            failed += 1
+
+        # ----------------------------------------------------------------------
         # Summary & Exit Code
         # ----------------------------------------------------------------------
         self.stdout.write("")

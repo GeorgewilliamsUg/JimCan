@@ -108,7 +108,7 @@
             <i data-lucide="alert-octagon" class="w-4 h-4 text-danger flex-shrink-0 mt-0.5"></i>
             <div>
               <strong class="font-semibold block">Authentication failed:</strong>
-              <span class="text-danger">Invalid username or password. Please verify your credentials and try again.</span>
+              <span class="text-danger">{% for error in form.non_field_errors %}{{ error }}{% empty %}Incorrect username or password.{% endfor %}</span>
             </div>
           </div>
         {% endif %}

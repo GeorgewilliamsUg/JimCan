@@ -12,6 +12,11 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth import views as auth_views
 from django.urls import reverse, reverse_lazy
 
+from django.contrib.auth.decorators import login_not_required
+from django.utils.decorators import method_decorator
+from accounts.forms import JimcanAuthenticationForm
+from jimcan.security import security_event
+
 # Role permissions map according to docs/design/roles-permissions.md & navigation.py
 ROLE_PERMISSIONS = {
     'overview': ['admin', 'manager'],
@@ -28,6 +33,7 @@ ROLE_PERMISSIONS = {
     'audit': ['admin'],
 }
 
+@method_decorator(login_not_required, name='dispatch')
 class WelcomeLoginView(auth_views.LoginView):
     """
     Landing Welcome and Login view at root URL (/).
@@ -35,7 +41,18 @@ class WelcomeLoginView(auth_views.LoginView):
     Redirects authenticated users directly to the operational dashboard.
     """
     template_name = 'registration/login.html'
+    form_class = JimcanAuthenticationForm
     redirect_authenticated_user = True
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        security_event("login_success", user=self.request.user, request=self.request)
+        return response
+
+    def form_invalid(self, form):
+        username = form.data.get('username')
+        security_event("login_failure", username=username, request=self.request)
+        return super().form_invalid(form)
 
     def get_success_url(self):
         return self.get_redirect_url() or str(reverse_lazy('dashboard:overview'))
@@ -447,10 +464,12 @@ def audit_view(request):
 from django.views.decorators.csrf import csrf_exempt
 
 # API Endpoints
+@login_not_required
 def api_heartbeat_view(request):
     """Lightweight session heartbeat ping."""
     return JsonResponse({'status': 'alive', 'authenticated': True})
 
+@login_not_required
 @csrf_exempt
 def api_test_toast_view(request):
     """
@@ -466,11 +485,13 @@ def api_test_toast_view(request):
     response['HX-Trigger'] = json.dumps(trigger_data)
     return response
 
+@login_not_required
 @csrf_exempt
 def api_test_htmx_401(request):
     """Simulates an expired session or unauthenticated request on an HTMX endpoint."""
     return HttpResponse('Unauthorized: Session expired', status=401)
 
+@login_not_required
 @csrf_exempt
 def api_test_htmx_403(request):
     """Simulates a permission denied response on an HTMX endpoint."""
@@ -478,27 +499,35 @@ def api_test_htmx_403(request):
 
 
 # Error Boundary Simulators
+@login_not_required
 def test_403_view(request):
     return render(request, '403.html', status=403)
 
+@login_not_required
 def test_404_view(request):
     return render(request, '404.html', status=404)
 
+@login_not_required
 def test_500_view(request):
     return render(request, '500.html', status=500)
 
+@login_not_required
 def test_400_view(request):
     return render(request, '400.html', status=400)
 
 # Django Error Handlers
+@login_not_required
 def error_400_view(request, exception=None, reason=""):
     return render(request, '400.html', status=400)
 
+@login_not_required
 def error_403_view(request, exception=None):
     return render(request, '403.html', status=403)
 
+@login_not_required
 def error_404_view(request, exception=None):
     return render(request, '404.html', status=404)
 
+@login_not_required
 def error_500_view(request):
     return render(request, '500.html', status=500)

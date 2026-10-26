@@ -102,3 +102,56 @@ class PrivateCacheControlMiddleware:
             response['Expires'] = '0'
 
         return response
+
+
+# Session Lifetimes (Phase 2 Task 6)
+SESSION_IDLE_TIMEOUT_SECONDS = 1800       # 30 minutes
+SESSION_ABSOLUTE_TIMEOUT_SECONDS = 28800  # 8 hours
+
+
+class SessionTimeoutMiddleware:
+    """
+    Enforces session timeout guardrails:
+    - Idle timeout: 30 minutes of inactivity.
+    - Absolute timeout: 8 hours maximum session lifetime.
+    Updates last_activity at most once per 60 seconds to prevent unnecessary DB writes.
+    When a limit is reached, logs the user out and redirects to login with 'Your session expired.'
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            import time
+            from django.contrib.auth import logout
+            from django.contrib import messages
+            from django.shortcuts import redirect
+
+            now = int(time.time())
+            started_at = request.session.get('session_started_at')
+            last_activity = request.session.get('last_activity')
+
+            # 1. Initialize session start time if not recorded
+            if not started_at:
+                request.session['session_started_at'] = now
+                request.session['last_activity'] = now
+            else:
+                # 2. Check Absolute Timeout (8 hours)
+                if now - started_at > SESSION_ABSOLUTE_TIMEOUT_SECONDS:
+                    logout(request)
+                    if hasattr(request, '_messages'):
+                        messages.warning(request, "Your session expired.")
+                    return redirect('login')
+
+                # 3. Check Idle Timeout (30 minutes)
+                if last_activity and (now - last_activity > SESSION_IDLE_TIMEOUT_SECONDS):
+                    logout(request)
+                    if hasattr(request, '_messages'):
+                        messages.warning(request, "Your session expired.")
+                    return redirect('login')
+
+                # 4. Throttle activity updates to once per 60 seconds
+                if last_activity and (now - last_activity >= 60):
+                    request.session['last_activity'] = now
+
+        return self.get_response(request)

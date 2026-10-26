@@ -7,6 +7,7 @@ PrivateCacheControlMiddleware, access boundaries, HTMX triggers, and error pages
 import json
 from django.test import TestCase, Client
 from django.urls import reverse
+from django.contrib.auth.models import User
 from dashboard.navigation import get_navigation_items, NAVIGATION_ITEMS
 
 class NavigationRegistryTests(TestCase):
@@ -81,6 +82,8 @@ class PrivateCacheMiddlewareTests(TestCase):
 
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user('cache_test_user', 'cache@jimcan.site', 'CachePass123!Secure')
+        self.client.force_login(self.user)
 
     def test_html_responses_have_private_no_store_headers(self):
         response = self.client.get(reverse('dashboard:shell_demo'))
@@ -97,6 +100,8 @@ class AccessEnforcementTests(TestCase):
 
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user('access_test_user', 'access@jimcan.site', 'AccessPass123!Secure')
+        self.client.force_login(self.user)
 
     def test_admin_can_access_rates(self):
         response = self.client.get(reverse('dashboard:rates') + '?role=admin')

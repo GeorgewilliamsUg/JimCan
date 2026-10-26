@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Identity · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-12"
+     x-data="{ showPassword: false, submitting: false }">
+  
+  <div class="card p-6 sm:p-8 bg-white border border-line rounded-xl shadow-xs space-y-6">
+    
+    <div class="text-center space-y-2">
+      <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-charcoal border border-line">
+        <i data-lucide="shield-check" class="w-6 h-6"></i>
+      </div>
+      <h1 class="text-2xl font-display font-bold text-charcoal tracking-tight">Security Check</h1>
+      <p class="text-xs text-muted">
+        Please confirm your current password to continue with this sensitive operation.
+      </p>
+    </div>
+
+    {% if form.errors %}
+      <div class="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-2" role="alert">
+        <i data-lucide="alert-octagon" class="w-4 h-4 flex-shrink-0 text-red-600"></i>
+        <span>Incorrect password. Please verify your credentials and try again.</span>
+      </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:reauth' %}" @submit="submitting = true" class="space-y-4" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <div class="space-y-1.5">
+        <label for="id_password" class="text-xs font-mono font-semibold uppercase tracking-wider text-charcoal">
+          Current Password
+        </label>
+        <div class="relative">
+          <input :type="showPassword ? 'text' : 'password'"
+                 name="password"
+                 id="id_password"
+                 autocomplete="current-password"
+                 required
+                 autofocus
+                 placeholder="••••••••••••"
+                 class="auth-input pr-10">
+          <button type="button" 
+                  @click="showPassword = !showPassword"
+                  class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted hover:text-charcoal transition"
+                  tabindex="0"
+                  aria-label="Toggle password visibility">
+            <template x-if="!showPassword">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </template>
+            <template x-if="showPassword">
+              <i data-lucide="eye-off" class="w-4 h-4 text-charcoal"></i>
+            </template>
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-2 flex items-center gap-3">
+        <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary flex-1 text-center text-xs py-2.5">
+          Cancel
+        </a>
+        <button type="submit" 
+                :disabled="submitting"
+                class="auth-submit-btn flex-1 text-xs py-2.5">
+          <span x-show="!submitting">Confirm &amp; Proceed</span>
+          <span x-show="submitting" style="display: none;">Verifying...</span>
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
