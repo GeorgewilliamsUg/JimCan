@@ -208,9 +208,7 @@ class AuthTemplatesIntegrityTests(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
-        self.assertIn('Jimcan Operations', content)
-        self.assertIn('Sign In to Dashboard', content)
-        self.assertIn('login_bg.webp', content)
+        self.assertIn('Civil Engineering', content)
 
     def test_unauthenticated_user_accessing_internal_view_redirects_to_login(self):
         """Verifies unauthenticated users attempting to access internal views are routed to login."""

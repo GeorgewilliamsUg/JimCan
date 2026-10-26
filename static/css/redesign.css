@@ -1015,6 +1015,246 @@
   background-color: var(--paper-sunk);
 }
 
+/* ==============================================================================
+   Jimcan Operations Dashboard - Bespoke Authentication Layout (login.html)
+   Tactile, architectural, high-contrast civil engineering identity.
+   Eliminates generic AI tropes (no stock photo blurs, no frosted glass, no glowing gradients).
+   ============================================================================== */
+
+.auth-viewport {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background-color: var(--concrete);
+}
+
+/* Left Brand & Operations Showcase (Desktop Only) */
+.auth-brand-pane {
+  display: none;
+  position: relative;
+  width: 44%;
+  min-height: 100vh;
+  background-color: var(--ink);
+  background-image: url('../img/auth_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  color: #FFFFFF;
+  border-right: 1px solid var(--line-on-dark);
+  padding: var(--s7) var(--s6);
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .auth-brand-pane {
+    display: flex;
+  }
+}
+
+.auth-brand-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg, 
+    rgba(17, 24, 39, 0.85) 0%, 
+    rgba(17, 24, 39, 0.45) 45%, 
+    rgba(17, 24, 39, 0.90) 100%
+  );
+  pointer-events: none;
+}
+
+.auth-brand-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.auth-brand-logo-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.auth-brand-body {
+  position: relative;
+  z-index: 10;
+  max-width: 440px;
+  margin-top: auto;
+  margin-bottom: var(--s6);
+}
+
+.auth-brand-eyebrow {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #D1D5DB;
+  margin-bottom: var(--s2);
+}
+
+.auth-brand-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--s2);
+}
+
+.auth-brand-subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  color: #9CA3AF;
+}
+
+.auth-brand-footer {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: var(--s4);
+  font-size: 11px;
+  color: #9CA3AF;
+}
+
+/* Right Form Canvas */
+.auth-form-pane {
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--concrete);
+  position: relative;
+  padding: var(--s5) var(--s4);
+  overflow-y: auto;
+}
+
+.auth-canvas-grid {
+  display: none;
+}
+
+.auth-form-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 440px;
+  margin: auto;
+  padding: var(--s4) 0;
+}
+
+.auth-card {
+  background-color: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  padding: var(--s6);
+}
+
+@media (min-width: 640px) {
+  .auth-card {
+    padding: var(--s6) var(--s6);
+  }
+}
+
+.auth-card-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.auth-card-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.auth-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--s3);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  background-color: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-data);
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.auth-input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
+}
+
+.auth-input.is-invalid {
+  border-color: var(--red);
+  background-color: var(--red-tint);
+}
+
+.auth-submit-btn {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  background-color: var(--ink);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-data);
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, opacity 150ms ease;
+}
+
+.auth-submit-btn:hover {
+  background-color: var(--ink-raised);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-footer-bar {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding-top: var(--s4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   * {
