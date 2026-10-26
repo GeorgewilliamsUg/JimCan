@@ -48,6 +48,12 @@ for path in "${PATHS_TO_CHECK[@]}"; do
   
   # Perform read-only GET request without credentials, capturing HTTP status code
   HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
+
+  if [ "$HTTP_CODE" = "000" ]; then
+    echo "  [ERROR] Connection failed to $TARGET_URL (HTTP 000)"
+    echo "  Aborting: Server at $BASE_URL is unreachable or connection was refused."
+    exit 2
+  fi
   
   if [ "$path" = "/robots.txt" ]; then
     # robots.txt is normally public (200) or missing (404)
