@@ -47,9 +47,12 @@ ALERT_EVENTS = {
     'account_locked',
     'authenticator_registered',
     'backup_code_used',
+    'backup_codes_regenerated',
+    'authenticator_removed',
     'two_factor_reset',
     'role_changed',
     'user_created',
+    'user_deactivated',
     'chain_verification_failure',
     'burst_failed_logins',
 }
@@ -209,12 +212,35 @@ def record_event(
     alert: bool = False,
     request=None,
     is_data_change: bool = False,
-    attempted_username: Optional[str] = None
+    attempted_username: Optional[str] = None,
+    target_user=None,
+    description: Optional[str] = None,
+    context_override: Optional[Dict[str, Any]] = None,
+    **kwargs
 ) -> Optional[AuditEvent]:
     """
     Central, tamper-evident recording entry point for all system security events.
     Guarantees monotonic sequence ordering and cryptographic chaining.
     """
+    # Resolve target_user convenience parameter if provided
+    if target_user is not None:
+        if not target_model:
+            target_model = target_user.__class__.__name__
+        if not target_object_id:
+            target_object_id = str(getattr(target_user, 'pk', target_user))
+        if not target_label:
+            target_label = getattr(target_user, 'username', str(target_user))
+
+    # Resolve description and context overrides into changes dict
+    if description or context_override or kwargs:
+        changes = dict(changes) if changes else {}
+        if description:
+            changes.setdefault('description', description)
+        if context_override:
+            changes.update(context_override)
+        if kwargs:
+            changes.update(kwargs)
+
     # 1. Fall back to ambient context from contextvars if not explicitly supplied
     ctx = get_audit_context()
     resolved_actor = actor if actor is not None else ctx['actor']
@@ -357,7 +383,8 @@ def notify_owners(subject: str, event: Any):
             f"Actor:       {actor}\n"
             f"Client IP:   {ip}\n"
             f"Timestamp:   {timestamp.isoformat()}\n\n"
-            f"Please sign in to the Operations Dashboard to review the full audit log.\n"
+            f"Please confirm this security or authentication change was expected.\n"
+            f"If unexpected, sign in to the Operations Dashboard immediately to review user management and audit logs.\n"
         )
 
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'notifications@jimcanconstruction.site')

@@ -8,10 +8,33 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required
 from django.urls import reverse_lazy
 from accounts.views import JimcanLogoutView, JimcanPasswordChangeView
+from accounts.mfa_views import (
+    JimcanTwoFactorLoginView,
+    JimcanSetupView,
+    JimcanSetupCompleteView,
+    JimcanBackupTokensView,
+    JimcanProfileView,
+    JimcanDisableView,
+)
+from two_factor.views import QRGeneratorView
+
+two_factor_patterns = (
+    [
+        path('account/login/', login_not_required(JimcanTwoFactorLoginView.as_view()), name='login'),
+        path('account/two_factor/setup/', JimcanSetupView.as_view(), name='setup'),
+        path('account/two_factor/qrcode/', QRGeneratorView.as_view(), name='qr'),
+        path('account/two_factor/setup/complete/', JimcanSetupCompleteView.as_view(), name='setup_complete'),
+        path('account/two_factor/backup/tokens/', JimcanBackupTokensView.as_view(), name='backup_tokens'),
+        path('account/two_factor/', JimcanProfileView.as_view(), name='profile'),
+        path('account/two_factor/disable/', JimcanDisableView.as_view(), name='disable'),
+    ],
+    'two_factor'
+)
 
 urlpatterns = [
     path('', WelcomeLoginView.as_view(), name='welcome'),
     path('login/', WelcomeLoginView.as_view(), name='login'),
+    path('', include(two_factor_patterns)),
     path('logout/', JimcanLogoutView.as_view(), name='logout'),
     path('password_change/', JimcanPasswordChangeView.as_view(), name='password_change'),
     path(
@@ -57,6 +80,14 @@ if getattr(settings, 'ENABLE_ADMIN', False):
         raise ImproperlyConfigured(
             'DJANGO_ADMIN_PATH cannot be the default "admin/" in production (DEBUG=False). '
             'Configure a secure, non-default path or set ENABLE_ADMIN=False.'
+        )
+    # Enforce OTP verification on Django Admin site per two_factor documentation
+    from two_factor.admin import AdminSiteOTPRequiredMixin
+    if not issubclass(admin.site.__class__, AdminSiteOTPRequiredMixin):
+        admin.site.__class__ = type(
+            'JimcanOTPAdminSite',
+            (AdminSiteOTPRequiredMixin, admin.site.__class__),
+            {}
         )
     urlpatterns.insert(0, path(f'{admin_path}/', admin.site.urls))
 

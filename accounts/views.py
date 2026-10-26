@@ -41,17 +41,20 @@ class ReauthView(LoginRequiredMixin, View):
         next_url = request.GET.get('next', '/')
         # If user already re-authenticated within 10 minutes, proceed immediately
         reauth_at = request.session.get('reauth_at')
-        if reauth_at and (timezone.now().timestamp() - float(reauth_at) <= 600):
+        from django_otp import user_has_device
+        has_mfa = user_has_device(request.user)
+        is_verified = getattr(request.user, 'is_verified', lambda: True)()
+        if reauth_at and (timezone.now().timestamp() - float(reauth_at) <= 600) and (not has_mfa or is_verified):
             if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
             return redirect('dashboard:overview')
 
-        form = ReauthForm(user=request.user)
+        form = ReauthForm(user=request.user, request=request)
         return render(request, self.template_name, {'form': form, 'next': next_url})
 
     def post(self, request):
         next_url = request.POST.get('next') or request.GET.get('next') or '/'
-        form = ReauthForm(request.user, data=request.POST)
+        form = ReauthForm(request.user, request=request, data=request.POST)
 
         if form.is_valid():
             request.session['reauth_at'] = timezone.now().timestamp()
@@ -68,8 +71,9 @@ class ReauthView(LoginRequiredMixin, View):
 @method_decorator(login_not_required, name='dispatch')
 class AccountSetupView(View):
     """
-    Handles one-time set-password link activation for new user accounts (Phase 2 Task 4).
-    Validates token, ensures user is active, sets password, and signs out all stale sessions.
+    Handles one-time set-password link activation for new user accounts (Phase 2 Task 4 / Phase 4 Task 5).
+    Validates token, ensures user is active, sets password, signs out all stale sessions,
+    and logs the user in to enroll their first authenticator app.
     """
     template_name = 'registration/account_setup.html'
 
@@ -99,9 +103,12 @@ class AccountSetupView(View):
         if form.is_valid():
             form.save()
             sign_out_everywhere(user)
+            from django.contrib.auth import login as auth_login
+            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            request.session['reauth_at'] = timezone.now().timestamp()
             security_event("account_setup_completed", username=user.username, request=request)
-            messages.success(request, "Your password has been set successfully. You can now sign in.")
-            return redirect('login')
+            messages.info(request, "Password set successfully. Please enroll your authenticator app to complete setup.")
+            return redirect('two_factor:setup')
 
         return render(request, self.template_name, {'form': form, 'user': user})
 

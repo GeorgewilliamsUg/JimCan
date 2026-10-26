@@ -92,6 +92,11 @@ INSTALLED_APPS = [
     # Third-party
     'django_htmx',
     'axes',
+    # Two-Factor & OTP (TOTP and static backup tokens only; no SMS/calls)
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
+    'two_factor',
     # Local Apps
     'accounts.apps.AccountsConfig',
     'audit.apps.AuditConfig',
@@ -105,10 +110,12 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.LoginRequiredMiddleware',
     'jimcan.middleware.SessionTimeoutMiddleware',
     'audit.middleware.AuditContextMiddleware',
+    'jimcan.middleware.MFAEnforcementMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
     'jimcan.middleware.HtmxAuthRedirectMiddleware',
@@ -300,6 +307,15 @@ CSRF_FAILURE_VIEW = 'dashboard.views.error_400_view'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard:overview'
 LOGOUT_REDIRECT_URL = 'login'
+
+# Two-Factor Authentication & Throttling (Phase 4)
+OTP_TOTP_THROTTLE_FACTOR = 1
+OTP_STATIC_THROTTLE_FACTOR = 1
+TWO_FACTOR_PATCH_ADMIN = True
+TWO_FACTOR_REMEMBER_COOKIE_AGE = None  # Strict: require second factor on every login session
+
+# Staged MFA Rollout Switch: 'off', 'owners', 'all'. Default in production: 'all'
+MFA_ENFORCEMENT = os.environ.get('MFA_ENFORCEMENT', 'all' if not DEBUG else 'off').lower().strip()
 
 # ------------------------------------------------------------------------------
 # 10. Logging Configuration (Outside Web-Served Directory with Rotation)

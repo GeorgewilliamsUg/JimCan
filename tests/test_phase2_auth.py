@@ -460,7 +460,7 @@ class Phase2SpecificationSecurityTests(TestCase):
         self.assertEqual(cm.exception.code, 1)
 
     def test_middleware_order_matches_documented_specification(self):
-        """settings.MIDDLEWARE must match the exact 14 items documented in middleware-order.md."""
+        """settings.MIDDLEWARE must match the exact 17 items documented in middleware-order.md."""
         from django.conf import settings
         expected_middleware = [
             'django.middleware.security.SecurityMiddleware',
@@ -469,10 +469,12 @@ class Phase2SpecificationSecurityTests(TestCase):
             'django.middleware.common.CommonMiddleware',
             'django.middleware.csrf.CsrfViewMiddleware',
             'django.contrib.auth.middleware.AuthenticationMiddleware',
+            'django_otp.middleware.OTPMiddleware',
             'django.contrib.messages.middleware.MessageMiddleware',
             'django.contrib.auth.middleware.LoginRequiredMiddleware',
             'jimcan.middleware.SessionTimeoutMiddleware',
             'audit.middleware.AuditContextMiddleware',
+            'jimcan.middleware.MFAEnforcementMiddleware',
             'django.middleware.clickjacking.XFrameOptionsMiddleware',
             'django_htmx.middleware.HtmxMiddleware',
             'jimcan.middleware.HtmxAuthRedirectMiddleware',

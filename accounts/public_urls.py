@@ -13,4 +13,5 @@ PUBLIC_URL_NAMES = (
     'password_reset_confirm',
     'password_reset_complete',
     'account_setup',
+    'two_factor:login',
 )

@@ -266,6 +266,42 @@ class Command(BaseCommand):
             failed += 1
 
         # ----------------------------------------------------------------------
+        # Phase 4: Two-Factor Authentication & Recovery Checks
+        # ----------------------------------------------------------------------
+
+        # 18. MFA Enforcement Mode
+        mfa_mode = getattr(settings, 'MFA_ENFORCEMENT', 'all' if not settings.DEBUG else 'off').lower().strip()
+        if not settings.DEBUG:
+            if mfa_mode == 'all':
+                self.stdout.write(self.style.SUCCESS("[PASS] MFA enforcement mode: all (fully enforced across all accounts in production)"))
+                passed += 1
+            else:
+                self.stdout.write(self.style.WARNING(
+                    f"[WARN] MFA enforcement mode is '{mfa_mode}' (staged rollout active; must be 'all' in production once rollout complete)"
+                ))
+                warned += 1
+        else:
+            self.stdout.write(self.style.SUCCESS(f"[PASS] MFA enforcement mode: {mfa_mode} (development mode)"))
+            passed += 1
+
+        # 19. Active Owner Resilience (At least two active Owner accounts)
+        try:
+            active_owners_count = user_model.objects.filter(groups__name='Owner', is_active=True).count()
+            if active_owners_count >= 2:
+                self.stdout.write(self.style.SUCCESS(
+                    f"[PASS] Active Owner accounts: {active_owners_count} (resilient account recovery supported)"
+                ))
+                passed += 1
+            else:
+                self.stdout.write(self.style.WARNING(
+                    f"[WARN] Found only {active_owners_count} active Owner account(s). At least 2 active Owner accounts are strongly recommended."
+                ))
+                warned += 1
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"[FAIL] Could not query Owner accounts: {e}"))
+            failed += 1
+
+        # ----------------------------------------------------------------------
         # Summary & Exit Code
         # ----------------------------------------------------------------------
         self.stdout.write("")

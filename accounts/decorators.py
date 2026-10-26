@@ -29,7 +29,11 @@ def require_recent_auth(minutes: int = 10):
             now_ts = timezone.now().timestamp()
             threshold_seconds = minutes * 60
 
-            if not reauth_at or (now_ts - float(reauth_at) > threshold_seconds):
+            from django_otp import user_has_device
+            has_mfa = user_has_device(request.user)
+            is_verified = request.user.is_verified() if hasattr(request.user, 'is_verified') else False
+
+            if not reauth_at or (now_ts - float(reauth_at) > threshold_seconds) or (has_mfa and not is_verified):
                 next_url = quote(request.get_full_path())
                 return redirect(f"{reverse('accounts:reauth')}?next={next_url}")
 
@@ -52,7 +56,11 @@ class RecentAuthRequiredMixin(AccessMixin):
         now_ts = timezone.now().timestamp()
         threshold_seconds = self.reauth_minutes * 60
 
-        if not reauth_at or (now_ts - float(reauth_at) > threshold_seconds):
+        from django_otp import user_has_device
+        has_mfa = user_has_device(request.user)
+        is_verified = request.user.is_verified() if hasattr(request.user, 'is_verified') else False
+
+        if not reauth_at or (now_ts - float(reauth_at) > threshold_seconds) or (has_mfa and not is_verified):
             next_url = quote(request.get_full_path())
             return redirect(f"{reverse('accounts:reauth')}?next={next_url}")
 

@@ -108,3 +108,37 @@ Schedule quarterly or monthly cleanup in cPanel Cron:
 0 2 1 * * cd /home/<cpanel_user>/jimcan && source /home/<cpanel_user>/virtualenv/jimcan/<python_version>/bin/activate && python manage.py prune_noise > /dev/null 2>&1
 ```
 
+---
+
+## 5. Authenticator Secret Storage & Encrypted Database Backups (Phase 4)
+
+### 5.1 Verification of django-otp Secret Storage
+During Phase 4 development, inspection of the installed `django-otp` package (`django_otp.plugins.otp_totp.models.TOTPDevice`, table `otp_totp_totpdevice`) verified that:
+- **TOTP secrets are stored in recoverable form.** In table `otp_totp_totpdevice`, the `key` database column stores the shared secret as a plain hex-encoded string (`CharField`). Unlike passwords, TOTP secrets cannot be one-way hashed because the server must calculate the expected HMAC-SHA1 code at the exact moment of verification.
+- **Static backup tokens are stored in recoverable form.** In table `otp_static_statictoken` (`django_otp.plugins.otp_static.models.StaticToken`), the `token` field is a plain `CharField`.
+
+### 5.2 Mandatory Backup Encryption
+Because authenticator secrets are stored in recoverable form in the database:
+1. **Never store unencrypted database dumps on the server.** Any `mysqldump` or SQLite backup file left unencrypted on disk compromises the second factor for all accounts if the filesystem or hosting account is breached.
+2. **Encrypt all database backups at rest.** All automated and manual backup jobs must pipe their output directly through an encryption tool (e.g., GPG with AES-256):
+   ```bash
+   mysqldump -u <user> -p<password> <database> | gpg --symmetric --cipher-algo AES256 -o backup_$(date +%Y%m%d).sql.gpg
+   ```
+3. **Restrict backup permissions.** Ensure database backups have permissions `0600` and are stored strictly outside the web-accessible directory tree.
+
+### 5.3 Scheduled Command: Expire Pending Accounts (`expire_pending_accounts`)
+To close the window of vulnerability where an intercepted onboarding link could be abused, accounts that set a password but fail to enroll their authenticator app within 72 hours must be automatically deactivated.
+
+**cPanel Cron Setup (Daily at 03:30 UTC):**
+```bash
+30 3 * * * cd /home/<cpanel_user>/jimcan && source /home/<cpanel_user>/virtualenv/jimcan/<python_version>/bin/activate && python manage.py expire_pending_accounts > /dev/null 2>&1
+```
+
+### 5.4 Server Command: Reset User MFA (`reset_mfa`)
+When an Owner or employee loses their phone and has exhausted all 10 backup codes:
+```bash
+python manage.py reset_mfa <username>
+```
+This command requires shell/SSH access, terminates all active sessions, purges all OTP devices and tokens, records an audit event as `system`, and alerts all active Owners by email.
+
+

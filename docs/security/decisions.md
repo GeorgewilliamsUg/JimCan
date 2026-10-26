@@ -31,6 +31,15 @@ Each entry is one line with the decision and the reason.
 | 2026-10-26 | Phase 3 | Redact unknown login failure usernames to '[unknown account]' | Protects credentials when users accidentally type their password into the username field. |
 | 2026-10-26 | Phase 3 | AuditContextMiddleware using Python contextvars at middleware position 10 | Captures ambient user, client IP, and request UUID across asynchronous and decoupled code paths without manual argument passing. |
 | 2026-10-26 | Phase 3 | Non-blocking notify_owners alert dispatcher | Delivers critical security alerts (lockouts, alerts) via email without blocking the HTTP request or raising unhandled exceptions. |
-
+| 2026-10-26 | Phase 4 | Enforce TOTP and static backup recovery tokens only (no SMS or phone plugins) | Mitigates SIM-swapping and SS7 interception risks while eliminating third-party telephony costs. |
+| 2026-10-26 | Phase 4 | Show 10 static backup recovery codes once upon enrollment | Prevents account lockout if phone is lost while keeping tokens out of persistent session storage. |
+| 2026-10-26 | Phase 4 | Enable exponential throttling on TOTP and static codes via OTP_TOTP_THROTTLE_FACTOR=1 | Mitigates brute-force guessing attacks against 6-digit codes and static tokens with exponential delays. |
+| 2026-10-26 | Phase 4 | Place OTPMiddleware at position 7 and MFAEnforcementMiddleware at position 12 | Attaches OTP verification status immediately after auth; enforces deny-by-default MFA redirects before view rendering. |
+| 2026-10-26 | Phase 4 | Staged rollout controlled via MFA_ENFORCEMENT switch ('off' -> 'owners' -> 'all') | Prevents administrative lockout during deployment; defaults to fail-secure 'all' in production. |
+| 2026-10-26 | Phase 4 | Record mfa_enforcement_mode audit event at application startup | Makes any silent or unauthorized downgrade of MFA enforcement mode immediately visible in the immutable audit log. |
+| 2026-10-26 | Phase 4 | Enforce step-up re-authentication on authenticator changes and recovery resets | Protects high-risk MFA device configuration and user management from hijacked sessions. |
+| 2026-10-26 | Phase 4 | Automatic deactivation of accounts pending MFA enrollment after 72 hours | Closes the vulnerability window where an intercepted setup link can be abused before enrollment. |
+| 2026-10-26 | Phase 4 | Prohibit self-service MFA reset by Owners through the web UI | Mitigates malicious takeovers; forces recovery through backup codes, a second Owner, or SSH server command. |
+| 2026-10-26 | Phase 4 | Mandate encrypted database backups due to recoverable TOTP secret storage | Discloses that django-otp stores TOTP keys in plain hex, requiring GPG/AES-256 encryption on all DB backups. |
 
 

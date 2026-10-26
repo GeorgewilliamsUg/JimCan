@@ -1,0 +1,45 @@
+{% extends "two_factor/_base_focus.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="space-y-6">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">✓</div>
+      <div>
+        <h1 class="text-xl font-bold font-display text-charcoal">Two-Factor Authentication Enabled</h1>
+        <p class="text-xs text-muted">Your authenticator app is paired and verified.</p>
+      </div>
+    </div>
+
+    {% if backup_codes %}
+      <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs space-y-2">
+        <strong class="font-bold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+          <span>⚠️ Important Recovery Codes</span>
+        </strong>
+        <p class="text-amber-800 leading-relaxed font-semibold">
+          {{ backup_warning|default:"Save them in a password manager or print them; they are the only way in if the phone is lost." }}
+        </p>
+        <p class="text-amber-700 text-[11px]">
+          These 10 single-use codes are shown only once. Each code can be used exactly once.
+        </p>
+      </div>
+
+      <div class="bg-concrete p-4 rounded-lg border border-line">
+        <div class="grid grid-cols-2 gap-2 font-mono text-sm font-bold text-charcoal tracking-wider">
+          {% for code in backup_codes %}
+            <div class="p-2 bg-white rounded border border-line text-center select-all">{{ code }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="pt-4 flex items-center justify-between border-t border-line">
+      <a href="{% url 'dashboard:overview' %}" class="btn btn-primary px-5 py-2.5 text-xs font-semibold">
+        Continue to Dashboard
+      </a>
+      <a href="{% url 'two_factor:profile' %}" class="text-xs text-muted hover:text-charcoal font-mono">
+        View Account Security
+      </a>
+    </div>
+  </div>
+{% endblock %}

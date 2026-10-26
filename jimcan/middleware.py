@@ -155,3 +155,93 @@ class SessionTimeoutMiddleware:
                     request.session['last_activity'] = now
 
         return self.get_response(request)
+
+
+class MFAEnforcementMiddleware:
+    """
+    Enforces two-factor authentication (Phase 4 Task 3).
+    If a request is authenticated but the user is not verified (request.user.is_verified() is False),
+    redirects to the setup page (if unenrolled) or verify page (if enrolled).
+    Allowlists only:
+    - The two-factor pages (/account/two_factor/*, /two_factor/*, /account/login/, /login/)
+    - Logout (/logout/)
+    - Static and media files
+    - Central public URLs
+    Controlled by settings.MFA_ENFORCEMENT ('off', 'owners', 'all').
+    """
+    EXEMPT_PREFIXES = (
+        '/account/two_factor/',
+        '/two_factor/',
+        '/account/login',
+        '/login',
+        '/logout',
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path_info
+
+        # 1. Static and media assets are always exempt
+        static_url = getattr(settings, 'STATIC_URL', '/static/')
+        media_url = getattr(settings, 'MEDIA_URL', '/media/')
+        if (static_url and static_url != '/' and path.startswith(static_url)) or \
+           (media_url and media_url != '/' and path.startswith(media_url)):
+            return self.get_response(request)
+
+        # 2. Unauthenticated requests are handled by LoginRequiredMiddleware
+        user = getattr(request, 'user', None)
+        if not user or not user.is_authenticated:
+            return self.get_response(request)
+
+        # 3. If user is already verified via 2FA, pass through
+        if hasattr(user, 'is_verified') and user.is_verified():
+            return self.get_response(request)
+
+        # 4. Check MFA_ENFORCEMENT mode ('off', 'owners', 'all')
+        mode = getattr(settings, 'MFA_ENFORCEMENT', 'all' if not settings.DEBUG else 'off').lower()
+        if mode == 'off':
+            return self.get_response(request)
+        elif mode == 'owners':
+            is_owner = user.groups.filter(name='Owner').exists()
+            if not is_owner:
+                return self.get_response(request)
+        elif mode == 'all':
+            pass
+        else:
+            # Safe fail-closed default
+            pass
+
+        # 5. Check exempt path prefixes
+        if any(path.startswith(prefix) for prefix in self.EXEMPT_PREFIXES):
+            return self.get_response(request)
+
+        # Check public URL allowlist
+        try:
+            from django.urls import resolve
+            from accounts.public_urls import PUBLIC_URL_NAMES
+            match = resolve(path)
+            if match.url_name in PUBLIC_URL_NAMES or match.view_name in PUBLIC_URL_NAMES:
+                return self.get_response(request)
+        except Exception:
+            pass
+
+        # 6. User is authenticated, required to have MFA, but not verified
+        from django_otp import user_has_device
+        from django.http import HttpResponse
+        from django.shortcuts import redirect
+        from django.urls import reverse
+
+        has_device = user_has_device(user)
+        target_url = reverse('two_factor:login') if has_device else reverse('two_factor:setup')
+
+        # HTMX intercept
+        is_htmx = request.headers.get('HX-Request') == 'true' or getattr(request, 'htmx', False)
+        if is_htmx:
+            resp = HttpResponse(status=204)
+            resp['HX-Redirect'] = target_url
+            return resp
+
+        return redirect(target_url)
+

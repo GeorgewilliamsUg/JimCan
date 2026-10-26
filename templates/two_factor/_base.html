@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content_wrapper %}
+<div class="auth-viewport min-h-screen flex items-center justify-center p-4">
+  <div class="auth-form-container w-full max-w-lg mx-auto">
+    <div class="auth-card p-6 md:p-8 bg-white border border-line rounded-xl shadow-sm">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}
