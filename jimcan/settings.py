@@ -78,7 +78,9 @@ csrf_trusted_raw = os.environ.get('CSRF_TRUSTED_ORIGINS', '').strip()
 if csrf_trusted_raw:
     CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_trusted_raw.split(',') if o.strip()]
 else:
-    CSRF_TRUSTED_ORIGINS = []
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{h}" for h in ALLOWED_HOSTS if h not in ('*', 'localhost', '127.0.0.1', '[::1]', 'testserver')
+    ]
 
 # ------------------------------------------------------------------------------
 # 3. Application Definition
