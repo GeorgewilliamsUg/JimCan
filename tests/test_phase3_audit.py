@@ -23,6 +23,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db import connection, transaction
+import io
+from django.core.management import call_command
 from django.test import Client, TestCase, TransactionTestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -395,7 +397,8 @@ class AuditDashboardViewTests(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.owner_group, _ = Group.objects.get_or_create(name='Owner')
+        call_command('setup_roles', stdout=io.StringIO())
+        self.owner_group = Group.objects.get(name='Owner')
         self.owner = User.objects.create_user(
             username='view_owner',
             email='view_owner@jimcan.site',

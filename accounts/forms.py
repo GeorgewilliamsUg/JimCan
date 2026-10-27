@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import (
     AuthenticationForm,
     PasswordChangeForm,
@@ -6,6 +7,8 @@ from django.contrib.auth.forms import (
     SetPasswordForm
 )
 from django.utils.translation import gettext_lazy as _
+
+User = get_user_model()
 
 
 class JimcanAuthenticationForm(AuthenticationForm):
@@ -86,3 +89,108 @@ class ReauthForm(forms.Form):
                 self.add_error('otp_token', _("Invalid authentication code."))
 
         return cleaned_data
+
+
+class UserCreateForm(forms.ModelForm):
+    """
+    Form for Owner provisioning a new user account (Phase 5 Task 4).
+    Enforces server-side constraints: unusable password, exactly one of the
+    three approved roles, zero staff / superuser privilege.
+    """
+    role = forms.ChoiceField(
+        choices=(),
+        required=True,
+        label=_("Assigned Role"),
+        widget=forms.Select(attrs={'class': 'auth-input'})
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'auth-input', 'placeholder': 'e.g. jnamukasa'}),
+            'first_name': forms.TextInput(attrs={'class': 'auth-input', 'placeholder': 'e.g. Jane'}),
+            'last_name': forms.TextInput(attrs={'class': 'auth-input', 'placeholder': 'e.g. Namukasa'}),
+            'email': forms.EmailInput(attrs={'class': 'auth-input', 'placeholder': 'jane@jimcanconstruction.site'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        from accounts.roles import ROLE_CHOICES
+        super().__init__(*args, **kwargs)
+        self.fields['role'].choices = ROLE_CHOICES
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip().lower()
+        if not email:
+            raise forms.ValidationError(_("Email address is required."))
+        return email
+
+    def save(self, commit=True):
+        from accounts.roles import assign_role
+        user = super().save(commit=False)
+        user.set_unusable_password()
+        user.is_staff = False
+        user.is_superuser = False
+        if commit:
+            user.save()
+            role = self.cleaned_data.get('role')
+            assign_role(user, role)
+        return user
+
+
+class UserEditForm(forms.ModelForm):
+    """
+    Form for editing user details and role assignment (Phase 5 Task 4).
+    Prevents demotion of the last active Owner and prevents privilege escalation.
+    """
+    role = forms.ChoiceField(
+        choices=(),
+        required=True,
+        label=_("Assigned Role"),
+        widget=forms.Select(attrs={'class': 'auth-input'})
+    )
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'auth-input'}),
+            'last_name': forms.TextInput(attrs={'class': 'auth-input'}),
+            'email': forms.EmailInput(attrs={'class': 'auth-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        from accounts.roles import ROLE_CHOICES, get_user_role
+        super().__init__(*args, **kwargs)
+        self.fields['role'].choices = ROLE_CHOICES
+        if self.instance and self.instance.pk:
+            current_role = get_user_role(self.instance)
+            if current_role:
+                self.fields['role'].initial = current_role
+
+    def clean_role(self):
+        from accounts.roles import ALL_ROLES, ROLE_OWNER, get_user_role
+        new_role = self.cleaned_data.get('role')
+        if new_role not in ALL_ROLES:
+            raise forms.ValidationError(_("Invalid role selected."))
+
+        # Protect last active Owner from demotion
+        if self.instance and self.instance.pk:
+            current_role = get_user_role(self.instance)
+            if current_role == ROLE_OWNER and new_role != ROLE_OWNER and self.instance.is_active:
+                active_owners = User.objects.filter(is_active=True, groups__name=ROLE_OWNER)
+                if active_owners.count() <= 1:
+                    raise forms.ValidationError(_("Cannot demote the last active Owner account."))
+        return new_role
+
+    def save(self, commit=True):
+        from accounts.roles import assign_role
+        user = super().save(commit=False)
+        user.is_staff = False
+        user.is_superuser = False
+        if commit:
+            user.save()
+            role = self.cleaned_data.get('role')
+            assign_role(user, role)
+        return user
+

@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Team & Roles · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl">
+  <!-- Top Breadcrumbs & Page Header -->
+  <header class="border-b border-line pb-6">
+    <nav aria-label="Breadcrumbs" class="mb-2">
+      <ol class="flex items-center gap-1.5 text-xs text-muted font-medium">
+        <li>
+          <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1">
+            <i data-lucide="home" class="w-3.5 h-3.5"></i>
+            <span>Home</span>
+          </a>
+        </li>
+        <li class="flex items-center gap-1.5">
+          <span class="text-steel">/</span>
+          <a href="{% url 'dashboard:settings' %}" class="hover:text-charcoal">Settings</a>
+        </li>
+        <li class="flex items-center gap-1.5">
+          <span class="text-steel">/</span>
+          <span class="text-charcoal font-semibold" aria-current="page">Team & Roles</span>
+        </li>
+      </ol>
+    </nav>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-ink text-white">SEC-05</span>
+          <span class="text-xs font-mono text-muted">Role-Based Access Control</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-display font-bold text-charcoal tracking-tight">Team & Role Management</h1>
+        <p class="text-muted text-sm mt-1 max-w-2xl">
+          Provision team accounts, assign canonical security roles (Owner, Finance, Site staff), manage lifecycle states, and maintain two-factor authentication controls.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="{% url 'accounts:user_create' %}"
+           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm transition-all"
+           style="background-color: var(--ink); hover:bg-slate-800;">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span>Add staff member</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+        <div class="p-4 rounded-xl border text-sm flex items-start gap-3 {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800{% else %}bg-slate-50 border-line text-charcoal{% endif %}">
+          <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'success' %}check-circle-2{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+          <div class="flex-1 font-medium">{{ message }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- KPI / Status Banner -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="p-4 bg-white border border-line rounded-xl flex items-center justify-between">
+      <div>
+        <div class="text-xs font-mono text-muted uppercase">Total Accounts</div>
+        <div class="text-2xl font-bold font-display text-charcoal mt-0.5">{{ total_users }}</div>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+        <i data-lucide="users" class="w-5 h-5"></i>
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border border-line rounded-xl flex items-center justify-between">
+      <div>
+        <div class="text-xs font-mono text-muted uppercase">Active Owners</div>
+        <div class="text-2xl font-bold font-display text-charcoal mt-0.5">{{ active_owners_count }}</div>
+      </div>
+      <div class="w-10 h-10 rounded-lg {% if active_owners_count >= 2 %}bg-emerald-50 text-emerald-700{% else %}bg-amber-50 text-amber-700{% endif %} flex items-center justify-center">
+        <i data-lucide="shield-check" class="w-5 h-5"></i>
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border border-line rounded-xl flex items-center justify-between">
+      <div>
+        <div class="text-xs font-mono text-muted uppercase">Zero Superusers</div>
+        <div class="text-sm font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Enforced Server-Side</span>
+        </div>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+        <i data-lucide="lock" class="w-5 h-5"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users Table Card -->
+  <div class="bg-white border border-line rounded-xl overflow-hidden shadow-sm">
+    <div class="p-4 border-b border-line flex items-center justify-between">
+      <div class="font-semibold text-sm text-charcoal">Staff Directory</div>
+      <div class="text-xs text-muted font-mono">{{ total_users }} registered accounts</div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-sm">
+        <thead>
+          <tr class="border-b border-line bg-slate-50 text-xs font-mono text-muted uppercase">
+            <th class="py-3 px-4">User</th>
+            <th class="py-3 px-4">Email</th>
+            <th class="py-3 px-4">Role</th>
+            <th class="py-3 px-4">Account Status</th>
+            <th class="py-3 px-4">Two-Factor (2FA)</th>
+            <th class="py-3 px-4">Last Activity</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {% for u in users %}
+            <tr class="hover:bg-slate-50 transition-colors {% if not u.is_active %}opacity-60 bg-slate-50/50{% endif %}">
+              <!-- User -->
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-slate-200 text-charcoal font-bold text-xs flex items-center justify-center flex-shrink-0">
+                    {% if u.first_name %}{{ u.first_name|slice:":1"|upper }}{% elif u.username %}{{ u.username|slice:":1"|upper }}{% else %}?{% endif %}
+                  </div>
+                  <div>
+                    <div class="font-semibold text-charcoal">
+                      {% if u.first_name or u.last_name %}
+                        {{ u.first_name }} {{ u.last_name }}
+                      {% else %}
+                        {{ u.username }}
+                      {% endif %}
+                      {% if u.is_current_user %}
+                        <span class="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">You</span>
+                      {% endif %}
+                    </div>
+                    <div class="text-xs font-mono text-muted">@{{ u.username }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Email -->
+              <td class="py-3 px-4 text-xs font-mono text-charcoal">
+                {{ u.email|default:"—" }}
+              </td>
+
+              <!-- Role -->
+              <td class="py-3 px-4">
+                {% if u.role == 'Owner' %}
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-900 text-white">
+                    <i data-lucide="crown" class="w-3 h-3"></i>
+                    <span>Owner</span>
+                  </span>
+                {% elif u.role == 'Finance' %}
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                    <i data-lucide="calculator" class="w-3 h-3"></i>
+                    <span>Finance</span>
+                  </span>
+                {% elif u.role == 'Site staff' %}
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                    <i data-lucide="hard-hat" class="w-3 h-3"></i>
+                    <span>Site staff</span>
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                    <span>{{ u.role }}</span>
+                  </span>
+                {% endif %}
+              </td>
+
+              <!-- Account Status -->
+              <td class="py-3 px-4">
+                {% if u.is_active %}
+                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Active</span>
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-red-700">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    <span>Deactivated</span>
+                  </span>
+                {% endif %}
+              </td>
+
+              <!-- Two-Factor -->
+              <td class="py-3 px-4">
+                {% if u.has_mfa %}
+                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span>Enrolled</span>
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 text-xs text-muted">
+                    <i data-lucide="shield-off" class="w-3.5 h-3.5 text-steel"></i>
+                    <span>Not enrolled</span>
+                  </span>
+                {% endif %}
+              </td>
+
+              <!-- Last Activity -->
+              <td class="py-3 px-4 text-xs text-muted">
+                {% if u.last_login %}
+                  {{ u.last_login|date:"M d, Y H:i" }}
+                {% else %}
+                  <span class="text-steel">Never</span>
+                {% endif %}
+              </td>
+
+              <!-- Actions -->
+              <td class="py-3 px-4 text-right">
+                <div class="inline-flex items-center gap-1.5">
+                  <!-- Edit Details / Role -->
+                  <a href="{% url 'accounts:user_edit' u.id %}"
+                     class="p-1.5 rounded-md hover:bg-slate-100 text-slate-700 transition-colors"
+                     title="Edit user details and role">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                  </a>
+
+                  <!-- Send Setup Link -->
+                  {% if u.is_active %}
+                  <form method="post" action="{% url 'accounts:user_send_setup_link' u.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="p-1.5 rounded-md hover:bg-slate-100 text-slate-700 transition-colors"
+                            title="Email one-time activation / set-password link"
+                            onclick="return confirm('Send fresh set-password link to {{ u.email }}?');">
+                      <i data-lucide="mail" class="w-4 h-4"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+
+                  <!-- Reset 2FA -->
+                  {% if u.has_mfa %}
+                  <form method="post" action="{% url 'accounts:user_reset_mfa' u.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="p-1.5 rounded-md hover:bg-amber-50 text-amber-700 transition-colors"
+                            title="Reset 2FA device (requires step-up re-authentication)"
+                            onclick="return confirm('Reset two-factor authentication for {{ u.username }}? They will need to enroll a new authenticator upon next login.');">
+                      <i data-lucide="key-round" class="w-4 h-4"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+
+                  <!-- Deactivate / Reactivate -->
+                  {% if u.is_active %}
+                    {% if u.role == 'Owner' and active_owners_count <= 1 %}
+                      <span class="p-1.5 text-steel cursor-not-allowed" title="Cannot deactivate the last active Owner account">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </span>
+                    {% else %}
+                      <form method="post" action="{% url 'accounts:user_toggle_active' u.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="p-1.5 rounded-md hover:bg-red-50 text-red-700 transition-colors"
+                                title="Deactivate user (terminates all active sessions)"
+                                onclick="return confirm('Deactivate account {{ u.username }}? All active sessions will be terminated immediately.');">
+                          <i data-lucide="user-x" class="w-4 h-4"></i>
+                        </button>
+                      </form>
+                    {% endif %}
+                  {% else %}
+                    <form method="post" action="{% url 'accounts:user_toggle_active' u.id %}" class="inline">
+                      {% csrf_token %}
+                      <button type="submit"
+                              class="p-1.5 rounded-md hover:bg-emerald-50 text-emerald-700 transition-colors"
+                              title="Reactivate account"
+                              onclick="return confirm('Reactivate account {{ u.username }}?');">
+                        <i data-lucide="user-check" class="w-4 h-4"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="py-8 text-center text-muted">
+                No users found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Security Guardrails Banner -->
+  <div class="p-4 bg-slate-50 border border-line rounded-xl text-xs text-muted flex items-start gap-3">
+    <i data-lucide="shield-alert" class="w-4 h-4 text-slate-700 flex-shrink-0 mt-0.5"></i>
+    <div>
+      <strong class="font-bold text-charcoal">Security Guarantees:</strong>
+      User deletion is permanently disabled across the application and admin interface. Account deactivation or role modifications immediately revoke all active sessions. Creating accounts or demoting roles mandates step-up re-authentication, and the last active Owner cannot be demoted or deactivated.
+    </div>
+  </div>
+</div>
+{% endblock %}

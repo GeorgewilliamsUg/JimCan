@@ -302,6 +302,49 @@ class Command(BaseCommand):
             failed += 1
 
         # ----------------------------------------------------------------------
+        # Phase 5: Role-Based Access Control & Permission Matrix Checks
+        # ----------------------------------------------------------------------
+
+        # 20. Role Group Definitions and Permission Sets Matching roles.py
+        try:
+            from django.contrib.auth.models import Group
+            from accounts.roles import ALL_ROLES, ROLE_PERMISSIONS
+            group_errors = []
+
+            for role_name in ALL_ROLES:
+                expected_perms = set(ROLE_PERMISSIONS.get(role_name, []))
+                group = Group.objects.filter(name=role_name).first()
+                if not group:
+                    group_errors.append(f"Group '{role_name}' does not exist in database (run 'python manage.py setup_roles')")
+                    continue
+
+                actual_perms = set(
+                    f"{p.content_type.app_label}.{p.codename}"
+                    for p in group.permissions.select_related('content_type').all()
+                )
+
+                missing = expected_perms - actual_perms
+                extra = actual_perms - expected_perms
+
+                if missing:
+                    group_errors.append(f"Group '{role_name}' is missing permissions: {', '.join(sorted(missing))}")
+                if extra:
+                    group_errors.append(f"Group '{role_name}' has unexpected permissions: {', '.join(sorted(extra))}")
+
+            if group_errors:
+                for err in group_errors:
+                    self.stdout.write(self.style.ERROR(f"[FAIL] {err}"))
+                failed += 1
+            else:
+                self.stdout.write(self.style.SUCCESS(
+                    f"[PASS] All {len(ALL_ROLES)} canonical role groups (Owner, Finance, Site staff) match roles.py permission sets exactly"
+                ))
+                passed += 1
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"[FAIL] Could not verify role groups: {e}"))
+            failed += 1
+
+        # ----------------------------------------------------------------------
         # Summary & Exit Code
         # ----------------------------------------------------------------------
         self.stdout.write("")

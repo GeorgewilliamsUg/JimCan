@@ -46,8 +46,9 @@ class Phase4BaseTestCase(TestCase):
     """Base setup providing common groups, users, and TOTP test devices."""
 
     def setUp(self):
-        self.owner_group, _ = Group.objects.get_or_create(name='Owner')
-        self.staff_group, _ = Group.objects.get_or_create(name='Staff')
+        call_command('setup_roles', stdout=io.StringIO())
+        self.owner_group = Group.objects.get(name='Owner')
+        self.staff_group = Group.objects.get(name='Site staff')
 
         self.owner1 = User.objects.create_user(
             username='owner_alice',

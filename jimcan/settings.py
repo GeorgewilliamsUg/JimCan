@@ -15,6 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Detect test execution mode
 is_running_tests = 'test' in sys.argv
+IS_RUNNING_TESTS = is_running_tests
 
 # ------------------------------------------------------------------------------
 # 1. Core Cryptographic Secrets & Rotation

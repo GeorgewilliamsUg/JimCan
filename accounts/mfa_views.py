@@ -278,8 +278,8 @@ class ResetUserMFAView(View):
     """
     @method_decorator(require_recent_auth(minutes=10))
     def post(self, request, user_id):
-        if not request.user.groups.filter(name='Owner').exists():
-            raise PermissionDenied("Only Owners can reset two-factor authentication devices.")
+        if not request.user.has_perm('accounts.manage_users'):
+            raise PermissionDenied("Permission 'accounts.manage_users' required to reset two-factor devices.")
 
         target_user = get_object_or_404(User, pk=user_id)
 

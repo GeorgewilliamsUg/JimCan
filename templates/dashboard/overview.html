@@ -9,7 +9,7 @@
        activeTab: 'projects',
        createMenuOpen: false,
        timeframeDropdown: false,
-       tabs: ['projects', 'invoices', 'leads', 'rates'],
+       tabs: ['projects', {% if can_view_financials %}'invoices',{% endif %} {% if can_view_leads %}'leads',{% endif %} {% if can_view_rates %}'rates',{% endif %}],
        selectTab(tabId) {
          this.activeTab = tabId;
          this.$nextTick(() => { if (window.lucide) window.lucide.createIcons(); });
@@ -95,25 +95,34 @@
              role="menu"
              aria-labelledby="create-menu-button"
              style="display: none;">
+          {% if can_view_financials and perms.accounts.add_invoices %}
           <a href="{% url 'dashboard:invoices' %}" class="create-menu-item" role="menuitem">
             <span>Raise invoice</span>
           </a>
+          {% endif %}
+          {% if perms.accounts.add_expenses %}
           <a href="{% url 'dashboard:expenses' %}" class="create-menu-item" role="menuitem">
             <span>Log expense</span>
           </a>
+          {% endif %}
+          {% if can_view_leads and perms.accounts.add_leads %}
           <a href="{% url 'dashboard:leads' %}" class="create-menu-item" role="menuitem">
             <span>Add lead</span>
           </a>
+          {% endif %}
         </div>
       </div>
 
       <!-- Primary Action -->
+      {% if perms.accounts.add_projects %}
       <a href="{% url 'dashboard:projects' %}" class="btn-primary-signal">
         <span>New project</span>
       </a>
+      {% endif %}
     </div>
   </div>
 
+  {% if can_view_financials|default_if_none:True %}
   <!-- KPI Metric Cards Grid (Row of 4 Clean White Cards with Sparklines) -->
   <div class="kpi-cards-grid">
     <!-- Card 1: Contract Valuation -->
@@ -212,12 +221,14 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
   <!-- Two-Column Operations Layout (Main 68% + Right Feed 32%) -->
   <div class="dashboard-main-grid">
     <!-- LEFT MAIN COLUMN -->
     <div class="space-y-6">
 
+      {% if can_view_financials|default_if_none:True %}
       <!-- Financial Overview & Vertical Bar Visualization Card (Modulix Style) -->
       <div class="overview-chart-card">
         <div class="card-header-row">
@@ -312,6 +323,7 @@
           </div>
         {% endif %}
       </div>
+      {% endif %}
 
       <!-- Interactive Operations Data Center Card (Modulix Style) -->
       <div class="table-panel-wrapper">
@@ -332,6 +344,7 @@
               <span class="tab-count">{{ projects_count }}</span>
             </button>
 
+            {% if can_view_financials %}
             <button type="button"
                     id="tab-invoices"
                     role="tab"
@@ -345,7 +358,9 @@
               <span>Milestone invoices</span>
               <span class="tab-count">{{ invoices_count }}</span>
             </button>
+            {% endif %}
 
+            {% if can_view_leads %}
             <button type="button"
                     id="tab-leads"
                     role="tab"
@@ -359,7 +374,9 @@
               <span>Leads</span>
               <span class="tab-count">{{ leads_count }}</span>
             </button>
+            {% endif %}
 
+            {% if can_view_rates %}
             <button type="button"
                     id="tab-rates"
                     role="tab"
@@ -373,6 +390,7 @@
               <span>BOQ rates</span>
               <span class="tab-count">{{ rates_count }}</span>
             </button>
+            {% endif %}
           </div>
 
           <button type="button" class="btn-filter">
@@ -394,8 +412,10 @@
                 <th>Project / site</th>
                 <th>Client</th>
                 <th>Stage</th>
+                {% if can_view_financials %}
                 <th class="text-right">Contract value (UGX)</th>
                 <th class="text-right">Site cost (UGX)</th>
+                {% endif %}
                 <th class="text-center">Commissioning</th>
                 <th style="width: 40px;" aria-label="Actions"></th>
               </tr>
@@ -423,6 +443,7 @@
                       {% status_badge "" %}
                     {% endif %}
                   </td>
+                  {% if can_view_financials %}
                   <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
                     {% if p.contract_value_ugx %}
                       {{ p.contract_value_ugx|ugx_full }}
@@ -441,6 +462,7 @@
                       -
                     {% endif %}
                   </td>
+                  {% endif %}
                   <td class="text-center tabular-nums" style="color: var(--text-muted);">
                     {% if p.target_completion %}
                       {{ p.target_completion }}
@@ -456,7 +478,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="8" class="text-center py-8" style="color: var(--text-muted);">
+                  <td colspan="{% if can_view_financials %}8{% else %}6{% endif %}" class="text-center py-8" style="color: var(--text-muted);">
                     No active projects available.
                   </td>
                 </tr>
@@ -465,6 +487,7 @@
           </table>
         </div>
 
+        {% if can_view_financials %}
         <!-- Tab 2: Milestone Invoices Panel -->
         <div id="panel-invoices"
              role="tabpanel"
@@ -550,7 +573,9 @@
             </tbody>
           </table>
         </div>
+        {% endif %}
 
+        {% if can_view_leads %}
         <!-- Tab 3: Leads Panel -->
         <div id="panel-leads"
              role="tabpanel"
@@ -566,7 +591,9 @@
                 <th>Prospect</th>
                 <th>Development scope</th>
                 <th>Location</th>
+                {% if can_view_financials %}
                 <th class="text-right">Indicative budget (UGX)</th>
+                {% endif %}
                 <th class="text-center">Stage</th>
                 <th style="width: 40px;" aria-label="Actions"></th>
               </tr>
@@ -588,6 +615,7 @@
                     {% if l.project_type %}{{ l.project_type }}{% elif l.scope %}{{ l.scope }}{% endif %}
                   </td>
                   <td style="color: var(--text-muted);">{{ l.location }}</td>
+                  {% if can_view_financials %}
                   <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
                     {% if l.budget_ugx %}
                       {{ l.budget_ugx|ugx_full }}
@@ -597,6 +625,7 @@
                       -
                     {% endif %}
                   </td>
+                  {% endif %}
                   <td class="text-center">
                     {% if l.status %}
                       {% status_badge l.status %}
@@ -612,7 +641,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="8" class="text-center py-8" style="color: var(--text-muted);">
+                  <td colspan="{% if can_view_financials %}8{% else %}7{% endif %}" class="text-center py-8" style="color: var(--text-muted);">
                     No prospective development leads available.
                   </td>
                 </tr>
@@ -620,7 +649,9 @@
             </tbody>
           </table>
         </div>
+        {% endif %}
 
+        {% if can_view_rates %}
         <!-- Tab 4: BOQ Rates Panel -->
         <div id="panel-rates"
              role="tabpanel"
@@ -635,7 +666,9 @@
                 <th>Code</th>
                 <th>Description</th>
                 <th>Unit</th>
+                {% if can_view_financials %}
                 <th class="text-right">Approved rate (UGX)</th>
+                {% endif %}
                 <th class="text-center">Schedule</th>
                 <th style="width: 40px;" aria-label="Actions"></th>
               </tr>
@@ -657,6 +690,7 @@
                     <td style="color: var(--text-muted);">
                       {{ r.unit }}
                     </td>
+                    {% if can_view_financials %}
                     <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
                       {% if r.standard_rate_ugx %}
                         {{ r.standard_rate_ugx|ugx_full }}
@@ -666,6 +700,7 @@
                         -
                       {% endif %}
                     </td>
+                    {% endif %}
                     <td class="text-center">
                       <span class="status-badge status-green">
                         <span class="badge-dot"></span>Active 2026
@@ -692,6 +727,7 @@
                     <td style="color: var(--text-muted);">
                       {{ r.unit }}
                     </td>
+                    {% if can_view_financials %}
                     <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
                       {% if r.standard_rate_ugx %}
                         {{ r.standard_rate_ugx|ugx_full }}
@@ -701,6 +737,7 @@
                         -
                       {% endif %}
                     </td>
+                    {% endif %}
                     <td class="text-center">
                       <span class="status-badge status-green">
                         <span class="badge-dot"></span>Active 2026
@@ -713,7 +750,7 @@
                 {% endfor %}
               {% else %}
                 <tr>
-                  <td colspan="7" class="text-center py-8" style="color: var(--text-muted);">
+                  <td colspan="{% if can_view_financials %}7{% else %}6{% endif %}" class="text-center py-8" style="color: var(--text-muted);">
                     No approved specification rates available.
                   </td>
                 </tr>
@@ -721,103 +758,62 @@
             </tbody>
           </table>
         </div>
+        {% endif %}
       </div>
     </div>
 
-    <!-- RIGHT COLUMN: MILESTONES & RECENT CLAIMS (Modulix "Buying History" Style) -->
+    <!-- RIGHT COLUMN: MILESTONES & RECENT OPERATIONS (Modulix Style) -->
     <div>
       <div class="side-feed-card">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="type-panel-title">Recent milestones</h3>
-            <p class="type-caption mt-0.5">Active builds & claim certificates</p>
+            <h3 class="type-panel-title">Recent operations</h3>
+            <p class="type-caption mt-0.5">Active builds & milestone logs</p>
           </div>
+          {% if can_view_financials %}
           <a href="{% url 'dashboard:invoices' %}" class="text-xs font-semibold hover:underline" style="color: var(--text);">
             View all
           </a>
+          {% else %}
+          <a href="{% url 'dashboard:projects' %}" class="text-xs font-semibold hover:underline" style="color: var(--text);">
+            View all
+          </a>
+          {% endif %}
         </div>
 
         <!-- Feed List -->
         <div class="space-y-1">
-          <!-- Item 1 -->
-          <div class="feed-item-row">
-            <div class="feed-icon-chip">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-            </div>
-            <div class="feed-details">
-              <div class="flex items-center justify-between">
-                <span class="feed-title">Munyonyo Lakeside Villa</span>
-                <span class="status-badge status-green text-xs py-0.5 px-2">Paid</span>
+          {% for item in feed_items|slice:":4" %}
+            <div class="feed-item-row">
+              <div class="feed-icon-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
               </div>
-              <div class="feed-meta mt-1">
-                <span>Invoice: #JC-INV-2026-001</span>
-              </div>
-              <div class="flex items-center justify-between mt-1.5 text-xs">
-                <span style="color: var(--text-muted);">Claim: Sep 29, 2026</span>
-                <span class="font-bold tabular-nums" style="color: var(--text);">UGX 106.2M</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Item 2 -->
-          <div class="feed-item-row">
-            <div class="feed-icon-chip">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-            </div>
-            <div class="feed-details">
-              <div class="flex items-center justify-between">
-                <span class="feed-title">Kololo Medical Suites</span>
-                <span class="status-badge status-red text-xs py-0.5 px-2">Overdue</span>
-              </div>
-              <div class="feed-meta mt-1">
-                <span>Invoice: #JC-INV-2026-002</span>
-              </div>
-              <div class="flex items-center justify-between mt-1.5 text-xs">
-                <span style="color: var(--red);">Due: Oct 15, 2026</span>
-                <span class="font-bold tabular-nums" style="color: var(--red);">UGX 42.0M due</span>
+              <div class="feed-details">
+                <div class="flex items-center justify-between">
+                  <span class="feed-title">{{ item.title }}</span>
+                  <span class="status-badge status-green text-xs py-0.5 px-2">{{ item.status }}</span>
+                </div>
+                <div class="feed-meta mt-1">
+                  <span>{{ item.subtitle }}</span>
+                </div>
+                {% if can_view_financials and item.value %}
+                <div class="flex items-center justify-between mt-1.5 text-xs">
+                  <span style="color: var(--text-muted);">{{ item.timestamp }}</span>
+                  <span class="font-bold tabular-nums" style="color: var(--text);">UGX {{ item.value }}</span>
+                </div>
+                {% else %}
+                <div class="flex items-center justify-between mt-1.5 text-xs">
+                  <span style="color: var(--text-muted);">{{ item.id }}</span>
+                  <span style="color: var(--text-muted);">{{ item.timestamp }}</span>
+                </div>
+                {% endif %}
               </div>
             </div>
-          </div>
-
-          <!-- Item 3 -->
-          <div class="feed-item-row">
-            <div class="feed-icon-chip">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          {% empty %}
+            <div class="py-6 text-center text-xs" style="color: var(--text-muted);">
+              No recent activity recorded.
             </div>
-            <div class="feed-details">
-              <div class="flex items-center justify-between">
-                <span class="feed-title">Naguru Luxury Apartments</span>
-                <span class="status-badge status-amber text-xs py-0.5 px-2">Proposal</span>
-              </div>
-              <div class="feed-meta mt-1">
-                <span>Lead: #JC-LEA-2026-001</span>
-              </div>
-              <div class="flex items-center justify-between mt-1.5 text-xs">
-                <span style="color: var(--text-muted);">Est. Commissioning: 2027</span>
-                <span class="font-bold tabular-nums" style="color: var(--text);">UGX 620.0M</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Item 4 -->
-          <div class="feed-item-row">
-            <div class="feed-icon-chip">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-            </div>
-            <div class="feed-details">
-              <div class="flex items-center justify-between">
-                <span class="feed-title">Lubowa Hilltop Residences</span>
-                <span class="status-badge status-amber text-xs py-0.5 px-2">Assessment</span>
-              </div>
-              <div class="feed-meta mt-1">
-                <span>Lead: #JC-LEA-2026-002</span>
-              </div>
-              <div class="flex items-center justify-between mt-1.5 text-xs">
-                <span style="color: var(--text-muted);">Plot 45, Lubowa Estate</span>
-                <span class="font-bold tabular-nums" style="color: var(--text);">UGX 1.10B</span>
-              </div>
-            </div>
-          </div>
+          {% endfor %}
         </div>
       </div>
     </div>

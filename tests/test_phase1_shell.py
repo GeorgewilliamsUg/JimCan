@@ -5,20 +5,22 @@ PrivateCacheControlMiddleware, access boundaries, HTMX triggers, and error pages
 """
 
 import json
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth.models import User
 from dashboard.navigation import get_navigation_items, NAVIGATION_ITEMS
 
+@override_settings(DEBUG=True)
 class NavigationRegistryTests(TestCase):
     """Validates centralized navigation rules per docs/design/roles-permissions.md."""
 
     def test_admin_sees_all_items(self):
         items = get_navigation_items(role='admin', current_path='/')
         item_ids = [i['id'] for i in items]
-        self.assertEqual(len(items), 12)
+        self.assertEqual(len(items), 13)
         self.assertIn('overview', item_ids)
         self.assertIn('settings', item_ids)
+        self.assertIn('users', item_ids)
         self.assertIn('audit', item_ids)
 
     def test_manager_navigation_restrictions(self):
@@ -77,6 +79,7 @@ class NavigationRegistryTests(TestCase):
         self.assertTrue(projects_sub['is_active'])
 
 
+@override_settings(DEBUG=True)
 class PrivateCacheMiddlewareTests(TestCase):
     """Validates Risk #5 mitigation: no stale sensitive data cached after sign-out."""
 

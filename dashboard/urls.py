@@ -17,6 +17,7 @@ urlpatterns = [
     path('styleguide/', views.styleguide_view, name='styleguide'),
     path('shell-demo/', views.shell_demo_view, name='shell_demo'),
     path('settings/', views.settings_view, name='settings'),
+    path('settings/users/', views.UserListView.as_view(), name='settings_users'),
     path('setup/', views.setup_checklist_view, name='setup_checklist'),
     path('audit/', views.audit_view, name='audit'),
 
