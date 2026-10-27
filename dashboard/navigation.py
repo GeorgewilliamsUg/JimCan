@@ -4,7 +4,7 @@ Enforces role-based visibility and section prefix matching per
 pp.md Phase 1 §1-2 and docs/design/roles-permissions.md.
 """
 
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 from django.conf import settings
 from django.contrib.auth.models import User
 
