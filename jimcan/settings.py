@@ -4,14 +4,31 @@ import sys
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
-# Load environment variables from .env file if present
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file (with absolute path and fallback parser)
+env_path = BASE_DIR / '.env'
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(env_path)
 except ImportError:
     pass
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Fallback parser if python-dotenv is not installed or missed keys
+if env_path.is_file():
+    try:
+        with open(env_path, 'r', encoding='utf-8') as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    k, v = line.split('=', 1)
+                    k = k.strip()
+                    v = v.strip().strip("'\"")
+                    if k and k not in os.environ:
+                        os.environ[k] = v
+    except Exception:
+        pass
+
 
 # Detect test execution mode
 is_running_tests = 'test' in sys.argv
