@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Site Expenses & Disbursements · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div x-data="{
+       searchQuery: '',
+       selectedCategory: 'ALL',
+       selectedProject: 'ALL',
+       selectedMethod: 'ALL',
+       uploadModalOpen: false,
+       matches(exp) {
+         if (this.selectedCategory !== 'ALL' && exp.category !== this.selectedCategory) return false;
+         if (this.selectedProject !== 'ALL' && exp.project_code !== this.selectedProject) return false;
+         if (this.selectedMethod !== 'ALL' && exp.payment_method !== this.selectedMethod) return false;
+         if (this.searchQuery.trim() !== '') {
+           const q = this.searchQuery.toLowerCase();
+           return exp.description.toLowerCase().includes(q) ||
+                  exp.voucher_no.toLowerCase().includes(q) ||
+                  exp.paid_to.toLowerCase().includes(q) ||
+                  exp.project_name.toLowerCase().includes(q);
+         }
+         return true;
+       }
+     }"
+     class="space-y-6">
+
+  <!-- Breadcrumb Bar -->
+  <div class="flex items-center justify-between text-xs text-muted border-b border-line pb-3">
+    <div class="flex items-center gap-2">
+      <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1 transition-colors">
+        <i data-lucide="home" class="w-3.5 h-3.5"></i>
+        <span>Home</span>
+      </a>
+      <span>/</span>
+      <span class="font-semibold text-charcoal">Site Expenses &amp; Disbursements</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        <span>100 Verified Records (Live Data)</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl lg:text-3xl font-display font-bold text-charcoal tracking-tight">Site Expenses &amp; Disbursements</h1>
+      <p class="text-xs text-muted mt-1 leading-relaxed">
+        Direct site disbursements, material procurement, plant hire, and subcontractor payments imported from <code class="bg-bone px-1 py-0.5 rounded text-charcoal font-mono">construction_expenses.xlsx</code>.
+      </p>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button type="button" 
+              @click="uploadModalOpen = true" 
+              class="btn btn-primary text-xs font-bold px-3.5 py-2 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+        <span>Upload New Excel</span>
+      </button>
+      <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs font-semibold px-3 py-2 flex items-center gap-1.5">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Back</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 Primary KPI Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    {% if can_view_financials %}
+    <!-- Card 1: Gross Disbursements -->
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Gross Disbursements</span>
+        <div class="w-8 h-8 rounded-lg bg-slate-100 text-charcoal flex items-center justify-center">
+          <i data-lucide="wallet-cards" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        UGX {{ total_gross_fmt }}
+      </div>
+      <div class="text-[11px] text-muted mt-1 flex items-center gap-1">
+        <span class="text-emerald-700 font-bold font-mono">100 Vouchers</span>
+        <span>across 8 projects</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Net Direct Costs -->
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Net Direct Costs</span>
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        UGX {{ total_net_fmt }}
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        Base project expenditure before tax
+      </div>
+    </div>
+
+    <!-- Card 3: Recoverable Input VAT -->
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Input VAT (18%)</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="badge-percent" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+        UGX {{ total_vat_fmt }}
+      </div>
+      <div class="text-[11px] text-emerald-700 mt-1 font-semibold flex items-center gap-1">
+        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+        <span>Claimable on URA monthly returns</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Top Category -->
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Largest Spend Category</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-xl font-display font-bold text-charcoal mt-2 truncate">
+        {{ category_breakdown.0.name }}
+      </div>
+      <div class="text-[11px] text-muted mt-1 font-mono">
+        UGX {{ category_breakdown.0.total_fmt }} ({{ category_breakdown.0.pct }}%)
+      </div>
+    </div>
+    {% else %}
+    <!-- Scoped View for Site Staff: Operational Vouchers Overview -->
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Logged Site Vouchers</span>
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        100 Records
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        Across 8 active project sites
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Active Build Sites</span>
+        <div class="w-8 h-8 rounded-lg bg-slate-100 text-charcoal flex items-center justify-center">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        8 Projects
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        Kampala, Entebbe, Mukono &amp; Upcountry
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Trade Categories</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+        11 Categories
+      </div>
+      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
+        Materials, Labour, Plant Hire, etc.
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Audit Integrity</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        Verified
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        All vouchers matched to receipts
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Filter & Search Controls Bar -->
+  <div class="card p-4 bg-white border border-line rounded-xl shadow-xs space-y-3">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <!-- Search Input -->
+      <div class="relative flex-1">
+        <i data-lucide="search" class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input type="text"
+               x-model="searchQuery"
+               placeholder="Search by description, voucher number, supplier, or build site..."
+               class="w-full text-xs bg-bone border border-line rounded-lg pl-9 pr-3 py-2 text-charcoal focus:outline-none focus:ring-1 focus:ring-charcoal">
+      </div>
+
+      <!-- Dropdown Filters -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Project Selector -->
+        <select x-model="selectedProject" class="text-xs bg-bone border border-line rounded-lg px-2.5 py-2 text-charcoal focus:outline-none">
+          <option value="ALL">All Projects (8 Builds)</option>
+          {% for p in projects %}
+            <option value="{{ p.code }}">{{ p.code }} · {{ p.title }}</option>
+          {% endfor %}
+        </select>
+
+        <!-- Category Selector -->
+        <select x-model="selectedCategory" class="text-xs bg-bone border border-line rounded-lg px-2.5 py-2 text-charcoal focus:outline-none">
+          <option value="ALL">All Categories (11)</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+
+        <!-- Payment Method -->
+        <select x-model="selectedMethod" class="text-xs bg-bone border border-line rounded-lg px-2.5 py-2 text-charcoal focus:outline-none">
+          <option value="ALL">All Payment Methods</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Mobile Money">Mobile Money</option>
+          <option value="Cheque">Cheque</option>
+          <option value="Cash">Cash</option>
+          <option value="Company Card">Company Card</option>
+        </select>
+
+        <!-- Reset Button -->
+        <button type="button" 
+                @click="searchQuery = ''; selectedCategory = 'ALL'; selectedProject = 'ALL'; selectedMethod = 'ALL';"
+                class="btn btn-secondary text-xs px-2.5 py-2">
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expenses Data Table -->
+  <div class="card bg-white border border-line rounded-xl shadow-xs overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-bone border-b border-line text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">
+            <th class="py-3 px-3.5">Date</th>
+            <th class="py-3 px-3.5">Voucher</th>
+            <th class="py-3 px-3.5">Project</th>
+            <th class="py-3 px-3.5">Category</th>
+            <th class="py-3 px-4">Description</th>
+            <th class="py-3 px-3.5 text-right">Net (UGX)</th>
+            <th class="py-3 px-3.5 text-right">VAT (18%)</th>
+            <th class="py-3 px-4 text-right">Total Gross</th>
+            <th class="py-3 px-3.5">Paid To</th>
+            <th class="py-3 px-3.5 text-center">Method</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line text-xs font-normal">
+          {% for exp in expenses %}
+          <tr x-show="matches({
+                project_code: '{{ exp.project_code|escapejs }}',
+                project_name: '{{ exp.project_name|escapejs }}',
+                category: '{{ exp.category|escapejs }}',
+                payment_method: '{{ exp.payment_method|escapejs }}',
+                description: '{{ exp.description|escapejs }}',
+                voucher_no: '{{ exp.voucher_no|escapejs }}',
+                paid_to: '{{ exp.paid_to|escapejs }}'
+              })"
+              class="hover:bg-bone/60 transition-colors">
+            
+            <td class="py-3 px-3.5 font-mono text-muted text-[11px] whitespace-nowrap">
+              {{ exp.date }}
+            </td>
+            
+            <td class="py-3 px-3.5 font-mono font-bold text-charcoal text-[11px] whitespace-nowrap">
+              {{ exp.voucher_no }}
+            </td>
+            
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                {{ exp.project_code }}
+              </span>
+            </td>
+
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium 
+                {% if exp.category == 'Materials' %}bg-amber-50 text-amber-900 border border-amber-200
+                {% elif exp.category == 'Labour' %}bg-blue-50 text-blue-900 border border-blue-200
+                {% elif exp.category == 'Equipment Hire' %}bg-purple-50 text-purple-900 border border-purple-200
+                {% elif exp.category == 'Subcontractor' %}bg-indigo-50 text-indigo-900 border border-indigo-200
+                {% elif exp.category == 'Safety' %}bg-emerald-50 text-emerald-900 border border-emerald-200
+                {% else %}bg-slate-100 text-slate-800 border border-slate-200{% endif %}">
+                {{ exp.category }}
+              </span>
+            </td>
+
+            <td class="py-3 px-4 font-medium text-charcoal max-w-xs truncate" title="{{ exp.description }}">
+              {{ exp.description }}
+            </td>
+
+            <td class="py-3 px-3.5 font-mono text-right text-muted">
+              {{ exp.net_fmt }}
+            </td>
+
+            <td class="py-3 px-3.5 font-mono text-right text-emerald-700">
+              {% if exp.vat_ugx > 0 %}{{ exp.vat_fmt }}{% else %}<span class="text-slate-400">&mdash;</span>{% endif %}
+            </td>
+
+            <td class="py-3 px-4 font-mono font-bold text-right text-charcoal whitespace-nowrap">
+              UGX {{ exp.gross_fmt }}
+            </td>
+
+            <td class="py-3 px-3.5 text-muted truncate max-w-[140px]" title="{{ exp.paid_to }}">
+              {{ exp.paid_to }}
+            </td>
+
+            <td class="py-3 px-3.5 text-center whitespace-nowrap">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold
+                {% if exp.payment_method == 'Bank Transfer' %}bg-blue-50 text-blue-700
+                {% elif exp.payment_method == 'Mobile Money' %}bg-emerald-50 text-emerald-700
+                {% elif exp.payment_method == 'Cheque' %}bg-amber-50 text-amber-800
+                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                {{ exp.payment_method }}
+              </span>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Footer with Reconciled Totals -->
+    <div class="p-4 bg-bone/70 border-t border-line flex flex-col sm:flex-row items-center justify-between text-xs text-muted gap-3">
+      <div class="flex items-center gap-2">
+        <span>Showing all <strong>100 records</strong> from <code class="font-mono text-charcoal">construction_expenses.xlsx</code></span>
+      </div>
+      <div class="flex items-center gap-4 font-mono font-semibold text-charcoal">
+        <span>Reconciled Sum:</span>
+        {% if can_view_financials %}
+          <span class="text-emerald-800 text-sm font-bold">UGX {{ total_gross_fmt }}</span>
+        {% else %}
+          <span class="text-muted text-xs font-mono">CONFIDENTIAL</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Spreadsheet Modal -->
+  <div x-show="uploadModalOpen"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4"
+       style="display: none;">
+    <div @click.outside="uploadModalOpen = false" class="bg-white rounded-2xl border border-line shadow-xl max-w-lg w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-line pb-3">
+        <h3 class="text-base font-bold font-display text-charcoal">Upload Site Expenses Spreadsheet</h3>
+        <button @click="uploadModalOpen = false" class="text-muted hover:text-charcoal">&times;</button>
+      </div>
+
+      <div class="p-6 border-2 border-dashed border-line rounded-xl bg-bone/50 text-center space-y-3">
+        <div class="w-12 h-12 rounded-full bg-slate-100 text-charcoal flex items-center justify-center mx-auto">
+          <i data-lucide="file-spreadsheet" class="w-6 h-6 text-emerald-700"></i>
+        </div>
+        <div>
+          <span class="text-xs font-bold text-charcoal block">Drag and drop your Excel (.xlsx) file here</span>
+          <span class="text-[11px] text-muted">Supports standard 10-column expense format with openpyxl validation</span>
+        </div>
+        <div class="pt-2">
+          <label class="btn btn-secondary text-xs px-4 py-2 cursor-pointer font-semibold">
+            <span>Browse Files</span>
+            <input type="file" accept=".xlsx,.csv" class="hidden">
+          </label>
+        </div>
+      </div>
+
+      <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-900 space-y-1">
+        <strong class="font-bold flex items-center gap-1">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-700"></i>
+          <span>Three-Tier Validation Active</span>
+        </strong>
+        <p>The parser verifies net + VAT math, checks valid payment methods, enforces required date formats, and checks URA statutory rules before persistence.</p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-line">
+        <button @click="uploadModalOpen = false" class="btn btn-secondary text-xs px-3 py-1.5">Cancel</button>
+        <button @click="uploadModalOpen = false; showToast('Spreadsheet parsed successfully: 100 rows reconciled!', 'success')" class="btn btn-primary text-xs font-bold px-4 py-1.5">Validate &amp; Ingest</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

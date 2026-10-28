@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invoices &amp; Milestone Claims · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div x-data="{
+       searchQuery: '',
+       selectedStatus: 'ALL',
+       selectedProject: 'ALL',
+       matches(inv) {
+         if (this.selectedStatus !== 'ALL' && inv.status !== this.selectedStatus) return false;
+         if (this.selectedProject !== 'ALL' && inv.project_code !== this.selectedProject) return false;
+         if (this.searchQuery.trim() !== '') {
+           const q = this.searchQuery.toLowerCase();
+           return inv.number.toLowerCase().includes(q) ||
+                  inv.project_name.toLowerCase().includes(q) ||
+                  inv.client.toLowerCase().includes(q) ||
+                  inv.claim_title.toLowerCase().includes(q);
+         }
+         return true;
+       }
+     }"
+     class="space-y-6">
+
+  <!-- Breadcrumbs -->
+  <div class="flex items-center justify-between text-xs text-muted border-b border-line pb-3">
+    <div class="flex items-center gap-2">
+      <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1 transition-colors">
+        <i data-lucide="home" class="w-3.5 h-3.5"></i>
+        <span>Home</span>
+      </a>
+      <span>/</span>
+      <span class="font-semibold text-charcoal">Client Invoices &amp; Milestone Claims</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        <span>URA EFRIS Reconciled</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl lg:text-3xl font-display font-bold text-charcoal tracking-tight">Invoices &amp; Milestone Claims</h1>
+      <p class="text-xs text-muted mt-1 leading-relaxed">
+        Certified progress claims, VAT 18% statutory tax invoices, client remittances, and accounts receivable across the 8 active builds.
+      </p>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs font-semibold px-3 py-2 flex items-center gap-1.5">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Overview</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 KPI Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Gross Billed to Date</span>
+        <div class="w-8 h-8 rounded-lg bg-slate-100 text-charcoal flex items-center justify-center">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        UGX 3.09 B
+      </div>
+      <div class="text-[11px] text-muted mt-1 font-mono">
+        UGX 3,097,080,000 Total Gross
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Collected Remittances</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="circle-check" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+        UGX 2.37 B
+      </div>
+      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
+        76.5% Collection Rate
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Outstanding Receivables</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-amber-900 mt-2">
+        UGX 726.8 M
+      </div>
+      <div class="text-[11px] text-muted mt-1 font-mono">
+        UGX 726,850,000 Pending
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Overdue Claims</span>
+        <div class="w-8 h-8 rounded-lg bg-red-50 text-red-700 flex items-center justify-center">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-red-700 mt-2">
+        1 Claim
+      </div>
+      <div class="text-[11px] text-red-600 mt-1 font-semibold">
+        Kira Apartments (UGX 371.7M)
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Controls -->
+  <div class="card p-4 bg-white border border-line rounded-xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div class="relative flex-1 w-full sm:w-auto">
+      <i data-lucide="search" class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
+      <input type="text"
+             x-model="searchQuery"
+             placeholder="Search by invoice number, project, claim title, or client..."
+             class="w-full text-xs bg-bone border border-line rounded-lg pl-9 pr-3 py-2 text-charcoal focus:outline-none">
+    </div>
+
+    <div class="flex items-center gap-2">
+      <select x-model="selectedStatus" class="text-xs bg-bone border border-line rounded-lg px-3 py-2 text-charcoal focus:outline-none">
+        <option value="ALL">All Statuses</option>
+        <option value="PAID">Paid</option>
+        <option value="PART_PAID">Partially Paid</option>
+        <option value="SENT">Sent / Awaiting Payment</option>
+        <option value="OVERDUE">Overdue</option>
+      </select>
+
+      <select x-model="selectedProject" class="text-xs bg-bone border border-line rounded-lg px-3 py-2 text-charcoal focus:outline-none">
+        <option value="ALL">All Projects (8)</option>
+        {% for p in projects %}
+          <option value="{{ p.code }}">{{ p.code }} · {{ p.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Invoices Table -->
+  <div class="card bg-white border border-line rounded-xl shadow-xs overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-bone border-b border-line text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">
+            <th class="py-3 px-3.5">Invoice #</th>
+            <th class="py-3 px-3.5">Project</th>
+            <th class="py-3 px-4">Milestone Claim Description</th>
+            <th class="py-3 px-3.5">Client</th>
+            <th class="py-3 px-3.5">Issue Date</th>
+            <th class="py-3 px-3.5">Due Date</th>
+            <th class="py-3 px-3.5 text-right">Net (UGX)</th>
+            <th class="py-3 px-3.5 text-right">VAT 18%</th>
+            <th class="py-3 px-4 text-right">Gross Claim</th>
+            <th class="py-3 px-3.5 text-right">Balance Due</th>
+            <th class="py-3 px-3.5 text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {% for inv in invoices %}
+          <tr x-show="matches({
+                number: '{{ inv.number|escapejs }}',
+                project_code: '{{ inv.project_code|escapejs }}',
+                project_name: '{{ inv.project_name|escapejs }}',
+                client: '{{ inv.client|escapejs }}',
+                claim_title: '{{ inv.claim_title|escapejs }}',
+                status: '{{ inv.status|escapejs }}'
+              })"
+              class="hover:bg-bone/60 transition-colors">
+            
+            <td class="py-3 px-3.5 font-mono font-bold text-charcoal whitespace-nowrap">{{ inv.number }}</td>
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                {{ inv.project_code }}
+              </span>
+            </td>
+            <td class="py-3 px-4 font-semibold text-charcoal max-w-xs truncate" title="{{ inv.claim_title }}">
+              {{ inv.claim_title }}
+            </td>
+            <td class="py-3 px-3.5 text-muted truncate max-w-[140px]" title="{{ inv.client }}">{{ inv.client }}</td>
+            <td class="py-3 px-3.5 font-mono text-muted text-[11px] whitespace-nowrap">{{ inv.issue_date }}</td>
+            <td class="py-3 px-3.5 font-mono text-muted text-[11px] whitespace-nowrap">{{ inv.due_date }}</td>
+            <td class="py-3 px-3.5 font-mono text-right text-muted">{{ inv.net_fmt }}</td>
+            <td class="py-3 px-3.5 font-mono text-right text-emerald-700">{{ inv.vat_fmt }}</td>
+            <td class="py-3 px-4 font-mono font-bold text-right text-charcoal whitespace-nowrap">UGX {{ inv.gross_fmt }}</td>
+            <td class="py-3 px-3.5 font-mono font-bold text-right whitespace-nowrap
+              {% if inv.balance_due > 0 and inv.status == 'OVERDUE' %}text-red-700
+              {% elif inv.balance_due > 0 %}text-amber-800
+              {% else %}text-emerald-700{% endif %}">
+              {% if inv.balance_due > 0 %}UGX {{ inv.balance_fmt }}{% else %}CLEARED{% endif %}
+            </td>
+            <td class="py-3 px-3.5 text-center whitespace-nowrap">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold
+                {% if inv.status == 'PAID' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+                {% elif inv.status == 'PART_PAID' %}bg-amber-50 text-amber-900 border border-amber-200
+                {% elif inv.status == 'OVERDUE' %}bg-red-50 text-red-800 border border-red-200
+                {% else %}bg-slate-100 text-slate-800 border border-slate-200{% endif %}">
+                {{ inv.status }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

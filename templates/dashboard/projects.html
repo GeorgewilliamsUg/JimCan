@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Projects &amp; Builds · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div x-data="{
+       searchQuery: '',
+       selectedPhase: 'ALL',
+       viewMode: 'grid',
+       matches(p) {
+         if (this.selectedPhase !== 'ALL' && p.current_phase !== this.selectedPhase) return false;
+         if (this.searchQuery.trim() !== '') {
+           const q = this.searchQuery.toLowerCase();
+           return p.title.toLowerCase().includes(q) ||
+                  p.code.toLowerCase().includes(q) ||
+                  p.client.toLowerCase().includes(q) ||
+                  p.location.toLowerCase().includes(q);
+         }
+         return true;
+       }
+     }"
+     class="space-y-6">
+
+  <!-- Breadcrumbs -->
+  <div class="flex items-center justify-between text-xs text-muted border-b border-line pb-3">
+    <div class="flex items-center gap-2">
+      <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1 transition-colors">
+        <i data-lucide="home" class="w-3.5 h-3.5"></i>
+        <span>Home</span>
+      </a>
+      <span>/</span>
+      <span class="font-semibold text-charcoal">Projects &amp; Builds</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-blue-50 text-blue-800 border border-blue-200">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+        <span>8 Active Construction Builds</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl lg:text-3xl font-display font-bold text-charcoal tracking-tight">Active Construction Builds</h1>
+      <p class="text-xs text-muted mt-1 leading-relaxed">
+        Live contract values, physical site phase tracking, and actual expenses reconciled from the 100 site vouchers in <code class="bg-bone px-1 py-0.5 rounded text-charcoal font-mono">construction_expenses.xlsx</code>.
+      </p>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="bg-bone border border-line rounded-lg p-0.5 flex items-center">
+        <button type="button" 
+                @click="viewMode = 'grid'" 
+                :class="{'bg-white shadow-xs text-charcoal font-bold': viewMode === 'grid', 'text-muted': viewMode !== 'grid'}"
+                class="px-2.5 py-1 text-xs rounded transition-colors flex items-center gap-1">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+          <span>Grid</span>
+        </button>
+        <button type="button" 
+                @click="viewMode = 'table'" 
+                :class="{'bg-white shadow-xs text-charcoal font-bold': viewMode === 'table', 'text-muted': viewMode !== 'table'}"
+                class="px-2.5 py-1 text-xs rounded transition-colors flex items-center gap-1">
+          <i data-lucide="list" class="w-3.5 h-3.5"></i>
+          <span>Table</span>
+        </button>
+      </div>
+      <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs font-semibold px-3 py-2 flex items-center gap-1.5">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Overview</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 KPI Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Active Build Sites</span>
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        8 Projects
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        Across Kampala, Entebbe, Wakiso, Mukono &amp; Upcountry
+      </div>
+    </div>
+
+    {% if can_view_financials %}
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Total Contract Portfolio</span>
+        <div class="w-8 h-8 rounded-lg bg-slate-100 text-charcoal flex items-center justify-center">
+          <i data-lucide="briefcase" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        UGX 12.92 B
+      </div>
+      <div class="text-[11px] text-muted mt-1 font-mono">
+        UGX 12,920,000,000 Total Value
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Actual Costs Disbursed</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="banknote" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+        UGX {{ total_gross_fmt }}
+      </div>
+      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
+        Reconciled from 100 site vouchers
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Average Budget Spent</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        26.4%
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        Healthy variance within contract limits
+      </div>
+    </div>
+    {% else %}
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Average Progress</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+        64.8%
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        Physical milestones on track
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Site Safety Record</span>
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        100%
+      </div>
+      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
+        Zero lost-time incidents
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Site Supervisors</span>
+        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
+          <i data-lucide="users" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-purple-900 mt-2">
+        3 Engineers
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        Field operations active daily
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Filter & Search Bar -->
+  <div class="card p-4 bg-white border border-line rounded-xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div class="relative flex-1 w-full sm:w-auto">
+      <i data-lucide="search" class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
+      <input type="text"
+             x-model="searchQuery"
+             placeholder="Search by project name, code (e.g. JCC-001), client, or location..."
+             class="w-full text-xs bg-bone border border-line rounded-lg pl-9 pr-3 py-2 text-charcoal focus:outline-none">
+    </div>
+    <div class="flex items-center gap-2">
+      <select x-model="selectedPhase" class="text-xs bg-bone border border-line rounded-lg px-3 py-2 text-charcoal focus:outline-none">
+        <option value="ALL">All Build Phases</option>
+        <option value="Foundation">Foundation</option>
+        <option value="Superstructure">Superstructure</option>
+        <option value="Roofing">Roofing</option>
+        <option value="Finishes">Finishes</option>
+        <option value="External Works">External Works</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {% for p in projects %}
+    <div x-show="matches({
+           title: '{{ p.title|escapejs }}',
+           code: '{{ p.code|escapejs }}',
+           client: '{{ p.client|escapejs }}',
+           location: '{{ p.location|escapejs }}',
+           current_phase: '{{ p.current_phase|escapejs }}'
+         })"
+         class="card p-5 bg-white border border-line rounded-xl shadow-xs hover:border-slate-400 transition-all flex flex-col justify-between">
+      
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-900 text-white">
+            {{ p.code }}
+          </span>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold
+            {% if p.current_phase == 'Finishes' %}bg-purple-50 text-purple-800 border border-purple-200
+            {% elif p.current_phase == 'Superstructure' %}bg-blue-50 text-blue-800 border border-blue-200
+            {% elif p.current_phase == 'Roofing' %}bg-amber-50 text-amber-800 border border-amber-200
+            {% elif p.current_phase == 'Foundation' %}bg-orange-50 text-orange-800 border border-orange-200
+            {% else %}bg-emerald-50 text-emerald-800 border border-emerald-200{% endif %}">
+            {{ p.current_phase }}
+          </span>
+        </div>
+
+        <h3 class="font-display font-bold text-base text-charcoal leading-snug">
+          {{ p.title }}
+        </h3>
+        
+        <div class="text-xs text-muted mt-1.5 flex items-center gap-1">
+          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-muted flex-shrink-0"></i>
+          <span class="truncate">{{ p.location }}</span>
+        </div>
+
+        <div class="text-xs text-slate-600 mt-1 flex items-center gap-1 font-medium">
+          <i data-lucide="user" class="w-3.5 h-3.5 text-muted flex-shrink-0"></i>
+          <span class="truncate">{{ p.client }}</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="mt-4 pt-4 border-t border-line space-y-1.5">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-muted">Physical Progress</span>
+            <span class="font-mono font-bold text-charcoal">{{ p.completion_pct }}%</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-safety h-1.5 rounded-full" style="width: {{ p.completion_pct }}%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics Box -->
+      <div class="mt-4 pt-3 border-t border-line bg-bone/50 -mx-5 -mb-5 p-4 rounded-b-xl space-y-2">
+        {% if can_view_financials %}
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-muted">Contract:</span>
+          <span class="font-mono font-bold text-charcoal">UGX {{ p.contract_value_fmt }}</span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-muted">Site Spend:</span>
+          <span class="font-mono font-bold text-emerald-800">UGX {{ p.actual_cost_fmt }}</span>
+        </div>
+        {% else %}
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-muted">Commenced:</span>
+          <span class="font-mono font-medium text-charcoal">{{ p.start_date }}</span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-muted">Target Handover:</span>
+          <span class="font-mono font-medium text-charcoal">{{ p.target_completion }}</span>
+        </div>
+        {% endif %}
+        <div class="flex items-center justify-between text-[11px] pt-1 border-t border-line/60">
+          <span class="text-muted">Manager:</span>
+          <span class="font-medium text-charcoal">{{ p.manager }}</span>
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Table View -->
+  <div x-show="viewMode === 'table'" class="card bg-white border border-line rounded-xl shadow-xs overflow-hidden" style="display: none;">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-bone border-b border-line text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">
+            <th class="py-3 px-3.5">Code</th>
+            <th class="py-3 px-4">Project Title</th>
+            <th class="py-3 px-3.5">Client</th>
+            <th class="py-3 px-3.5">Location</th>
+            <th class="py-3 px-3.5">Phase</th>
+            <th class="py-3 px-3 text-center">Progress</th>
+            {% if can_view_financials %}
+            <th class="py-3 px-4 text-right">Contract (UGX)</th>
+            <th class="py-3 px-4 text-right">Disbursed (UGX)</th>
+            {% else %}
+            <th class="py-3 px-3.5">Start Date</th>
+            <th class="py-3 px-3.5">Target Completion</th>
+            {% endif %}
+            <th class="py-3 px-3.5">Manager</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {% for p in projects %}
+          <tr class="hover:bg-bone/60 transition-colors">
+            <td class="py-3 px-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">{{ p.code }}</td>
+            <td class="py-3 px-4 font-bold text-charcoal whitespace-nowrap">{{ p.title }}</td>
+            <td class="py-3 px-3.5 text-muted truncate max-w-[150px]">{{ p.client }}</td>
+            <td class="py-3 px-3.5 text-muted whitespace-nowrap">{{ p.location }}</td>
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-800">
+                {{ p.current_phase }}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-center font-mono font-bold text-charcoal">{{ p.completion_pct }}%</td>
+            {% if can_view_financials %}
+            <td class="py-3 px-4 font-mono text-right font-bold text-charcoal">UGX {{ p.contract_value_fmt }}</td>
+            <td class="py-3 px-4 font-mono text-right font-bold text-emerald-800">UGX {{ p.actual_cost_fmt }}</td>
+            {% else %}
+            <td class="py-3 px-3.5 font-mono text-muted whitespace-nowrap">{{ p.start_date }}</td>
+            <td class="py-3 px-3.5 font-mono text-muted whitespace-nowrap">{{ p.target_completion }}</td>
+            {% endif %}
+            <td class="py-3 px-3.5 text-muted whitespace-nowrap">{{ p.manager }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

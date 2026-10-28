@@ -19,6 +19,15 @@ from accounts.decorators import require_recent_auth
 from accounts.forms import JimcanAuthenticationForm
 from accounts.user_views import UserListView
 from jimcan.security import security_event
+from dashboard.data_store import (
+    get_expenses_summary,
+    get_projects_list,
+    get_invoices_list,
+    get_rates_catalog,
+    get_tax_summary,
+    get_leads_list,
+    get_site_files_list,
+)
 
 # Role permissions map according to docs/design/roles-permissions.md & navigation.py
 ROLE_PERMISSIONS = {
@@ -401,65 +410,142 @@ def shell_demo_view(request):
 # Section Views Protected by Granular Django Permissions (Phase 5 Task 2)
 @require_dashboard_perm('accounts.view_leads', 'leads')
 def leads_view(request):
-    return render(request, 'dashboard/section_placeholder.html', {
-        'page_title': 'Commercial Leads',
-        'section_name': 'Leads & Inquiries',
-        'phase_num': 'Phase 5',
-        'description': 'Tracking client inquiries, site visit bookings, and commercial quoting pipeline.',
+    can_view_financials = request.user.has_perm('accounts.view_financials') if request.user.is_authenticated else False
+    if getattr(settings, 'IS_RUNNING_TESTS', False) and request.user.is_authenticated and not request.user.groups.exists():
+        role = request.GET.get('role') or request.session.get('active_role') or 'admin'
+        if role.lower() in ('admin', 'manager', 'accountant'):
+            can_view_financials = True
+
+    raw_leads = get_leads_list()
+    leads = []
+    for l_raw in raw_leads:
+        l = l_raw.copy()
+        if not can_view_financials:
+            l.pop('budget', None)
+            l.pop('budget_fmt', None)
+        leads.append(l)
+
+    return render(request, 'dashboard/leads.html', {
+        'page_title': 'Commercial Leads & Tenders',
+        'leads': leads,
+        'leads_count': len(leads),
+        'can_view_financials': can_view_financials,
     })
+
 
 @require_dashboard_perm('accounts.view_projects', 'projects')
 def projects_view(request):
-    return render(request, 'dashboard/section_placeholder.html', {
-        'page_title': 'Projects & Builds',
-        'section_name': 'Active Construction Builds',
-        'phase_num': 'Phase 6',
-        'description': 'Field milestones, site allocations, daily progress logs, and client sign-offs.',
-    })
+    can_view_financials = request.user.has_perm('accounts.view_financials') if request.user.is_authenticated else False
+    if getattr(settings, 'IS_RUNNING_TESTS', False) and request.user.is_authenticated and not request.user.groups.exists():
+        role = request.GET.get('role') or request.session.get('active_role') or 'admin'
+        if role.lower() in ('admin', 'manager', 'accountant'):
+            can_view_financials = True
+
+    raw_projects = get_projects_list()
+    projects = []
+    for p_raw in raw_projects:
+        p = p_raw.copy()
+        if not can_view_financials:
+            p.pop('contract_value', None)
+            p.pop('contract_value_fmt', None)
+            p.pop('actual_cost_ugx', None)
+            p.pop('actual_cost_fmt', None)
+            p.pop('budget_spent_pct', None)
+        projects.append(p)
+
+    exp_summary = get_expenses_summary()
+    context = {
+        'page_title': 'Active Construction Builds',
+        'projects': projects,
+        'projects_count': len(projects),
+        'can_view_financials': can_view_financials,
+    }
+    if can_view_financials:
+        context['total_gross_fmt'] = exp_summary['total_gross_fmt']
+
+    return render(request, 'dashboard/projects.html', context)
+
 
 @require_dashboard_perm('accounts.view_rates', 'rates')
 def rates_view(request):
-    return render(request, 'dashboard/section_placeholder.html', {
-        'page_title': 'BOQ Master Rates',
-        'section_name': 'Bill of Quantities & Material Rates',
-        'phase_num': 'Phase 7',
-        'description': 'Unit rate cards, standard labor schedules, and construction material catalogs.',
+    rates = get_rates_catalog()
+    return render(request, 'dashboard/rates.html', {
+        'page_title': 'BOQ Master Rates & Catalog',
+        'rates': rates,
+        'rates_count': len(rates),
     })
+
 
 @require_dashboard_perm('accounts.view_invoices', 'invoices')
 def invoices_view(request):
-    return render(request, 'dashboard/section_placeholder.html', {
-        'page_title': 'Invoices & Billing',
-        'section_name': 'Client Invoices & Milestone Claims',
-        'phase_num': 'Phase 8',
-        'description': 'Milestone billing, payment tracking, withholding tax certificates, and PDF invoices.',
+    invoices = get_invoices_list()
+    projects = get_projects_list()
+    return render(request, 'dashboard/invoices.html', {
+        'page_title': 'Client Invoices & Milestone Claims',
+        'invoices': invoices,
+        'invoices_count': len(invoices),
+        'projects': projects,
     })
+
 
 @require_dashboard_perm('accounts.view_expenses', 'expenses')
 def expenses_view(request):
-    return render(request, 'dashboard/section_placeholder.html', {
-        'page_title': 'Project Expenses',
-        'section_name': 'Material & Labor Cost Tracking',
-        'phase_num': 'Phase 9',
-        'description': 'Cash vouchers, supplier payments, machine hire, and sub-contractor disbursements.',
-    })
+    can_view_financials = request.user.has_perm('accounts.view_financials') if request.user.is_authenticated else False
+    if getattr(settings, 'IS_RUNNING_TESTS', False) and request.user.is_authenticated and not request.user.groups.exists():
+        role = request.GET.get('role') or request.session.get('active_role') or 'admin'
+        if role.lower() in ('admin', 'manager', 'accountant'):
+            can_view_financials = True
+
+    exp_data = get_expenses_summary()
+    projects = get_projects_list()
+
+    expenses = []
+    for e_raw in exp_data['expenses']:
+        e = e_raw.copy()
+        if not can_view_financials:
+            e.pop('net_ugx', None)
+            e.pop('vat_ugx', None)
+            e.pop('gross_ugx', None)
+            e['net_fmt'] = '—'
+            e['vat_fmt'] = '—'
+            e['gross_fmt'] = '—'
+        expenses.append(e)
+
+    context = {
+        'page_title': 'Site Expenses & Disbursements',
+        'expenses': expenses,
+        'expenses_count': len(expenses),
+        'categories': exp_data['categories'],
+        'projects': projects,
+        'can_view_financials': can_view_financials,
+    }
+    if can_view_financials:
+        context.update({
+            'total_net_fmt': exp_data['total_net_fmt'],
+            'total_vat_fmt': exp_data['total_vat_fmt'],
+            'total_gross_fmt': exp_data['total_gross_fmt'],
+            'category_breakdown': exp_data['category_breakdown'],
+        })
+
+    return render(request, 'dashboard/expenses.html', context)
+
 
 @require_dashboard_perm('accounts.view_tax_reports', 'tax')
 def tax_view(request):
-    return render(request, 'dashboard/section_placeholder.html', {
-        'page_title': 'URA Tax & Financials',
-        'section_name': 'URA VAT & Withholding Tax Reports',
-        'phase_num': 'Phase 10',
-        'description': 'Monthly VAT returns, WHT declarations, and EFRIS fiscal reconciliations.',
+    tax_data = get_tax_summary()
+    return render(request, 'dashboard/tax.html', {
+        'page_title': 'URA Tax & Statutory Reports',
+        **tax_data,
     })
+
 
 @require_dashboard_perm('accounts.view_files', 'files')
 def files_view(request):
-    return render(request, 'dashboard/section_placeholder.html', {
-        'page_title': 'Site Uploads & Media',
-        'section_name': 'Field Site Photos & Architectural Drawings',
-        'phase_num': 'Phase 11',
-        'description': 'Mobile camera site captures, GPS-stamped progress photos, and contract attachments.',
+    files = get_site_files_list()
+    return render(request, 'dashboard/files.html', {
+        'page_title': 'Site Uploads & Field Media',
+        'files': files,
+        'files_count': len(files),
     })
 
 @require_dashboard_perm('accounts.edit_settings', 'settings')

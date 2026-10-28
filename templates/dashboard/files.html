@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Site Uploads &amp; Media · Jimcan Operations{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Breadcrumbs -->
+  <div class="flex items-center justify-between text-xs text-muted border-b border-line pb-3">
+    <div class="flex items-center gap-2">
+      <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1 transition-colors">
+        <i data-lucide="home" class="w-3.5 h-3.5"></i>
+        <span>Home</span>
+      </a>
+      <span>/</span>
+      <span class="font-semibold text-charcoal">Site Uploads &amp; Field Media</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        <span>Secure Storage Outside Web Root</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl lg:text-3xl font-display font-bold text-charcoal tracking-tight">Site Uploads &amp; Field Media</h1>
+      <p class="text-xs text-muted mt-1 leading-relaxed">
+        Engineering drawings, lab test cube certificates, field site inspection photos, and scanned voucher receipts tied to the 8 construction builds.
+      </p>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs font-semibold px-3 py-2 flex items-center gap-1.5">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Overview</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 KPI Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Site Media Vault</span>
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+          <i data-lucide="files" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        142 Files
+      </div>
+      <div class="text-[11px] text-muted mt-1 font-mono">
+        Total Storage: 1.48 GB
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Engineering Drawings</span>
+        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
+          <i data-lucide="file-code" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-purple-900 mt-2">
+        24 CAD / PDFs
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        Structural, Architectural, MEP
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Voucher Attachments</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+        100 Vouchers
+      </div>
+      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
+        Matched to construction_expenses.xlsx
+      </div>
+    </div>
+
+    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Privacy Engine</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+        Clean
+      </div>
+      <div class="text-[11px] text-muted mt-1">
+        EXIF GPS coordinates stripped on ingest
+      </div>
+    </div>
+  </div>
+
+  <!-- Files Table -->
+  <div class="card bg-white border border-line rounded-xl shadow-xs overflow-hidden">
+    <div class="p-4 border-b border-line flex items-center justify-between">
+      <h3 class="font-display font-bold text-sm text-charcoal">Recent Site Attachments &amp; Technical Drawings</h3>
+      <span class="text-xs text-muted">Showing 6 sample documents</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-bone border-b border-line text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">
+            <th class="py-3 px-4">Document / File Name</th>
+            <th class="py-3 px-3.5">Project</th>
+            <th class="py-3 px-3.5">Classification</th>
+            <th class="py-3 px-3 text-right">Size</th>
+            <th class="py-3 px-3.5">Date</th>
+            <th class="py-3 px-3.5">Uploader</th>
+            <th class="py-3 px-3.5 text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {% for f in files %}
+          <tr class="hover:bg-bone/60 transition-colors">
+            <td class="py-3 px-4 font-semibold text-charcoal flex items-center gap-2">
+              <i data-lucide="file" class="w-4 h-4 text-muted flex-shrink-0"></i>
+              <span class="truncate max-w-sm">{{ f.name }}</span>
+            </td>
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                {{ f.project_code }}
+              </span>
+            </td>
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-bone text-charcoal border border-line">
+                {{ f.file_type }}
+              </span>
+            </td>
+            <td class="py-3 px-3 font-mono text-right text-muted whitespace-nowrap">{{ f.size }}</td>
+            <td class="py-3 px-3.5 font-mono text-muted text-[11px] whitespace-nowrap">{{ f.uploaded_at }}</td>
+            <td class="py-3 px-3.5 text-muted whitespace-nowrap">{{ f.uploader }}</td>
+            <td class="py-3 px-3.5 text-center whitespace-nowrap">
+              <button type="button" @click="showToast('Downloading verified document...', 'info')" class="text-xs text-charcoal font-semibold hover:underline">
+                Download
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
