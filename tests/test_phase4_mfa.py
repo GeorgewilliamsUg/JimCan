@@ -272,6 +272,42 @@ class MFACodeVerificationAndThrottlingTests(Phase4BaseTestCase):
         static_dev.refresh_from_db()
         self.assertEqual(static_dev.throttling_failure_count, 1)
 
+    def test_totp_clock_drift_tolerance_on_device(self):
+        """TOTPDevice.verify_token tolerates tokens generated within OTP_TOTP_TOLERANCE window."""
+        import time
+        from django_otp.oath import totp
+        from binascii import unhexlify
+
+        device = TOTPDevice.objects.create(user=self.staff_user, name='default', confirmed=True)
+        key_bytes = unhexlify(device.key.encode('ascii'))
+        drifted_token = totp(key_bytes, step=30, t0=0, digits=6, drift=2)
+
+        with override_settings(OTP_TOTP_TOLERANCE=2):
+            self.assertTrue(device.verify_token(drifted_token))
+            device.refresh_from_db()
+            self.assertGreaterEqual(device.tolerance, 2)
+
+    def test_totp_setup_form_accepts_drifted_token(self):
+        """TOTPDeviceForm clean_token accepts tokens with 60s drift and records initial drift offset."""
+        from django_otp.oath import totp
+        from two_factor.forms import TOTPDeviceForm
+        from binascii import hexlify
+
+        key_bytes = b'12345678901234567890'
+        hex_key = hexlify(key_bytes).decode('ascii')
+        drifted_token = totp(key_bytes, step=30, t0=0, digits=6, drift=2)
+
+        form = TOTPDeviceForm(key=hex_key, user=self.staff_user, data={'generator-token': drifted_token})
+        # Note: when wizard prefix is not applied directly, form prefix handles 'token'
+        if not form.is_valid():
+            form = TOTPDeviceForm(key=hex_key, user=self.staff_user, data={'token': drifted_token})
+
+        self.assertTrue(form.is_valid(), f"Errors: {form.errors}")
+        self.assertEqual(form.drift, 2)
+        device = form.save()
+        self.assertEqual(device.drift, 2)
+        self.assertGreaterEqual(device.tolerance, 2)
+
 
 class MFAEnrollmentAndAlertsTests(Phase4BaseTestCase):
     """Verifies setup flow, backup codes presentation, remaining count, and Owner alerting."""

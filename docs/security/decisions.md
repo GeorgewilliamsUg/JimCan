@@ -50,5 +50,6 @@ Each entry is one line with the decision and the reason.
 | 2026-10-27 | Phase 5 | Mandatory step-up re-authentication and session revocation for user management mutations | User provisioning, role demotions/promotions, deactivations, and MFA resets require recent auth (<10 min); role changes and deactivations call sign_out_everywhere(). |
 | 2026-10-27 | Phase 5 | Last active Owner protection on deactivation and role demotion | Server-side validation refuses deactivation or demotion if active Owner count would drop below 1, preventing permanent system lockout. |
 | 2026-10-27 | Phase 5 | Restrict styleguide and shell demo views to DEBUG mode only | Returns 404 in production to eliminate development showroom surface area outside debugging environments. |
+| 2026-10-28 | Phase 4/Ops | Configurable TOTP clock drift tolerance via OTP_TOTP_TOLERANCE (default 2, +/- 60s) | Compensates for NTP time drift on shared hosting (cPanel/Namecheap) and client mobile devices during 2FA enrollment and verification while preserving exponential throttling. |
 
 

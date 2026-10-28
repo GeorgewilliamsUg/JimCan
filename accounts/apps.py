@@ -8,3 +8,6 @@ class AccountsConfig(AppConfig):
     def ready(self):
         # Register axes lockout security_event signal listener
         import accounts.signals  # noqa
+        # Apply TOTP clock drift tolerance configuration
+        from accounts.mfa_tolerance import patch_totp_tolerance
+        patch_totp_tolerance()

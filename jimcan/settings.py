@@ -331,6 +331,7 @@ LOGOUT_REDIRECT_URL = 'login'
 # Two-Factor Authentication & Throttling (Phase 4)
 OTP_TOTP_THROTTLE_FACTOR = 1
 OTP_STATIC_THROTTLE_FACTOR = 1
+OTP_TOTP_TOLERANCE = int(os.environ.get('OTP_TOTP_TOLERANCE', '2'))  # Step tolerance (default 2 = +/- 60s window for server/phone clock drift)
 TWO_FACTOR_PATCH_ADMIN = True
 TWO_FACTOR_REMEMBER_COOKIE_AGE = None  # Strict: require second factor on every login session
 
