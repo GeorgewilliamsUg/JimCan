@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static dashboard_tags %}
 
 {% block title %}Invoices &amp; Milestone Claims · Jimcan Operations{% endblock %}
 
@@ -8,6 +8,7 @@
        searchQuery: '',
        selectedStatus: 'ALL',
        selectedProject: 'ALL',
+       selectedAging: 'ALL',
        matches(inv) {
          if (this.selectedStatus !== 'ALL' && inv.status !== this.selectedStatus) return false;
          if (this.selectedProject !== 'ALL' && inv.project_code !== this.selectedProject) return false;
@@ -31,13 +32,12 @@
         <span>Home</span>
       </a>
       <span>/</span>
-      <span class="font-semibold text-charcoal">Client Invoices &amp; Milestone Claims</span>
+      <span class="font-medium text-charcoal">Client Invoices &amp; Milestone Claims</span>
     </div>
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-        <span>URA EFRIS Reconciled</span>
-      </span>
+    <div class="text-xs text-muted font-normal">
+      <span>{{ invoices_count }} total claims</span>
+      <span class="mx-1.5">·</span>
+      <span>Collection rate: <strong class="text-charcoal font-semibold">{{ collection_rate }}%</strong></span>
     </div>
   </div>
 
@@ -46,76 +46,114 @@
     <div>
       <h1 class="text-2xl lg:text-3xl font-display font-bold text-charcoal tracking-tight">Invoices &amp; Milestone Claims</h1>
       <p class="text-xs text-muted mt-1 leading-relaxed">
-        Certified progress claims, VAT 18% statutory tax invoices, client remittances, and accounts receivable across the 8 active builds.
+        Certified progress claims, VAT 18% statutory tax invoices, client remittances, and accounts receivable across active builds.
       </p>
-    </div>
-    <div class="flex items-center gap-2.5">
-      <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs font-semibold px-3 py-2 flex items-center gap-1.5">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-        <span>Overview</span>
-      </a>
     </div>
   </div>
 
-  <!-- 4 KPI Summary Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Gross Billed to Date</span>
-        <div class="w-8 h-8 rounded-lg bg-slate-100 text-charcoal flex items-center justify-center">
-          <i data-lucide="receipt" class="w-4 h-4"></i>
+  <!-- Centerpiece: Invoice Aging Strip -->
+  <div class="card bg-white border border-line rounded-xl shadow-xs overflow-hidden">
+    <div class="p-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/60">
+      <div>
+        <h2 class="text-sm font-display font-bold text-charcoal">Accounts receivable aging schedule</h2>
+        <p class="text-xs text-muted mt-0.5">Active receivables bucketed by payment due date against contract terms</p>
+      </div>
+      <div class="flex items-center gap-4 text-xs">
+        <div>
+          <span class="text-muted">Total gross billed:</span>
+          <span class="font-semibold text-charcoal tabular-nums ml-1">UGX {{ total_gross_fmt }}</span>
         </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
-        UGX 3.09 B
-      </div>
-      <div class="text-[11px] text-muted mt-1 font-mono">
-        UGX 3,097,080,000 Total Gross
+        <div class="h-3 w-px bg-slate-200"></div>
+        <div>
+          <span class="text-muted">Total collected:</span>
+          <span class="font-semibold text-charcoal tabular-nums ml-1">UGX {{ total_collected_fmt }}</span>
+        </div>
+        <div class="h-3 w-px bg-slate-200"></div>
+        <div>
+          <span class="text-muted">Outstanding balance:</span>
+          <span class="font-semibold text-charcoal tabular-nums ml-1">UGX {{ total_balance_fmt }}</span>
+        </div>
       </div>
     </div>
 
-    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Collected Remittances</span>
-        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-          <i data-lucide="circle-check" class="w-4 h-4"></i>
+    <!-- 5 Aging Buckets Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-line">
+      <!-- Bucket 1: Current -->
+      <div class="p-4 bg-white hover:bg-slate-50/50 transition-colors">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-muted">Current</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium">Not due</span>
+        </div>
+        <div class="text-lg font-display font-bold text-charcoal mt-2 tabular-nums">
+          UGX {{ aging_buckets.current.amount_fmt }}
+        </div>
+        <div class="text-xs text-muted mt-1">
+          {{ aging_buckets.current.count }} claim{% if aging_buckets.current.count != 1 %}s{% endif %} on schedule
         </div>
       </div>
-      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
-        UGX 2.37 B
-      </div>
-      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
-        76.5% Collection Rate
-      </div>
-    </div>
 
-    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Outstanding Receivables</span>
-        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-          <i data-lucide="clock" class="w-4 h-4"></i>
+      <!-- Bucket 2: 1-30 Days Past Due -->
+      <div class="p-4 bg-white hover:bg-slate-50/50 transition-colors {% if aging_buckets.1_30.count > 0 %}bg-amber-50/20{% endif %}">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-muted">1–30 days</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full {% if aging_buckets.1_30.count > 0 %}bg-amber-100 text-amber-800 font-semibold{% else %}bg-slate-100 text-slate-600{% endif %}">
+            Past due
+          </span>
+        </div>
+        <div class="text-lg font-display font-bold text-charcoal mt-2 tabular-nums">
+          UGX {{ aging_buckets.1_30.amount_fmt }}
+        </div>
+        <div class="text-xs text-muted mt-1">
+          {{ aging_buckets.1_30.count }} claim{% if aging_buckets.1_30.count != 1 %}s{% endif %}
         </div>
       </div>
-      <div class="text-2xl font-display font-bold text-amber-900 mt-2">
-        UGX 726.8 M
-      </div>
-      <div class="text-[11px] text-muted mt-1 font-mono">
-        UGX 726,850,000 Pending
-      </div>
-    </div>
 
-    <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Overdue Claims</span>
-        <div class="w-8 h-8 rounded-lg bg-red-50 text-red-700 flex items-center justify-center">
-          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+      <!-- Bucket 3: 31-60 Days Past Due -->
+      <div class="p-4 bg-white hover:bg-slate-50/50 transition-colors {% if aging_buckets.31_60.count > 0 %}bg-amber-50/30{% endif %}">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-muted">31–60 days</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full {% if aging_buckets.31_60.count > 0 %}bg-amber-100 text-amber-800 font-semibold{% else %}bg-slate-100 text-slate-600{% endif %}">
+            Past due
+          </span>
+        </div>
+        <div class="text-lg font-display font-bold text-charcoal mt-2 tabular-nums">
+          UGX {{ aging_buckets.31_60.amount_fmt }}
+        </div>
+        <div class="text-xs text-muted mt-1">
+          {{ aging_buckets.31_60.count }} claim{% if aging_buckets.31_60.count != 1 %}s{% endif %}
         </div>
       </div>
-      <div class="text-2xl font-display font-bold text-red-700 mt-2">
-        1 Claim
+
+      <!-- Bucket 4: 61-90 Days Past Due -->
+      <div class="p-4 bg-white hover:bg-slate-50/50 transition-colors {% if aging_buckets.61_90.count > 0 %}bg-red-50/30{% endif %}">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-muted">61–90 days</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full {% if aging_buckets.61_90.count > 0 %}bg-red-100 text-red-800 font-semibold{% else %}bg-slate-100 text-slate-600{% endif %}">
+            Past due
+          </span>
+        </div>
+        <div class="text-lg font-display font-bold text-charcoal mt-2 tabular-nums">
+          UGX {{ aging_buckets.61_90.amount_fmt }}
+        </div>
+        <div class="text-xs text-muted mt-1">
+          {{ aging_buckets.61_90.count }} claim{% if aging_buckets.61_90.count != 1 %}s{% endif %}
+        </div>
       </div>
-      <div class="text-[11px] text-red-600 mt-1 font-semibold">
-        Kira Apartments (UGX 371.7M)
+
+      <!-- Bucket 5: 90+ Days Past Due -->
+      <div class="p-4 bg-white hover:bg-slate-50/50 transition-colors {% if aging_buckets.90_plus.count > 0 %}bg-red-50/40{% endif %} col-span-2 md:col-span-1">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-muted">90+ days</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full {% if aging_buckets.90_plus.count > 0 %}bg-red-100 text-red-800 font-semibold{% else %}bg-slate-100 text-slate-600{% endif %}">
+            Critical
+          </span>
+        </div>
+        <div class="text-lg font-display font-bold text-charcoal mt-2 tabular-nums">
+          UGX {{ aging_buckets.90_plus.amount_fmt }}
+        </div>
+        <div class="text-xs text-muted mt-1">
+          {{ aging_buckets.90_plus.count }} claim{% if aging_buckets.90_plus.count != 1 %}s{% endif %}
+        </div>
       </div>
     </div>
   </div>
@@ -127,20 +165,20 @@
       <input type="text"
              x-model="searchQuery"
              placeholder="Search by invoice number, project, claim title, or client..."
-             class="w-full text-xs bg-bone border border-line rounded-lg pl-9 pr-3 py-2 text-charcoal focus:outline-none">
+             class="w-full text-xs bg-slate-50 border border-line rounded-lg pl-9 pr-3 py-2 text-charcoal focus:outline-none focus:border-slate-400">
     </div>
 
-    <div class="flex items-center gap-2">
-      <select x-model="selectedStatus" class="text-xs bg-bone border border-line rounded-lg px-3 py-2 text-charcoal focus:outline-none">
-        <option value="ALL">All Statuses</option>
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <select x-model="selectedStatus" class="text-xs bg-slate-50 border border-line rounded-lg px-3 py-2 text-charcoal focus:outline-none">
+        <option value="ALL">All statuses</option>
         <option value="PAID">Paid</option>
-        <option value="PART_PAID">Partially Paid</option>
-        <option value="SENT">Sent / Awaiting Payment</option>
+        <option value="PART_PAID">Part paid</option>
+        <option value="SENT">Sent / Issued</option>
         <option value="OVERDUE">Overdue</option>
       </select>
 
-      <select x-model="selectedProject" class="text-xs bg-bone border border-line rounded-lg px-3 py-2 text-charcoal focus:outline-none">
-        <option value="ALL">All Projects (8)</option>
+      <select x-model="selectedProject" class="text-xs bg-slate-50 border border-line rounded-lg px-3 py-2 text-charcoal focus:outline-none">
+        <option value="ALL">All projects ({{ projects|length }})</option>
         {% for p in projects %}
           <option value="{{ p.code }}">{{ p.code }} · {{ p.title }}</option>
         {% endfor %}
@@ -153,18 +191,18 @@
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-xs">
         <thead>
-          <tr class="bg-bone border-b border-line text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">
-            <th class="py-3 px-3.5">Invoice #</th>
-            <th class="py-3 px-3.5">Project</th>
-            <th class="py-3 px-4">Milestone Claim Description</th>
-            <th class="py-3 px-3.5">Client</th>
-            <th class="py-3 px-3.5">Issue Date</th>
-            <th class="py-3 px-3.5">Due Date</th>
-            <th class="py-3 px-3.5 text-right">Net (UGX)</th>
-            <th class="py-3 px-3.5 text-right">VAT 18%</th>
-            <th class="py-3 px-4 text-right">Gross Claim</th>
-            <th class="py-3 px-3.5 text-right">Balance Due</th>
-            <th class="py-3 px-3.5 text-center">Status</th>
+          <tr class="bg-slate-50/80 border-b border-line text-xs font-semibold text-muted">
+            <th class="py-3 px-3.5 min-w-[130px]">Invoice #</th>
+            <th class="py-3 px-3.5 min-w-[100px]">Project</th>
+            <th class="py-3 px-4 min-w-[220px]">Milestone claim description</th>
+            <th class="py-3 px-3.5 min-w-[140px]">Client</th>
+            <th class="py-3 px-3.5 min-w-[105px]">Issue date</th>
+            <th class="py-3 px-3.5 min-w-[105px]">Due date</th>
+            <th class="py-3 px-3.5 text-right min-w-[120px]">Net (UGX)</th>
+            <th class="py-3 px-3.5 text-right min-w-[110px]">VAT (18%)</th>
+            <th class="py-3 px-4 text-right min-w-[130px]">Gross claim</th>
+            <th class="py-3 px-3.5 text-right min-w-[125px]">Balance due</th>
+            <th class="py-3 px-3.5 text-center min-w-[100px]">Status</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-line">
@@ -177,37 +215,46 @@
                 claim_title: '{{ inv.claim_title|escapejs }}',
                 status: '{{ inv.status|escapejs }}'
               })"
-              class="hover:bg-bone/60 transition-colors">
+              class="hover:bg-slate-50/70 transition-colors">
             
-            <td class="py-3 px-3.5 font-mono font-bold text-charcoal whitespace-nowrap">{{ inv.number }}</td>
+            <td class="py-3 px-3.5 font-mono font-medium text-charcoal whitespace-nowrap">
+              {{ inv.number }}
+            </td>
             <td class="py-3 px-3.5 whitespace-nowrap">
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 text-slate-800 border border-slate-200">
                 {{ inv.project_code }}
               </span>
             </td>
-            <td class="py-3 px-4 font-semibold text-charcoal max-w-xs truncate" title="{{ inv.claim_title }}">
+            <td class="py-3 px-4 font-medium text-charcoal max-w-xs truncate" title="{{ inv.claim_title }}">
               {{ inv.claim_title }}
             </td>
-            <td class="py-3 px-3.5 text-muted truncate max-w-[140px]" title="{{ inv.client }}">{{ inv.client }}</td>
-            <td class="py-3 px-3.5 font-mono text-muted text-[11px] whitespace-nowrap">{{ inv.issue_date }}</td>
-            <td class="py-3 px-3.5 font-mono text-muted text-[11px] whitespace-nowrap">{{ inv.due_date }}</td>
-            <td class="py-3 px-3.5 font-mono text-right text-muted">{{ inv.net_fmt }}</td>
-            <td class="py-3 px-3.5 font-mono text-right text-emerald-700">{{ inv.vat_fmt }}</td>
-            <td class="py-3 px-4 font-mono font-bold text-right text-charcoal whitespace-nowrap">UGX {{ inv.gross_fmt }}</td>
-            <td class="py-3 px-3.5 font-mono font-bold text-right whitespace-nowrap
-              {% if inv.balance_due > 0 and inv.status == 'OVERDUE' %}text-red-700
-              {% elif inv.balance_due > 0 %}text-amber-800
-              {% else %}text-emerald-700{% endif %}">
-              {% if inv.balance_due > 0 %}UGX {{ inv.balance_fmt }}{% else %}CLEARED{% endif %}
+            <td class="py-3 px-3.5 text-muted truncate max-w-[160px]" title="{{ inv.client }}">
+              {{ inv.client }}
+            </td>
+            <td class="py-3 px-3.5 text-muted whitespace-nowrap tabular-nums">
+              {{ inv.issue_date|date_display }}
+            </td>
+            <td class="py-3 px-3.5 text-muted whitespace-nowrap tabular-nums">
+              {{ inv.due_date|date_display }}
+            </td>
+            <td class="py-3 px-3.5 text-right text-muted tabular-nums whitespace-nowrap">
+              UGX {{ inv.net_fmt }}
+            </td>
+            <td class="py-3 px-3.5 text-right text-muted tabular-nums whitespace-nowrap">
+              UGX {{ inv.vat_fmt }}
+            </td>
+            <td class="py-3 px-4 font-semibold text-right text-charcoal whitespace-nowrap tabular-nums">
+              UGX {{ inv.gross_fmt }}
+            </td>
+            <td class="py-3 px-3.5 font-semibold text-right whitespace-nowrap tabular-nums text-charcoal">
+              {% if inv.balance_due > 0 %}
+                UGX {{ inv.balance_fmt }}
+              {% else %}
+                <span class="text-muted font-normal">Cleared</span>
+              {% endif %}
             </td>
             <td class="py-3 px-3.5 text-center whitespace-nowrap">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold
-                {% if inv.status == 'PAID' %}bg-emerald-50 text-emerald-800 border border-emerald-200
-                {% elif inv.status == 'PART_PAID' %}bg-amber-50 text-amber-900 border border-amber-200
-                {% elif inv.status == 'OVERDUE' %}bg-red-50 text-red-800 border border-red-200
-                {% else %}bg-slate-100 text-slate-800 border border-slate-200{% endif %}">
-                {{ inv.status }}
-              </span>
+              {% status_badge inv.status %}
             </td>
           </tr>
           {% endfor %}

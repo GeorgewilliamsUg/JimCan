@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% load static dashboard_tags %}
 
-{% block title %}Dashboard | Jimcan{% endblock %}
+{% block title %}Dashboard | Jimcan Operations{% endblock %}
 
 {% block content %}
 {% overdue_count invoices as ov_count %}
 <div x-data="{
        activeTab: 'projects',
        createMenuOpen: false,
-       timeframeDropdown: false,
        tabs: ['projects', {% if can_view_financials %}'invoices',{% endif %} {% if can_view_leads %}'leads',{% endif %} {% if can_view_rates %}'rates',{% endif %}],
        selectTab(tabId) {
          this.activeTab = tabId;
@@ -29,58 +28,37 @@
      }"
      class="space-y-6">
 
-  <!-- Top Breadcrumb & Search Bar (Modulix Style) -->
-  <div class="top-breadcrumb-bar">
-    <div class="breadcrumb-trail">
-      <span>Jimcan Operations</span>
-      <span style="color: var(--line);">/</span>
-      <span class="flex items-center gap-1.5 font-semibold" style="color: var(--text);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-        Dashboard
-      </span>
-    </div>
-
-    <!-- Search Input Bar -->
-    <div class="top-search-box">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="top-search-icon" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="text"
-             class="top-search-input"
-             placeholder="Search projects, invoices, BOQs..."
-             aria-label="Search dashboard">
-    </div>
-  </div>
-
-  <!-- Page Header Greeting & Actions (Modulix Style) -->
-  <div class="header-greeting-banner">
+  <!-- Page Header Greeting & Actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
     <div>
-      <h1 class="type-greeting">
-        Welcome, {{ request.user.first_name|default:request.user.username|default:"Admin" }} <span aria-hidden="true">👋</span>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+        Welcome, {{ request.user.first_name|default:request.user.username|default:"Admin" }}
       </h1>
-      <p class="type-caption mt-1">
-        Manage builds, track milestone claims, and site operations &mdash; all in one place.
+      <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+        Manage active builds, track milestone claims, and site operations across Uganda.
       </p>
     </div>
 
     <!-- Action Controls on Right -->
     <div class="flex items-center gap-3">
       <!-- Calendar Pill -->
-      <div class="timeframe-pill hidden sm:inline-flex">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-xs">
+        <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-500"></i>
         <span>FY 2026</span>
       </div>
 
       <!-- Create Menu -->
-      <div class="create-disclosure" @keydown.escape.window="createMenuOpen = false">
+      <div class="relative" @keydown.escape.window="createMenuOpen = false">
         <button type="button"
                 id="create-menu-button"
                 @click="createMenuOpen = !createMenuOpen"
                 @click.outside="createMenuOpen = false"
-                class="btn-secondary-create"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 hover:bg-slate-50 transition-colors shadow-xs"
                 :aria-expanded="createMenuOpen"
                 aria-haspopup="true"
                 aria-controls="create-dropdown-menu">
           <span>Create</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500"></i>
         </button>
 
         <div id="create-dropdown-menu"
@@ -91,22 +69,25 @@
              x-transition:leave="transition ease-in duration-75"
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
-             class="create-menu"
+             class="absolute right-0 mt-1.5 w-44 rounded-lg bg-white border border-slate-200 shadow-lg py-1 z-50 text-xs font-medium text-slate-800"
              role="menu"
              aria-labelledby="create-menu-button"
              style="display: none;">
           {% if can_view_financials and perms.accounts.add_invoices %}
-          <a href="{% url 'dashboard:invoices' %}" class="create-menu-item" role="menuitem">
+          <a href="{% url 'dashboard:invoices' %}" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-slate-800" role="menuitem">
+            <i data-lucide="file-plus" class="w-3.5 h-3.5 text-slate-500"></i>
             <span>Raise invoice</span>
           </a>
           {% endif %}
           {% if perms.accounts.add_expenses %}
-          <a href="{% url 'dashboard:expenses' %}" class="create-menu-item" role="menuitem">
+          <a href="{% url 'dashboard:expenses' %}" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-slate-800" role="menuitem">
+            <i data-lucide="receipt" class="w-3.5 h-3.5 text-slate-500"></i>
             <span>Log expense</span>
           </a>
           {% endif %}
           {% if can_view_leads and perms.accounts.add_leads %}
-          <a href="{% url 'dashboard:leads' %}" class="create-menu-item" role="menuitem">
+          <a href="{% url 'dashboard:leads' %}" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-slate-800" role="menuitem">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5 text-slate-500"></i>
             <span>Add lead</span>
           </a>
           {% endif %}
@@ -115,7 +96,8 @@
 
       <!-- Primary Action -->
       {% if perms.accounts.add_projects %}
-      <a href="{% url 'dashboard:projects' %}" class="btn-primary-signal">
+      <a href="{% url 'dashboard:projects' %}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs">
+        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
         <span>New project</span>
       </a>
       {% endif %}
@@ -123,699 +105,471 @@
   </div>
 
   {% if can_view_financials|default_if_none:True %}
-  <!-- KPI Metric Cards Grid (Row of 4 Clean White Cards with Sparklines) -->
-  <div class="kpi-cards-grid">
-    <!-- Card 1: Contract Valuation -->
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <div class="kpi-icon-chip">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
-        </div>
-        <span class="kpi-title">Contract value</span>
+  <!-- ==========================================================================
+       CENTERPIECE: Prominent High-Contrast Money Flow Summary Panel
+       Visually reconciles: Contract Value -> Invoiced -> Collected -> Outstanding
+       ========================================================================== -->
+  <div class="overview-chart-card money-flow-panel">
+    <div class="money-flow-header">
+      <div>
+        <h2 class="money-flow-title">Money flow</h2>
+        <p class="money-flow-subtitle">Reconciling contract portfolio to invoiced claims, cash collections, and outstanding receivables</p>
       </div>
-      <div class="kpi-figure" title="{{ total_contract_value }}">
-        <span class="kpi-currency">UGX</span>{{ total_contract_value|ugx_compact }}
-      </div>
-      <div class="kpi-footer">
-        <span class="kpi-pill positive">
-          <span>+100%</span> Pipeline
-        </span>
-        <!-- Green Sparkline SVG -->
-        <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
-          <path d="M2 18 L16 14 L30 17 L44 9 L56 12 L66 4" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-slate-100 text-xs font-medium text-slate-700">
+        <span class="w-2 h-2 rounded-full bg-slate-900"></span>
+        <span>Reconciled portfolio</span>
       </div>
     </div>
 
-    <!-- Card 2: Site Expenditure -->
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <div class="kpi-icon-chip">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>
+    <!-- 4 Reconciled Flow Stages -->
+    <div class="money-flow-grid">
+      <!-- Step 1: Contract Value -->
+      <div class="money-flow-step">
+        <div>
+          <div class="money-flow-step-label">
+            <span>Contract value</span>
+            <span class="text-[11px] font-mono text-slate-500">Step 1</span>
+          </div>
+          <div class="money-flow-step-figure" title="{{ contract_value|ugx }}">
+            {{ contract_value|ugx_kpi }}
+          </div>
         </div>
-        <span class="kpi-title">Committed cost</span>
+        <div class="money-flow-step-meta">
+          <span>{{ projects_count }} active project contracts</span>
+        </div>
       </div>
-      <div class="kpi-figure" title="{{ committed_cost }}">
-        <span class="kpi-currency">UGX</span>{{ committed_cost|ugx_compact }}
+
+      <!-- Step 2: Invoiced Claims -->
+      <div class="money-flow-step">
+        <div>
+          <div class="money-flow-step-label">
+            <span>Invoiced</span>
+            <span class="text-[11px] font-mono text-slate-500">Step 2</span>
+          </div>
+          <div class="money-flow-step-figure" title="{{ invoiced_gross|ugx }}">
+            {{ invoiced_gross|ugx_kpi }}
+          </div>
+        </div>
+        <div class="money-flow-step-meta">
+          <span>{{ invoiced_percentage }}% billed ({{ invoices_count }} claims)</span>
+        </div>
       </div>
-      <div class="kpi-footer">
-        <span class="kpi-pill positive">
-          <span>{{ committed_cost|calc_pct:total_contract_value }}%</span> of budget
-        </span>
-        <!-- Sparkline SVG -->
-        <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
-          <path d="M2 20 L16 16 L28 18 L42 10 L54 12 L66 6" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+
+      <!-- Step 3: Cash Collected -->
+      <div class="money-flow-step">
+        <div>
+          <div class="money-flow-step-label">
+            <span>Collected</span>
+            <span class="text-[11px] font-mono text-slate-500">Step 3</span>
+          </div>
+          <div class="money-flow-step-figure" title="{{ collected|ugx }}">
+            {{ collected|ugx_kpi }}
+          </div>
+        </div>
+        <div class="money-flow-step-meta">
+          <span class="text-slate-700 font-medium">{{ collected_percentage }}% of billed collected</span>
+        </div>
+      </div>
+
+      <!-- Step 4: Outstanding Receivables -->
+      <div class="money-flow-step">
+        <div>
+          <div class="money-flow-step-label">
+            <span>Still owed</span>
+            <span class="text-[11px] font-mono text-slate-500">Step 4</span>
+          </div>
+          <div class="money-flow-step-figure" title="{{ still_owed|ugx }}">
+            {{ still_owed|ugx_kpi }}
+          </div>
+        </div>
+        <div class="money-flow-step-meta">
+          {% if overdue_count > 0 %}
+          <span class="text-red-700 font-semibold">{{ overdue_count }} claim overdue ({{ overdue_amount|ugx_kpi }})</span>
+          {% else %}
+          <span class="text-slate-600">All claims current</span>
+          {% endif %}
+        </div>
       </div>
     </div>
 
-    <!-- Card 3: Milestone Claims -->
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <div class="kpi-icon-chip">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+    <!-- Visual Reconciliation Progress Bar -->
+    <div class="money-flow-progress-bar">
+      <div class="money-flow-track" aria-hidden="true">
+        <div class="money-flow-seg-collected" style="width: {{ collected_percentage }}%;" title="Collected: {{ collected|ugx }}"></div>
+        <div class="money-flow-seg-owed" style="width: 22.5%;" title="Still owed: {{ still_owed|ugx }}"></div>
+      </div>
+      <div class="money-flow-legend">
+        <div class="money-flow-legend-item">
+          <span class="money-flow-dot" style="background-color: #0F172A;"></span>
+          <span class="text-slate-700 font-medium">Bank Collections: <strong class="tabular-nums font-semibold">{{ collected|ugx }}</strong> ({{ collected_percentage }}%)</span>
         </div>
-        <span class="kpi-title">Invoiced claims</span>
-      </div>
-      <div class="kpi-figure" title="{{ total_invoiced_gross }}">
-        <span class="kpi-currency">UGX</span>{{ total_invoiced_gross|ugx_compact }}
-      </div>
-      <div class="kpi-footer">
-        <span class="kpi-pill positive">
-          <span>+{{ total_invoiced_gross|calc_pct:total_contract_value }}%</span> contract
-        </span>
-        <!-- Sparkline SVG -->
-        <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
-          <path d="M2 19 L15 16 L29 18 L44 8 L55 11 L66 3" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Card 4: Receivable Balance -->
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <div class="kpi-icon-chip">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div class="money-flow-legend-item">
+          <span class="money-flow-dot" style="background-color: #D97706;"></span>
+          <span class="text-slate-700 font-medium">Receivables Balance: <strong class="tabular-nums font-semibold">{{ still_owed|ugx }}</strong> (22.5%)</span>
         </div>
-        <span class="kpi-title">Still owed</span>
-      </div>
-      <div class="kpi-figure" title="{{ total_receivable }}">
-        <span class="kpi-currency">UGX</span>{{ total_receivable|ugx_compact }}
-      </div>
-      <div class="kpi-footer">
-        {% if ov_count > 0 %}
-          <span class="kpi-pill negative">
-            <span>{{ ov_count }}</span> overdue
-          </span>
-          <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
-            <path d="M2 6 L15 11 L28 9 L42 16 L54 14 L66 20" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        {% else %}
-          <span class="kpi-pill positive">
-            <span>0</span> overdue
-          </span>
-          <svg class="kpi-sparkline" viewBox="0 0 68 24" fill="none" aria-hidden="true">
-            <path d="M2 18 L16 14 L30 16 L44 8 L56 10 L66 4" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        {% endif %}
+        <div class="money-flow-legend-item">
+          <span class="money-flow-dot" style="background-color: #64748B;"></span>
+          <span class="text-slate-700 font-medium">Direct Site Expenses: <strong class="tabular-nums font-semibold">{{ committed_cost|ugx }}</strong> ({{ cost_percentage }}% of contract)</span>
+        </div>
       </div>
     </div>
   </div>
   {% endif %}
 
-  <!-- Two-Column Operations Layout (Main 68% + Right Feed 32%) -->
-  <div class="dashboard-main-grid">
-    <!-- LEFT MAIN COLUMN -->
-    <div class="space-y-6">
+  <!-- ==========================================================================
+       FULL-WIDTH OPERATIONS DATA CENTER
+       Full container width (100% of max-w-7xl) table tabs & panels
+       ========================================================================== -->
+  <div class="overview-table-container">
+    <div class="table-panel-wrapper">
+      <!-- Tab Header Bar -->
+      <div class="table-panel-header">
+        <div class="tablist-container border-b-0 p-0" role="tablist" aria-label="Operations sections">
+          <button type="button"
+                  id="tab-projects"
+                  role="tab"
+                  :aria-selected="activeTab === 'projects'"
+                  aria-controls="panel-projects"
+                  @click="selectTab('projects')"
+                  @keydown="onTabKeydown($event, 'projects')"
+                  :tabindex="activeTab === 'projects' ? 0 : -1"
+                  class="tab-btn"
+                  :class="activeTab === 'projects' ? 'active' : ''">
+            <span>Active projects</span>
+            <span class="tab-count">{{ projects_count }}</span>
+          </button>
 
-      {% if can_view_financials|default_if_none:True %}
-      <!-- Financial Overview & Vertical Bar Visualization Card (Modulix Style) -->
-      <div class="overview-chart-card">
-        <div class="card-header-row">
-          <div>
-            <h2 class="type-panel-title">Money flow</h2>
-            <p class="type-caption mt-0.5">Committed expenditure vs verified client collections</p>
-          </div>
-          <div class="timeframe-pill">
-            <span>Fiscal Year 2026</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </div>
+          {% if can_view_financials %}
+          <button type="button"
+                  id="tab-invoices"
+                  role="tab"
+                  :aria-selected="activeTab === 'invoices'"
+                  aria-controls="panel-invoices"
+                  @click="selectTab('invoices')"
+                  @keydown="onTabKeydown($event, 'invoices')"
+                  :tabindex="activeTab === 'invoices' ? 0 : -1"
+                  class="tab-btn"
+                  :class="activeTab === 'invoices' ? 'active' : ''">
+            <span>Milestone invoices</span>
+            <span class="tab-count">{{ invoices_count }}</span>
+          </button>
+          {% endif %}
+
+          {% if can_view_leads %}
+          <button type="button"
+                  id="tab-leads"
+                  role="tab"
+                  :aria-selected="activeTab === 'leads'"
+                  aria-controls="panel-leads"
+                  @click="selectTab('leads')"
+                  @keydown="onTabKeydown($event, 'leads')"
+                  :tabindex="activeTab === 'leads' ? 0 : -1"
+                  class="tab-btn"
+                  :class="activeTab === 'leads' ? 'active' : ''">
+            <span>Leads</span>
+            <span class="tab-count">{{ leads_count }}</span>
+          </button>
+          {% endif %}
+
+          {% if can_view_rates %}
+          <button type="button"
+                  id="tab-rates"
+                  role="tab"
+                  :aria-selected="activeTab === 'rates'"
+                  aria-controls="panel-rates"
+                  @click="selectTab('rates')"
+                  @keydown="onTabKeydown($event, 'rates')"
+                  :tabindex="activeTab === 'rates' ? 0 : -1"
+                  class="tab-btn"
+                  :class="activeTab === 'rates' ? 'active' : ''">
+            <span>BOQ rates</span>
+            <span class="tab-count">{{ rates_count }}</span>
+          </button>
+          {% endif %}
         </div>
+      </div>
 
-        <!-- Metric Highlight Line -->
-        <div class="flex items-baseline gap-3 mb-2">
-          <div class="type-hero">
-            <span class="kpi-currency">UGX</span>{{ total_collected_gross|ugx_compact }}
-          </div>
-          <span class="kpi-pill positive">
-            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-            {{ total_collected_gross|calc_pct:total_contract_value }}% Collected
-          </span>
-        </div>
-
-        <!-- Vertical Bar Chart Visualization -->
-        <div class="bar-chart-container">
-          <div class="bar-chart-bars-wrap">
-            <div class="bar-chart-col">
-              <div class="bar-fill" style="height: 38%;"></div>
-            </div>
-            <div class="bar-chart-col">
-              <div class="bar-fill" style="height: 52%;"></div>
-            </div>
-            <div class="bar-chart-col">
-              <div class="bar-fill" style="height: 65%;"></div>
-            </div>
-            <div class="bar-chart-col">
-              <div class="bar-fill" style="height: 48%;"></div>
-            </div>
-            <div class="bar-chart-col">
-              <div class="bar-fill" style="height: 72%;"></div>
-            </div>
-            <div class="bar-chart-col">
-              <div class="bar-fill" style="height: 58%;"></div>
-            </div>
-            <!-- Active Highlighted Month (October 2026) -->
-            <div class="bar-chart-col">
-              <div class="bar-tooltip-pill">
-                <span>Oct 2026</span> &middot; <span>UGX {{ total_collected_gross|ugx_compact }}</span>
-              </div>
-              <div class="bar-fill active" style="height: 85%;"></div>
-            </div>
-            <div class="bar-chart-col">
-              <div class="bar-fill" style="height: 42%;"></div>
-            </div>
-          </div>
-          <!-- Month Labels -->
-          <div class="bar-chart-labels">
-            <span>Apr</span>
-            <span>May</span>
-            <span>Jun</span>
-            <span>Jul</span>
-            <span>Aug</span>
-            <span>Sep</span>
-            <span class="font-bold" style="color: var(--text);">Oct</span>
-            <span>Nov</span>
-          </div>
-        </div>
-
-        <!-- Legend & Insight Note -->
-        <div class="bar-chart-legend">
-          <div class="legend-item">
-            <span class="legend-swatch" style="background-color: var(--ink);"></span>
-            <span>Current Collections (UGX {{ total_collected_gross|ugx_compact }})</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-swatch" style="background-color: #D1D5DB;"></span>
-            <span>Projected Pipeline</span>
-          </div>
-        </div>
-
-        {% if committed_cost and total_collected_gross %}
-          <div class="mt-4 pt-3 border-t text-sm flex items-center gap-2" style="border-color: var(--line); color: var(--text-muted);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--signal-strong);"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-            <span>
-              {% if committed_cost|is_greater:total_collected_gross %}
-                You have committed UGX {{ committed_cost|calc_diff:total_collected_gross|ugx_compact }} more than you have collected.
+      <!-- Tab 1: Active Projects Panel (Full Width) -->
+      <div id="panel-projects"
+           role="tabpanel"
+           aria-labelledby="tab-projects"
+           x-show="activeTab === 'projects'"
+           class="table-scroll-container">
+        <table class="data-table w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+              <th class="py-3 px-3.5">Code</th>
+              <th class="py-3 px-4">Project title</th>
+              <th class="py-3 px-3.5">Client</th>
+              <th class="py-3 px-3.5">Location</th>
+              <th class="py-3 px-3.5">Phase</th>
+              <th class="py-3 px-3 text-center">Progress</th>
+              {% if can_view_financials %}
+              <th class="py-3 px-4 text-right">Contract (UGX)</th>
+              <th class="py-3 px-4 text-right">Disbursed (UGX)</th>
               {% else %}
-                Collections are ahead of committed cost by UGX {{ total_collected_gross|calc_diff:committed_cost|ugx_compact }}.
+              <th class="py-3 px-3.5">Start date</th>
+              <th class="py-3 px-3.5">Target completion</th>
               {% endif %}
-            </span>
-          </div>
-        {% endif %}
+              <th class="py-3 px-3.5">Manager</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for p in projects %}
+            <tr class="hover:bg-slate-50/60 transition-colors">
+              <td class="py-3 px-3.5 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">{{ p.code }}</td>
+              <td class="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">
+                <a href="{% url 'dashboard:projects' %}" class="hover:underline">
+                  {% if p.title %}{{ p.title }}{% elif p.name %}{{ p.name }}{% else %}{{ p.code }}{% endif %}
+                </a>
+              </td>
+              <td class="py-3 px-3.5 text-slate-600 truncate max-w-[160px]" title="{{ p.client }}">{{ p.client }}</td>
+              <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.location }}</td>
+              <td class="py-3 px-3.5 whitespace-nowrap">
+                {% if p.current_phase %}
+                  {% status_badge p.current_phase %}
+                {% elif p.stage %}
+                  {% status_badge p.stage %}
+                {% else %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700">Active</span>
+                {% endif %}
+              </td>
+              <td class="py-3 px-3 text-center tabular-nums font-semibold text-slate-900">{{ p.completion_pct }}%</td>
+              {% if can_view_financials %}
+              <td class="py-3 px-4 tabular-nums text-right font-medium text-slate-900">
+                {% if p.contract_value %}{{ p.contract_value|ugx }}{% elif p.contract_value_ugx %}{{ p.contract_value_ugx|ugx }}{% else %}-{% endif %}
+              </td>
+              <td class="py-3 px-4 tabular-nums text-right font-medium text-slate-900">
+                {% if p.actual_cost_ugx %}{{ p.actual_cost_ugx|ugx }}{% elif p.committed_cost %}{{ p.committed_cost|ugx }}{% else %}-{% endif %}
+              </td>
+              {% else %}
+              <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.start_date|date_display }}</td>
+              <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.target_completion|date_display }}</td>
+              {% endif %}
+              <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.manager }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="{% if can_view_financials %}9{% else %}8{% endif %}" class="text-center py-8 text-slate-500">
+                No active projects available.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if can_view_financials %}
+      <!-- Tab 2: Milestone Invoices Panel (Full Width) -->
+      <div id="panel-invoices"
+           role="tabpanel"
+           aria-labelledby="tab-invoices"
+           x-show="activeTab === 'invoices'"
+           class="table-scroll-container"
+           style="display: none;">
+        <table class="data-table w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+              <th class="py-3 px-4 min-w-[130px]">Invoice code</th>
+              <th class="py-3 px-3.5 min-w-[100px]">Project</th>
+              <th class="py-3 px-4 min-w-[200px]">Claim milestone</th>
+              <th class="py-3 px-3.5 min-w-[160px]">Client</th>
+              <th class="py-3 px-4 text-right min-w-[130px]">Net sum (UGX)</th>
+              <th class="py-3 px-4 text-right min-w-[110px]">VAT (18%)</th>
+              <th class="py-3 px-4 text-right min-w-[140px]">Gross total (UGX)</th>
+              <th class="py-3 px-4 text-right min-w-[140px]">Balance due (UGX)</th>
+              <th class="py-3 px-3.5 text-center min-w-[100px]">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for inv in invoices %}
+            <tr class="hover:bg-slate-50/60 transition-colors">
+              <td class="py-3 px-4 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">
+                <a href="{% url 'dashboard:invoices' %}" class="hover:underline">
+                  {{ inv.number }}
+                </a>
+              </td>
+              <td class="py-3 px-3.5 font-mono text-xs font-medium text-slate-700 whitespace-nowrap">{{ inv.project_code }}</td>
+              <td class="py-3 px-4 font-semibold text-slate-900">{{ inv.claim_title }}</td>
+              <td class="py-3 px-3.5 text-slate-600 truncate max-w-[180px]" title="{{ inv.client }}">{{ inv.client }}</td>
+              <td class="py-3 px-4 tabular-nums text-right text-slate-700 whitespace-nowrap">{{ inv.net_amount|ugx }}</td>
+              <td class="py-3 px-4 tabular-nums text-right text-slate-700 whitespace-nowrap">{{ inv.vat_amount|ugx }}</td>
+              <td class="py-3 px-4 tabular-nums text-right font-medium text-slate-900 whitespace-nowrap">{{ inv.gross_amount|ugx }}</td>
+              <td class="py-3 px-4 tabular-nums text-right font-semibold text-slate-900 whitespace-nowrap">{{ inv.balance_due|ugx }}</td>
+              <td class="py-3 px-3.5 text-center whitespace-nowrap">
+                {% status_badge inv.status %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" class="text-center py-8 text-slate-500">
+                No milestone claims available.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
       {% endif %}
 
-      <!-- Interactive Operations Data Center Card (Modulix Style) -->
-      <div class="table-panel-wrapper">
-        <!-- Card Header with Tabs & Filter Button -->
-        <div class="table-panel-header">
-          <div class="tablist-container border-b-0 p-0" role="tablist" aria-label="Operations sections">
-            <button type="button"
-                    id="tab-projects"
-                    role="tab"
-                    :aria-selected="activeTab === 'projects'"
-                    aria-controls="panel-projects"
-                    @click="selectTab('projects')"
-                    @keydown="onTabKeydown($event, 'projects')"
-                    :tabindex="activeTab === 'projects' ? 0 : -1"
-                    class="tab-btn"
-                    :class="activeTab === 'projects' ? 'active' : ''">
-              <span>Active projects</span>
-              <span class="tab-count">{{ projects_count }}</span>
-            </button>
-
-            {% if can_view_financials %}
-            <button type="button"
-                    id="tab-invoices"
-                    role="tab"
-                    :aria-selected="activeTab === 'invoices'"
-                    aria-controls="panel-invoices"
-                    @click="selectTab('invoices')"
-                    @keydown="onTabKeydown($event, 'invoices')"
-                    :tabindex="activeTab === 'invoices' ? 0 : -1"
-                    class="tab-btn"
-                    :class="activeTab === 'invoices' ? 'active' : ''">
-              <span>Milestone invoices</span>
-              <span class="tab-count">{{ invoices_count }}</span>
-            </button>
-            {% endif %}
-
-            {% if can_view_leads %}
-            <button type="button"
-                    id="tab-leads"
-                    role="tab"
-                    :aria-selected="activeTab === 'leads'"
-                    aria-controls="panel-leads"
-                    @click="selectTab('leads')"
-                    @keydown="onTabKeydown($event, 'leads')"
-                    :tabindex="activeTab === 'leads' ? 0 : -1"
-                    class="tab-btn"
-                    :class="activeTab === 'leads' ? 'active' : ''">
-              <span>Leads</span>
-              <span class="tab-count">{{ leads_count }}</span>
-            </button>
-            {% endif %}
-
-            {% if can_view_rates %}
-            <button type="button"
-                    id="tab-rates"
-                    role="tab"
-                    :aria-selected="activeTab === 'rates'"
-                    aria-controls="panel-rates"
-                    @click="selectTab('rates')"
-                    @keydown="onTabKeydown($event, 'rates')"
-                    :tabindex="activeTab === 'rates' ? 0 : -1"
-                    class="tab-btn"
-                    :class="activeTab === 'rates' ? 'active' : ''">
-              <span>BOQ rates</span>
-              <span class="tab-count">{{ rates_count }}</span>
-            </button>
-            {% endif %}
-          </div>
-
-          <button type="button" class="btn-filter">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
-            <span>Filter</span>
-          </button>
-        </div>
-
-        <!-- Tab 1: Active Projects Panel -->
-        <div id="panel-projects"
-             role="tabpanel"
-             aria-labelledby="tab-projects"
-             x-show="activeTab === 'projects'"
-             class="table-scroll-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="width: 40px;"><input type="checkbox" aria-label="Select all projects"></th>
-                <th>Project / site</th>
-                <th>Client</th>
-                <th>Stage</th>
-                {% if can_view_financials %}
-                <th class="text-right">Contract value (UGX)</th>
-                <th class="text-right">Site cost (UGX)</th>
-                {% endif %}
-                <th class="text-center">Commissioning</th>
-                <th style="width: 40px;" aria-label="Actions"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for p in projects %}
-                <tr>
-                  <td><input type="checkbox" aria-label="Select {% if p.title %}{{ p.title }}{% else %}{{ p.name }}{% endif %}"></td>
-                  <td>
-                    <a href="{% url 'dashboard:projects' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
-                      <span class="sr-only">Inspect {{ p.code }}</span>
-                      {% if p.title %}{{ p.title }}{% elif p.name %}{{ p.name }}{% else %}{{ p.code }}{% endif %}
-                    </a>
-                    <div class="type-caption mt-0.5">
-                      <span>{{ p.code }}</span> &middot; <span>{{ p.location }}</span>
-                    </div>
-                  </td>
-                  <td style="color: var(--text);">{{ p.client }}</td>
-                  <td>
-                    {% if p.current_phase %}
-                      {% status_badge p.current_phase %}
-                    {% elif p.stage %}
-                      {% status_badge p.stage %}
-                    {% else %}
-                      {% status_badge "" %}
-                    {% endif %}
-                  </td>
-                  {% if can_view_financials %}
-                  <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                    {% if p.contract_value_ugx %}
-                      {{ p.contract_value_ugx|ugx_full }}
-                    {% elif p.contract_value %}
-                      {{ p.contract_value|ugx_full }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                    {% if p.cost_to_date_ugx %}
-                      {{ p.cost_to_date_ugx|ugx_full }}
-                    {% elif p.committed_cost %}
-                      {{ p.committed_cost|ugx_full }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  {% endif %}
-                  <td class="text-center tabular-nums" style="color: var(--text-muted);">
-                    {% if p.target_completion %}
-                      {{ p.target_completion }}
-                    {% elif p.completion_date %}
-                      {{ p.completion_date }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  <td class="text-right">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="{% if can_view_financials %}8{% else %}6{% endif %}" class="text-center py-8" style="color: var(--text-muted);">
-                    No active projects available.
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-
-        {% if can_view_financials %}
-        <!-- Tab 2: Milestone Invoices Panel -->
-        <div id="panel-invoices"
-             role="tabpanel"
-             aria-labelledby="tab-invoices"
-             x-show="activeTab === 'invoices'"
-             class="table-scroll-container"
-             style="display: none;">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="width: 40px;"><input type="checkbox" aria-label="Select all invoices"></th>
-                <th>Invoice #</th>
-                <th>Project reference</th>
-                <th class="text-right">Net sum (UGX)</th>
-                <th class="text-right">VAT (18%)</th>
-                <th class="text-right">Gross total (UGX)</th>
-                <th class="text-right">Balance due (UGX)</th>
-                <th class="text-center">Status</th>
-                <th style="width: 40px;" aria-label="Actions"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for inv in invoices %}
-                <tr>
-                  <td><input type="checkbox" aria-label="Select {{ inv.invoice_number }}"></td>
-                  <td>
-                    <a href="{% url 'dashboard:invoices' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
-                      <span class="sr-only">Inspect {{ inv.invoice_number }}</span>
-                      {{ inv.invoice_number }}
-                    </a>
-                  </td>
-                  <td style="color: var(--text);">{{ inv.project_code }}</td>
-                  <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                    {% if inv.net_amount_ugx %}
-                      {{ inv.net_amount_ugx|ugx_full }}
-                    {% elif inv.subtotal %}
-                      {{ inv.subtotal|ugx_full }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  <td class="text-right tabular-nums" style="color: var(--text-muted);">
-                    {% if inv.vat_18_ugx %}
-                      {{ inv.vat_18_ugx|ugx_full }}
-                    {% elif inv.tax_amount %}
-                      {{ inv.tax_amount|ugx_full }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                    {% if inv.gross_amount_ugx %}
-                      {{ inv.gross_amount_ugx|ugx_full }}
-                    {% elif inv.total %}
-                      {{ inv.total|ugx_full }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  <td class="text-right tabular-nums font-semibold" style="color: {% if inv.balance_due_ugx and inv.balance_due_ugx > 0 %}var(--red){% elif inv.balance_due and inv.balance_due > 0 %}var(--red){% else %}var(--green){% endif %};">
-                    {% if inv.balance_due_ugx is not None %}
-                      {{ inv.balance_due_ugx|ugx_full }}
-                    {% elif inv.balance_due is not None %}
-                      {{ inv.balance_due|ugx_full }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  <td class="text-center">
-                    {% status_badge inv.status %}
-                  </td>
-                  <td class="text-right">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="9" class="text-center py-8" style="color: var(--text-muted);">
-                    No milestone invoices available.
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% endif %}
-
-        {% if can_view_leads %}
-        <!-- Tab 3: Leads Panel -->
-        <div id="panel-leads"
-             role="tabpanel"
-             aria-labelledby="tab-leads"
-             x-show="activeTab === 'leads'"
-             class="table-scroll-container"
-             style="display: none;">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="width: 40px;"><input type="checkbox" aria-label="Select all leads"></th>
-                <th>Lead ID</th>
-                <th>Prospect</th>
-                <th>Development scope</th>
-                <th>Location</th>
-                {% if can_view_financials %}
-                <th class="text-right">Indicative budget (UGX)</th>
-                {% endif %}
-                <th class="text-center">Stage</th>
-                <th style="width: 40px;" aria-label="Actions"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for l in leads %}
-                <tr>
-                  <td><input type="checkbox" aria-label="Select {% if l.name %}{{ l.name }}{% else %}{{ l.prospect }}{% endif %}"></td>
-                  <td>
-                    <a href="{% url 'dashboard:leads' %}" class="stretched-link font-semibold" style="color: var(--text); text-decoration: none;">
-                      <span class="sr-only">Inspect {% if l.code %}{{ l.code }}{% elif l.public_id %}{{ l.public_id|slice:":8" }}{% endif %}</span>
-                      {% if l.code %}{{ l.code }}{% elif l.public_id %}{{ l.public_id|slice:":8" }}{% endif %}
-                    </a>
-                  </td>
-                  <td class="font-semibold" style="color: var(--text);">
-                    {% if l.name %}{{ l.name }}{% elif l.prospect %}{{ l.prospect }}{% endif %}
-                  </td>
-                  <td style="color: var(--text);">
-                    {% if l.project_type %}{{ l.project_type }}{% elif l.scope %}{{ l.scope }}{% endif %}
-                  </td>
-                  <td style="color: var(--text-muted);">{{ l.location }}</td>
-                  {% if can_view_financials %}
-                  <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                    {% if l.budget_ugx %}
-                      {{ l.budget_ugx|ugx_full }}
-                    {% elif l.budget %}
-                      {{ l.budget|ugx_full }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  {% endif %}
-                  <td class="text-center">
-                    {% if l.status %}
-                      {% status_badge l.status %}
-                    {% elif l.stage %}
-                      {% status_badge l.stage %}
-                    {% else %}
-                      {% status_badge "" %}
-                    {% endif %}
-                  </td>
-                  <td class="text-right">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="{% if can_view_financials %}8{% else %}7{% endif %}" class="text-center py-8" style="color: var(--text-muted);">
-                    No prospective development leads available.
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% endif %}
-
-        {% if can_view_rates %}
-        <!-- Tab 4: BOQ Rates Panel -->
-        <div id="panel-rates"
-             role="tabpanel"
-             aria-labelledby="tab-rates"
-             x-show="activeTab === 'rates'"
-             class="table-scroll-container"
-             style="display: none;">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="width: 40px;"><input type="checkbox" aria-label="Select all rates"></th>
-                <th>Code</th>
-                <th>Description</th>
-                <th>Unit</th>
-                {% if can_view_financials %}
-                <th class="text-right">Approved rate (UGX)</th>
-                {% endif %}
-                <th class="text-center">Schedule</th>
-                <th style="width: 40px;" aria-label="Actions"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% if rate_library %}
-                {% for r in rate_library %}
-                  <tr>
-                    <td><input type="checkbox" aria-label="Select {{ r.code }}"></td>
-                    <td class="font-semibold" style="color: var(--text);">
-                      <a href="{% url 'dashboard:rates' %}" class="stretched-link" style="color: var(--text); text-decoration: none;">
-                        <span class="sr-only">Inspect {{ r.code }}</span>
-                        {{ r.code }}
-                      </a>
-                    </td>
-                    <td class="desc-cell-clamp" style="color: var(--text);">
-                      {{ r.description }}
-                    </td>
-                    <td style="color: var(--text-muted);">
-                      {{ r.unit }}
-                    </td>
-                    {% if can_view_financials %}
-                    <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                      {% if r.standard_rate_ugx %}
-                        {{ r.standard_rate_ugx|ugx_full }}
-                      {% elif r.rate %}
-                        {{ r.rate|ugx_full }}
-                      {% else %}
-                        -
-                      {% endif %}
-                    </td>
-                    {% endif %}
-                    <td class="text-center">
-                      <span class="status-badge status-green">
-                        <span class="badge-dot"></span>Active 2026
-                      </span>
-                    </td>
-                    <td class="text-right">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                    </td>
-                  </tr>
-                {% endfor %}
-              {% elif rates %}
-                {% for r in rates %}
-                  <tr>
-                    <td><input type="checkbox" aria-label="Select {{ r.code }}"></td>
-                    <td class="font-semibold" style="color: var(--text);">
-                      <a href="{% url 'dashboard:rates' %}" class="stretched-link" style="color: var(--text); text-decoration: none;">
-                        <span class="sr-only">Inspect {{ r.code }}</span>
-                        {{ r.code }}
-                      </a>
-                    </td>
-                    <td class="desc-cell-clamp" style="color: var(--text);">
-                      {{ r.description }}
-                    </td>
-                    <td style="color: var(--text-muted);">
-                      {{ r.unit }}
-                    </td>
-                    {% if can_view_financials %}
-                    <td class="text-right tabular-nums font-semibold" style="color: var(--text);">
-                      {% if r.standard_rate_ugx %}
-                        {{ r.standard_rate_ugx|ugx_full }}
-                      {% elif r.rate %}
-                        {{ r.rate|ugx_full }}
-                      {% else %}
-                        -
-                      {% endif %}
-                    </td>
-                    {% endif %}
-                    <td class="text-center">
-                      <span class="status-badge status-green">
-                        <span class="badge-dot"></span>Active 2026
-                      </span>
-                    </td>
-                    <td class="text-right">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="m9 18 6-6-6-6"/></svg>
-                    </td>
-                  </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td colspan="{% if can_view_financials %}7{% else %}6{% endif %}" class="text-center py-8" style="color: var(--text-muted);">
-                    No approved specification rates available.
-                  </td>
-                </tr>
+      {% if can_view_leads %}
+      <!-- Tab 3: Commercial Leads Panel (Full Width) -->
+      <div id="panel-leads"
+           role="tabpanel"
+           aria-labelledby="tab-leads"
+           x-show="activeTab === 'leads'"
+           class="table-scroll-container"
+           style="display: none;">
+        <table class="data-table w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+              <th class="py-3 px-4">Lead ID</th>
+              <th class="py-3 px-4">Prospect name</th>
+              <th class="py-3 px-4">Development scope</th>
+              <th class="py-3 px-3.5">Proposed site</th>
+              {% if can_view_financials %}
+              <th class="py-3 px-4 text-right">Indicative budget (UGX)</th>
               {% endif %}
-            </tbody>
-          </table>
-        </div>
-        {% endif %}
+              <th class="py-3 px-3.5 text-center">Stage</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for l in leads %}
+            <tr class="hover:bg-slate-50/60 transition-colors">
+              <td class="py-3 px-4 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">
+                <a href="{% url 'dashboard:leads' %}" class="hover:underline">
+                  {% if l.code %}{{ l.code }}{% elif l.public_id %}{{ l.public_id|slice:":8" }}{% endif %}
+                </a>
+              </td>
+              <td class="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">{{ l.name }}</td>
+              <td class="py-3 px-4 text-slate-600">{{ l.project_type }}</td>
+              <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ l.location }}</td>
+              {% if can_view_financials %}
+              <td class="py-3 px-4 tabular-nums text-right font-medium text-slate-900 whitespace-nowrap">{{ l.budget|ugx }}</td>
+              {% endif %}
+              <td class="py-3 px-3.5 text-center whitespace-nowrap">
+                {% if l.status %}
+                  {% status_badge l.status %}
+                {% elif l.stage %}
+                  {% status_badge l.stage %}
+                {% else %}
+                  <span class="category-tag"><span class="category-dot"></span><span>Active</span></span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="{% if can_view_financials %}6{% else %}5{% endif %}" class="text-center py-8 text-slate-500">
+                No commercial leads available.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
+      {% endif %}
+
+      {% if can_view_rates %}
+      <!-- Tab 4: BOQ Rates Panel (Full Width) -->
+      <div id="panel-rates"
+           role="tabpanel"
+           aria-labelledby="tab-rates"
+           x-show="activeTab === 'rates'"
+           class="table-scroll-container"
+           style="display: none;">
+        <table class="data-table w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+              <th class="py-3 px-4">Item code</th>
+              <th class="py-3 px-3.5">Category</th>
+              <th class="py-3 px-4">Standard trade specification</th>
+              <th class="py-3 px-3.5 text-center">Unit</th>
+              {% if can_view_financials %}
+              <th class="py-3 px-4 text-right">Approved rate (UGX)</th>
+              {% endif %}
+              <th class="py-3 px-3.5 text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for r in rate_library %}
+            <tr class="hover:bg-slate-50/60 transition-colors">
+              <td class="py-3 px-4 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">
+                <a href="{% url 'dashboard:rates' %}" class="hover:underline">
+                  {{ r.code }}
+                </a>
+              </td>
+              <td class="py-3 px-3.5 whitespace-nowrap">
+                <span class="category-tag">
+                  <span class="category-dot"></span>
+                  <span>{{ r.category }}</span>
+                </span>
+              </td>
+              <td class="py-3 px-4 font-semibold text-slate-900">{{ r.description }}</td>
+              <td class="py-3 px-3.5 text-center tabular-nums text-slate-600 whitespace-nowrap">{{ r.unit }}</td>
+              {% if can_view_financials %}
+              <td class="py-3 px-4 tabular-nums text-right font-medium text-slate-900 whitespace-nowrap">
+                UGX {{ r.standard_rate_fmt }}
+              </td>
+              {% endif %}
+              <td class="py-3 px-3.5 text-center whitespace-nowrap">
+                <span class="status-badge status-paid">Active</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="{% if can_view_financials %}6{% else %}5{% endif %}" class="text-center py-8 text-slate-500">
+                No approved specification rates available.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent Operations Activity Timeline -->
+  <div class="card bg-white border border-slate-200 rounded-xl shadow-xs p-5">
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+      <div>
+        <h3 class="font-bold text-sm text-slate-900">Recent operations</h3>
+        <p class="text-xs text-slate-600 mt-0.5">Active builds and milestone activity</p>
+      </div>
+      {% if can_view_financials %}
+      <a href="{% url 'dashboard:invoices' %}" class="text-xs font-semibold text-slate-800 hover:underline">
+        View all invoices &rarr;
+      </a>
+      {% else %}
+      <a href="{% url 'dashboard:projects' %}" class="text-xs font-semibold text-slate-800 hover:underline">
+        View all projects &rarr;
+      </a>
+      {% endif %}
     </div>
 
-    <!-- RIGHT COLUMN: MILESTONES & RECENT OPERATIONS (Modulix Style) -->
-    <div>
-      <div class="side-feed-card">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h3 class="type-panel-title">Recent operations</h3>
-            <p class="type-caption mt-0.5">Active builds & milestone logs</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {% for item in feed_items|slice:":4" %}
+      <div class="p-3.5 rounded-lg border border-slate-100 bg-slate-50/70 hover:bg-slate-50 transition-colors flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span class="font-mono text-[11px] font-medium text-slate-700">{{ item.id }}</span>
+            <span class="status-badge status-paid text-[10px] py-0.5 px-2">{{ item.status }}</span>
           </div>
-          {% if can_view_financials %}
-          <a href="{% url 'dashboard:invoices' %}" class="text-xs font-semibold hover:underline" style="color: var(--text);">
-            View all
-          </a>
-          {% else %}
-          <a href="{% url 'dashboard:projects' %}" class="text-xs font-semibold hover:underline" style="color: var(--text);">
-            View all
-          </a>
+          <div class="font-semibold text-xs text-slate-900 truncate" title="{{ item.title }}">{{ item.title }}</div>
+          <div class="text-[11px] text-slate-600 truncate mt-0.5" title="{{ item.subtitle }}">{{ item.subtitle }}</div>
+        </div>
+        <div class="flex items-center justify-between pt-2.5 mt-2.5 border-t border-slate-200/60 text-xs">
+          <span class="text-slate-500">{{ item.timestamp|date_display }}</span>
+          {% if can_view_financials and item.value %}
+          <span class="tabular-nums font-semibold text-slate-900">UGX {{ item.value }}</span>
           {% endif %}
         </div>
-
-        <!-- Feed List -->
-        <div class="space-y-1">
-          {% for item in feed_items|slice:":4" %}
-            <div class="feed-item-row">
-              <div class="feed-icon-chip">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-              </div>
-              <div class="feed-details">
-                <div class="flex items-center justify-between">
-                  <span class="feed-title">{{ item.title }}</span>
-                  <span class="status-badge status-green text-xs py-0.5 px-2">{{ item.status }}</span>
-                </div>
-                <div class="feed-meta mt-1">
-                  <span>{{ item.subtitle }}</span>
-                </div>
-                {% if can_view_financials and item.value %}
-                <div class="flex items-center justify-between mt-1.5 text-xs">
-                  <span style="color: var(--text-muted);">{{ item.timestamp }}</span>
-                  <span class="font-bold tabular-nums" style="color: var(--text);">UGX {{ item.value }}</span>
-                </div>
-                {% else %}
-                <div class="flex items-center justify-between mt-1.5 text-xs">
-                  <span style="color: var(--text-muted);">{{ item.id }}</span>
-                  <span style="color: var(--text-muted);">{{ item.timestamp }}</span>
-                </div>
-                {% endif %}
-              </div>
-            </div>
-          {% empty %}
-            <div class="py-6 text-center text-xs" style="color: var(--text-muted);">
-              No recent activity recorded.
-            </div>
-          {% endfor %}
-        </div>
       </div>
+      {% empty %}
+      <div class="col-span-4 py-6 text-center text-xs text-slate-500">
+        No recent activity recorded.
+      </div>
+      {% endfor %}
     </div>
   </div>
 

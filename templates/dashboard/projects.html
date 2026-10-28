@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static dashboard_tags %}
 
 {% block title %}Projects &amp; Builds · Jimcan Operations{% endblock %}
 
@@ -45,7 +45,7 @@
     <div>
       <h1 class="text-2xl lg:text-3xl font-display font-bold text-charcoal tracking-tight">Active Construction Builds</h1>
       <p class="text-xs text-muted mt-1 leading-relaxed">
-        Live contract values, physical site phase tracking, and actual expenses reconciled from the 100 site vouchers in <code class="bg-bone px-1 py-0.5 rounded text-charcoal font-mono">construction_expenses.xlsx</code>.
+        Live contract values, physical site phase tracking, and actual expenses.
       </p>
     </div>
     <div class="flex items-center gap-2.5">
@@ -65,117 +65,78 @@
           <span>Table</span>
         </button>
       </div>
-      <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs font-semibold px-3 py-2 flex items-center gap-1.5">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-        <span>Overview</span>
-      </a>
     </div>
   </div>
 
-  <!-- 4 KPI Summary Cards -->
+  <!-- 4 KPI Summary Cards (Clean Metrics, No Pastel Icon Boxes) -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Active Build Sites</span>
-        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-          <i data-lucide="hard-hat" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+      <span class="text-xs font-semibold text-muted">Active build sites</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         8 Projects
       </div>
-      <div class="text-[11px] text-muted mt-1">
+      <div class="text-xs text-muted mt-1">
         Across Kampala, Entebbe, Wakiso, Mukono &amp; Upcountry
       </div>
     </div>
 
     {% if can_view_financials %}
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Total Contract Portfolio</span>
-        <div class="w-8 h-8 rounded-lg bg-slate-100 text-charcoal flex items-center justify-center">
-          <i data-lucide="briefcase" class="w-4 h-4"></i>
-        </div>
+      <span class="text-xs font-semibold text-muted">Total contract portfolio</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
+        UGX 12.92B
       </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
-        UGX 12.92 B
-      </div>
-      <div class="text-[11px] text-muted mt-1 font-mono">
-        UGX 12,920,000,000 Total Value
+      <div class="text-xs text-muted mt-1 tabular-nums">
+        UGX 12.92 B (UGX 12,920,000,000 active contracts)
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Actual Costs Disbursed</span>
-        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-          <i data-lucide="banknote" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+      <span class="text-xs font-semibold text-muted">Actual costs disbursed</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         UGX {{ total_gross_fmt }}
       </div>
-      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
+      <div class="text-xs text-muted mt-1">
         Reconciled from 100 site vouchers
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Average Budget Spent</span>
-        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-          <i data-lucide="activity" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+      <span class="text-xs font-semibold text-muted">Average budget spent</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         26.4%
       </div>
-      <div class="text-[11px] text-muted mt-1">
-        Healthy variance within contract limits
+      <div class="text-xs text-muted mt-1">
+        Across active projects
       </div>
     </div>
     {% else %}
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Average Progress</span>
-        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-          <i data-lucide="activity" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+      <span class="text-xs font-semibold text-muted">Average progress</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         64.8%
       </div>
-      <div class="text-[11px] text-muted mt-1">
+      <div class="text-xs text-muted mt-1">
         Physical milestones on track
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Site Safety Record</span>
-        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-          <i data-lucide="shield-check" class="w-4 h-4"></i>
-        </div>
-      </div>
+      <span class="text-xs font-semibold text-muted">Site Safety Record</span>
       <div class="text-2xl font-display font-bold text-charcoal mt-2">
         100%
       </div>
-      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
+      <div class="text-xs text-muted mt-1">
         Zero lost-time incidents
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Site Supervisors</span>
-        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
-          <i data-lucide="users" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-purple-900 mt-2">
+      <span class="text-xs font-semibold text-muted">Site supervisors</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2">
         3 Engineers
       </div>
-      <div class="text-[11px] text-muted mt-1">
+      <div class="text-xs text-muted mt-1">
         Field operations active daily
       </div>
     </div>
@@ -288,13 +249,13 @@
   </div>
 
   <!-- Table View -->
-  <div x-show="viewMode === 'table'" class="card bg-white border border-line rounded-xl shadow-xs overflow-hidden" style="display: none;">
+  <div x-show="viewMode === 'table'" class="card bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden" style="display: none;">
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-xs">
         <thead>
-          <tr class="bg-bone border-b border-line text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">
+          <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
             <th class="py-3 px-3.5">Code</th>
-            <th class="py-3 px-4">Project Title</th>
+            <th class="py-3 px-4">Project title</th>
             <th class="py-3 px-3.5">Client</th>
             <th class="py-3 px-3.5">Location</th>
             <th class="py-3 px-3.5">Phase</th>
@@ -303,33 +264,33 @@
             <th class="py-3 px-4 text-right">Contract (UGX)</th>
             <th class="py-3 px-4 text-right">Disbursed (UGX)</th>
             {% else %}
-            <th class="py-3 px-3.5">Start Date</th>
-            <th class="py-3 px-3.5">Target Completion</th>
+            <th class="py-3 px-3.5">Start date</th>
+            <th class="py-3 px-3.5">Target completion</th>
             {% endif %}
             <th class="py-3 px-3.5">Manager</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-line">
+        <tbody class="divide-y divide-slate-100">
           {% for p in projects %}
-          <tr class="hover:bg-bone/60 transition-colors">
-            <td class="py-3 px-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">{{ p.code }}</td>
-            <td class="py-3 px-4 font-bold text-charcoal whitespace-nowrap">{{ p.title }}</td>
-            <td class="py-3 px-3.5 text-muted truncate max-w-[150px]">{{ p.client }}</td>
-            <td class="py-3 px-3.5 text-muted whitespace-nowrap">{{ p.location }}</td>
+          <tr class="hover:bg-slate-50/60 transition-colors">
+            <td class="py-3 px-3.5 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">{{ p.code }}</td>
+            <td class="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">{{ p.title }}</td>
+            <td class="py-3 px-3.5 text-slate-600 truncate max-w-[150px]">{{ p.client }}</td>
+            <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.location }}</td>
             <td class="py-3 px-3.5 whitespace-nowrap">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-800">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700">
                 {{ p.current_phase }}
               </span>
             </td>
-            <td class="py-3 px-3 text-center font-mono font-bold text-charcoal">{{ p.completion_pct }}%</td>
+            <td class="py-3 px-3 text-center tabular-nums font-semibold text-slate-900">{{ p.completion_pct }}%</td>
             {% if can_view_financials %}
-            <td class="py-3 px-4 font-mono text-right font-bold text-charcoal">UGX {{ p.contract_value_fmt }}</td>
-            <td class="py-3 px-4 font-mono text-right font-bold text-emerald-800">UGX {{ p.actual_cost_fmt }}</td>
+            <td class="py-3 px-4 tabular-nums text-right font-medium text-slate-900">{{ p.contract_value|ugx }}</td>
+            <td class="py-3 px-4 tabular-nums text-right font-medium text-slate-900">{{ p.actual_cost_ugx|ugx }}</td>
             {% else %}
-            <td class="py-3 px-3.5 font-mono text-muted whitespace-nowrap">{{ p.start_date }}</td>
-            <td class="py-3 px-3.5 font-mono text-muted whitespace-nowrap">{{ p.target_completion }}</td>
+            <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.start_date|date_display }}</td>
+            <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.target_completion|date_display }}</td>
             {% endif %}
-            <td class="py-3 px-3.5 text-muted whitespace-nowrap">{{ p.manager }}</td>
+            <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.manager }}</td>
           </tr>
           {% endfor %}
         </tbody>

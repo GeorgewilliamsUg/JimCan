@@ -47,35 +47,45 @@
 }
 
 :root {
-  /* Surfaces - Clean, Light Luminous Palette */
-  --ink:            #111827; /* primary charcoal text, dark badges, brand icons */
-  --ink-raised:     #1F2937; /* deep charcoal accents */
-  --concrete:       #F4F5F7; /* airy, luminous page background */
-  --paper:          #FFFFFF; /* pure white cards and sidebar */
-  --paper-sunk:     #F8F9FA; /* table headers, pills, subtle inputs */
-  --line:           #EAECF0; /* clean 1px border */
-  --line-on-dark:   #374151; /* 1px borders on dark */
+  /* Neutral Base per Phase 2 Design Specification */
+  --bg-app:         #F8FAFC; /* Slate 50 backdrop */
+  --concrete:       #F8FAFC; /* Slate 50 backdrop alias */
+  --paper:          #FFFFFF; /* Pure white card surface */
+  --paper-sunk:     #F1F5F9; /* Subtle table row hover / pill backgrounds */
+  --line:           #E2E8F0; /* Slate 200 hairline border */
+  --line-on-dark:   #1E293B; /* Slate 800 hairline border */
 
-  /* Text */
-  --text:           #111827;
-  --text-muted:     #6B7280; /* high contrast on white */
+  /* Sidebar Tokens: Deep Charcoal #0F172A */
+  --sidebar-bg:     #0F172A; /* Deep charcoal sidebar */
+  --sidebar-border: #1E293B; /* Hairline border */
+  --sidebar-text:   #F8FAFC; /* High contrast text */
+  --sidebar-muted:  #94A3B8; /* Slate 400 muted text */
+  --sidebar-hover:  rgba(255, 255, 255, 0.06);
+  --sidebar-active: rgba(255, 255, 255, 0.10);
+
+  /* Primary & Muted Text */
+  --ink:            #0F172A; /* Deep ink body & headers */
+  --ink-raised:     #1E293B; /* Secondary headings */
+  --text:           #0F172A; /* Deep ink */
+  --text-muted:     #475569; /* Charcoal slate (minimum 4.5:1 contrast ratio against white) */
   --text-on-dark:   #FFFFFF;
-  --text-muted-on-dark: #9CA3AF;
-  --text-nav:       #4B5563; /* clean dark-gray nav link text */
+  --text-muted-on-dark: #94A3B8;
+  --text-nav:       #94A3B8;
 
-  /* Accents */
-  --signal:         #E8590C; /* graphics and icons */
-  --signal-strong:  #C2410C; /* primary actions */
-  --brass:          #A8843A; /* hairline dividers & active rules */
-  --green:          #10B981;
-  --green-tint:     #ECFDF5;
-  --green-lit:      #34D399;
-  --red:            #EF4444;
-  --red-tint:       #FEF2F2;
-  --amber:          #F59E0B;
-  --amber-tint:     #FFFBEB;
-  --blue:           #3B82F6;
-  --blue-tint:      #EFF6FF;
+  /* Purposeful Status Colors Strictly for Operational States */
+  --green:          #166534;
+  --green-tint:     #DCFCE7;
+  --amber:          #92400E;
+  --amber-tint:     #FEF3C7;
+  --red:            #991B1B;
+  --red-tint:       #FEE2E2;
+  --neutral-bg:     #F1F5F9;
+  --neutral-text:   #475569;
+
+  /* Brand Accents */
+  --signal:         #E8590C;
+  --signal-strong:  #C2410C;
+  --brass:          #A8843A;
 
   /* Space: 4px base. Use ONLY these values for margin, padding and gap. */
   --s1: 4px;
@@ -89,15 +99,16 @@
 
   /* Radius: smooth, modern geometry */
   --radius-data:  8px;   /* inputs, badges, buttons, menu items */
-  --radius-panel: 16px;  /* modern rounded cards */
+  --radius-panel: 12px;  /* modern enterprise cards */
 
-  /* Type */
-  --font-display: "Archivo Variable", "Archivo", system-ui, sans-serif;
-  --font-body:    "Public Sans Variable", "Public Sans", system-ui, sans-serif;
+  /* Strict Typography Tokens */
+  --font-display: "Archivo Variable", "Archivo", "Barlow Semi Condensed", system-ui, sans-serif;
+  --font-body:    "Public Sans Variable", "Public Sans", "Inter", system-ui, sans-serif;
+  --font-mono:    ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 
-  /* Elevation (Subtle modern card elevation) */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-create: 0 8px 24px rgba(17, 24, 39, 0.12);
+  /* Elevation */
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-create: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
 }
 
 /* Accessibility Focus States */

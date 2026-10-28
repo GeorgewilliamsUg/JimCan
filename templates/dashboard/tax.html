@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static dashboard_tags %}
 
 {% block title %}URA Tax &amp; Statutory Reports · Jimcan Operations{% endblock %}
 
@@ -14,13 +14,10 @@
         <span>Home</span>
       </a>
       <span>/</span>
-      <span class="font-semibold text-charcoal">URA Tax &amp; Statutory Reports</span>
+      <span class="font-medium text-charcoal">URA Tax &amp; Statutory Reports</span>
     </div>
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-        <span>URA Tax Procedures Code Act Compliant</span>
-      </span>
+    <div class="text-xs text-muted font-normal">
+      <span>Tax regime: Standard VAT (18%) + WHT (6%)</span>
     </div>
   </div>
 
@@ -29,119 +26,106 @@
     <div>
       <h1 class="text-2xl lg:text-3xl font-display font-bold text-charcoal tracking-tight">URA Tax &amp; Statutory Reports</h1>
       <p class="text-xs text-muted mt-1 leading-relaxed">
-        Input VAT claimed on the 100 site expenses, Output VAT generated from milestone billing claims, and Withholding Tax (WHT 6%) credit reconciliations.
+        Input VAT claimed on direct site expenses, Output VAT generated from milestone billing claims, and Withholding Tax (WHT 6%) credit reconciliations.
       </p>
     </div>
-    <div class="flex items-center gap-2.5">
-      <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs font-semibold px-3 py-2 flex items-center gap-1.5">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-        <span>Overview</span>
-      </a>
-    </div>
   </div>
 
-  <!-- 4 KPI Summary Cards -->
+  <!-- 4 KPI Summary Cards (Clean Metrics, No Pastel Icon Boxes) -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Input VAT Claimable (18%)</span>
-        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-          <i data-lucide="badge-percent" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+      <span class="text-xs font-semibold text-muted">Input VAT claimable (18%)</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         UGX {{ input_vat_fmt }}
       </div>
-      <div class="text-[11px] text-emerald-700 mt-1 font-semibold flex items-center gap-1">
-        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-        <span>Backed by 100 verified vouchers</span>
+      <div class="text-xs text-muted mt-1">
+        Claimable from 100 site expense vouchers
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Output VAT on Invoices</span>
-        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-          <i data-lucide="receipt" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+      <span class="text-xs font-semibold text-muted">Output VAT billed (18%)</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         UGX {{ output_vat_fmt }}
       </div>
-      <div class="text-[11px] text-muted mt-1 font-mono">
-        Billed across 11 project claims
+      <div class="text-xs text-muted mt-1">
+        Billed across 11 milestone progress claims
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Net VAT Due to URA</span>
-        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-          <i data-lucide="scale" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-amber-900 mt-2">
+      <span class="text-xs font-semibold text-muted">Net VAT payable to URA</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         UGX {{ net_vat_payable_fmt }}
       </div>
-      <div class="text-[11px] text-muted mt-1 font-mono">
-        Output VAT &minus; Input VAT offset
+      <div class="text-xs text-muted mt-1">
+        Output VAT less eligible input VAT offset
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">WHT Credit (6%)</span>
-        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
-          <i data-lucide="file-text" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-purple-900 mt-2">
+      <span class="text-xs font-semibold text-muted">Withholding tax credit (6%)</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         UGX {{ wht_receivable_fmt }}
       </div>
-      <div class="text-[11px] text-muted mt-1">
-        Credit certificates from withholding clients
+      <div class="text-xs text-muted mt-1">
+        WHT credit certificates on client remittances
       </div>
     </div>
   </div>
 
-  <!-- Monthly URA Filing Ledger -->
+  <!-- Centerpiece: Statutory Filing Timeline Ledger -->
   <div class="card bg-white border border-line rounded-xl shadow-xs overflow-hidden">
-    <div class="p-4 border-b border-line flex items-center justify-between">
+    <div class="p-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/60">
       <div>
-        <h3 class="font-display font-bold text-sm text-charcoal">Monthly URA Statutory Filing Ledger (FY 2026)</h3>
-        <p class="text-xs text-muted">Official returns reconciled per Section 15 of the Uganda Tax Procedures Code Act.</p>
+        <h2 class="text-sm font-display font-bold text-charcoal">Statutory filing timeline &amp; tax returns (FY 2026)</h2>
+        <p class="text-xs text-muted mt-0.5">Monthly return schedule, payment registration numbers, and ledger reconciliation</p>
       </div>
-      <span class="text-[11px] font-mono text-muted">Currency: UGX</span>
+      <div class="text-xs text-muted">
+        Currency: <strong class="text-charcoal font-semibold">UGX</strong>
+      </div>
     </div>
 
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-xs">
         <thead>
-          <tr class="bg-bone border-b border-line text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">
-            <th class="py-3 px-4">Tax Period</th>
-            <th class="py-3 px-4 text-right">Output VAT (Billed)</th>
-            <th class="py-3 px-4 text-right">Input VAT (Claimed)</th>
-            <th class="py-3 px-4 text-right">Net VAT Remitted</th>
-            <th class="py-3 px-4 text-right">WHT 6% Deducted</th>
-            <th class="py-3 px-4">Payment Reg. Number (PRN)</th>
-            <th class="py-3 px-3.5 text-center">Filing Status</th>
+          <tr class="bg-slate-50/80 border-b border-line text-xs font-semibold text-muted">
+            <th class="py-3 px-4 min-w-[110px]">Month</th>
+            <th class="py-3 px-4 min-w-[115px]">Due date</th>
+            <th class="py-3 px-4 text-right min-w-[130px]">Claimable input VAT</th>
+            <th class="py-3 px-4 text-right min-w-[130px]">Billed output VAT</th>
+            <th class="py-3 px-4 text-right min-w-[130px]">Net due</th>
+            <th class="py-3 px-4 text-right min-w-[120px]">WHT 6% credit</th>
+            <th class="py-3 px-4 min-w-[150px]">PRN</th>
+            <th class="py-3 px-3.5 text-center min-w-[100px]">Filing status</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-line">
           {% for f in filings %}
-          <tr class="hover:bg-bone/60 transition-colors">
-            <td class="py-3.5 px-4 font-bold text-charcoal whitespace-nowrap">{{ f.month }}</td>
-            <td class="py-3.5 px-4 font-mono text-right text-muted">UGX {{ f.output_vat_fmt }}</td>
-            <td class="py-3.5 px-4 font-mono text-right text-emerald-700 font-bold">UGX {{ f.input_vat_fmt }}</td>
-            <td class="py-3.5 px-4 font-mono text-right text-charcoal font-bold">UGX {{ f.net_vat_fmt }}</td>
-            <td class="py-3.5 px-4 font-mono text-right text-purple-800">UGX {{ f.wht_fmt }}</td>
-            <td class="py-3.5 px-4 font-mono text-muted text-[11px] whitespace-nowrap">{{ f.prn }}</td>
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="py-3.5 px-4 font-semibold text-charcoal whitespace-nowrap">
+              {{ f.month }}
+            </td>
+            <td class="py-3.5 px-4 text-muted whitespace-nowrap tabular-nums">
+              {{ f.due_date|date_display }}
+            </td>
+            <td class="py-3.5 px-4 text-right text-muted tabular-nums whitespace-nowrap">
+              UGX {{ f.input_vat_fmt }}
+            </td>
+            <td class="py-3.5 px-4 text-right text-muted tabular-nums whitespace-nowrap">
+              UGX {{ f.output_vat_fmt }}
+            </td>
+            <td class="py-3.5 px-4 text-right font-semibold text-charcoal tabular-nums whitespace-nowrap">
+              UGX {{ f.net_vat_fmt }}
+            </td>
+            <td class="py-3.5 px-4 text-right text-muted tabular-nums whitespace-nowrap">
+              UGX {{ f.wht_fmt }}
+            </td>
+            <td class="py-3.5 px-4 font-mono text-muted text-xs whitespace-nowrap">
+              {{ f.prn }}
+            </td>
             <td class="py-3.5 px-3.5 text-center whitespace-nowrap">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold
-                {% if f.status == 'FILED' %}bg-emerald-50 text-emerald-800 border border-emerald-200
-                {% else %}bg-amber-50 text-amber-900 border border-amber-200{% endif %}">
-                {{ f.status }}
-              </span>
+              {% status_badge f.status %}
             </td>
           </tr>
           {% endfor %}

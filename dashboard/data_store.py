@@ -220,12 +220,82 @@ def get_projects_list() -> List[Dict[str, Any]]:
         p['actual_cost_fmt'] = f"{int(actual_cost):,}"
         p['contract_value_fmt'] = f"{int(c_val):,}"
         p['budget_spent_pct'] = round((actual_cost / c_val * 100), 1) if c_val else 0
+        p['status_display'] = get_status_display(p.get('status', 'ACTIVE'))
+        p['current_phase_display'] = get_status_display(p.get('current_phase', ''))
+        p['get_status_display'] = lambda s=p['status_display']: s
 
     return projects_meta
 
 
-def get_invoices_list() -> List[Dict[str, Any]]:
-    """Returns milestone tax billing claims linked to the active projects."""
+STATUS_DISPLAY_MAP = {
+    # Invoices
+    'PAID': 'Paid',
+    'PART_PAID': 'Part paid',
+    'OVERDUE': 'Overdue',
+    'SENT': 'Sent',
+    'DRAFT': 'Draft',
+    # Leads
+    'NEW': 'New',
+    'SITE_VISIT': 'Site visit',
+    'QUOTED': 'Quoted',
+    'WON': 'Won',
+    'LOST': 'Lost',
+    # Projects
+    'ACTIVE': 'Active',
+    'COMPLETED': 'Completed',
+    'ON_HOLD': 'On hold',
+    'FOUNDATION': 'Foundation',
+    'SUPERSTRUCTURE': 'Superstructure',
+    'ROOFING': 'Roofing',
+    'FINISHES': 'Finishes',
+    'EXTERNAL_WORKS': 'External works',
+}
+
+
+def get_status_display(raw_status: str) -> str:
+    """Maps raw database choices to clean human-readable strings."""
+    if not raw_status:
+        return ''
+    raw_upper = str(raw_status).strip().upper()
+    if raw_upper in STATUS_DISPLAY_MAP:
+        return STATUS_DISPLAY_MAP[raw_upper]
+    return str(raw_status).replace('_', ' ').strip().capitalize()
+
+
+def compute_invoice_status(
+    balance_due: float,
+    paid_amount: float,
+    gross_amount: float,
+    due_date: Union[date, str],
+    current_date: Optional[date] = None,
+) -> tuple[str, str]:
+    """
+    Computes dynamic invoice status according to enterprise business rules:
+    - Paid: balance_due <= 0
+    - Overdue: balance_due > 0 and current_date > due_date
+    - Partially Paid: balance_due > 0 and amount_paid > 0 and current_date <= due_date
+    - Sent / Issued: balance_due == total_gross and current_date <= due_date
+    Returns (raw_status, display_status) e.g. ('PART_PAID', 'Part paid').
+    """
+    if current_date is None:
+        current_date = date.today()
+    if isinstance(due_date, str):
+        due_date = date.fromisoformat(due_date)
+
+    if balance_due <= 0:
+        return 'PAID', 'Paid'
+    elif current_date > due_date:
+        return 'OVERDUE', 'Overdue'
+    elif balance_due > 0 and paid_amount > 0 and current_date <= due_date:
+        return 'PART_PAID', 'Part paid'
+    elif balance_due == gross_amount and current_date <= due_date:
+        return 'SENT', 'Sent'
+    else:
+        return 'SENT', 'Sent'
+
+
+def get_invoices_list(current_date: Optional[date] = None) -> List[Dict[str, Any]]:
+    """Returns milestone tax billing claims with dynamically computed statuses."""
     invoices = [
         {
             'number': 'INV-2026-001',
@@ -240,7 +310,6 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'gross_amount': 504450000,
             'paid_amount': 504450000,
             'balance_due': 0,
-            'status': 'PAID',
         },
         {
             'number': 'INV-2026-002',
@@ -255,7 +324,6 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'gross_amount': 448400000,
             'paid_amount': 448400000,
             'balance_due': 0,
-            'status': 'PAID',
         },
         {
             'number': 'INV-2026-003',
@@ -270,7 +338,6 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'gross_amount': 297360000,
             'paid_amount': 297360000,
             'balance_due': 0,
-            'status': 'PAID',
         },
         {
             'number': 'INV-2026-004',
@@ -278,14 +345,13 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'project_name': 'Entebbe Residential Estate',
             'client': 'Lakeview Horizons Estate Ltd',
             'claim_title': 'Roof Framing & Sheeting Progress Claim',
-            'issue_date': '2026-04-02',
-            'due_date': '2026-04-28',
+            'issue_date': '2026-10-02',
+            'due_date': '2026-11-15',
             'net_amount': 210000000,
             'vat_amount': 37800000,
             'gross_amount': 247800000,
             'paid_amount': 180000000,
             'balance_due': 67800000,
-            'status': 'PART_PAID',
         },
         {
             'number': 'INV-2026-005',
@@ -300,7 +366,6 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'gross_amount': 335120000,
             'paid_amount': 335120000,
             'balance_due': 0,
-            'status': 'PAID',
         },
         {
             'number': 'INV-2026-006',
@@ -308,14 +373,13 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'project_name': 'Mukono Road Works & Drainage',
             'client': 'Mukono Municipal Authority / UNRA',
             'claim_title': 'Bituminous Surfacing Milestone Claim 2',
-            'issue_date': '2026-04-15',
-            'due_date': '2026-05-15',
+            'issue_date': '2026-10-15',
+            'due_date': '2026-11-20',
             'net_amount': 195000000,
             'vat_amount': 35100000,
             'gross_amount': 230100000,
             'paid_amount': 0,
             'balance_due': 230100000,
-            'status': 'SENT',
         },
         {
             'number': 'INV-2026-007',
@@ -330,7 +394,6 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'gross_amount': 168150000,
             'paid_amount': 168150000,
             'balance_due': 0,
-            'status': 'PAID',
         },
         {
             'number': 'INV-2026-008',
@@ -345,7 +408,6 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'gross_amount': 327450000,
             'paid_amount': 327450000,
             'balance_due': 0,
-            'status': 'PAID',
         },
         {
             'number': 'INV-2026-009',
@@ -353,14 +415,13 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'project_name': 'Jinja Commercial Building',
             'client': 'Busoga Commerce Holdings Ltd',
             'claim_title': 'Ground Slab & Reinforced Concrete Framework',
-            'issue_date': '2026-03-10',
-            'due_date': '2026-04-05',
+            'issue_date': '2026-10-01',
+            'due_date': '2026-11-05',
             'net_amount': 187500000,
             'vat_amount': 33750000,
             'gross_amount': 221250000,
             'paid_amount': 150000000,
             'balance_due': 71250000,
-            'status': 'PART_PAID',
         },
         {
             'number': 'INV-2026-010',
@@ -375,7 +436,6 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'gross_amount': 145140000,
             'paid_amount': 145140000,
             'balance_due': 0,
-            'status': 'PAID',
         },
         {
             'number': 'INV-2026-011',
@@ -383,14 +443,13 @@ def get_invoices_list() -> List[Dict[str, Any]]:
             'project_name': 'Kira Apartment Development',
             'client': 'Kira Heights Property Consortium',
             'claim_title': 'Site Excavation, Retaining Wall & Foundation Slab',
-            'issue_date': '2026-04-05',
-            'due_date': '2026-04-30',
+            'issue_date': '2026-09-05',
+            'due_date': '2026-09-30',
             'net_amount': 315000000,
             'vat_amount': 56700000,
             'gross_amount': 371700000,
             'paid_amount': 0,
             'balance_due': 371700000,
-            'status': 'OVERDUE',
         },
     ]
 
@@ -400,6 +459,17 @@ def get_invoices_list() -> List[Dict[str, Any]]:
         inv['gross_fmt'] = f"{inv['gross_amount']:,}"
         inv['paid_fmt'] = f"{inv['paid_amount']:,}"
         inv['balance_fmt'] = f"{inv['balance_due']:,}"
+        raw_status, display_status = compute_invoice_status(
+            inv['balance_due'],
+            inv['paid_amount'],
+            inv['gross_amount'],
+            inv['due_date'],
+            current_date=current_date,
+        )
+        inv['status'] = raw_status
+        inv['status_code'] = raw_status
+        inv['status_display'] = display_status
+        inv['get_status_display'] = lambda s=display_status: s
 
     return invoices
 
@@ -445,10 +515,10 @@ def get_tax_summary() -> Dict[str, Any]:
     wht_receivable = sum(inv['net_amount'] * 0.06 for inv in invoices if inv['paid_amount'] > 0)
 
     monthly_filings = [
-        {'month': 'Jan 2026', 'output_vat': 76950000, 'input_vat': 14200000, 'net_vat': 62750000, 'wht': 25650000, 'status': 'FILED', 'prn': 'PRN-2601-98421'},
-        {'month': 'Feb 2026', 'output_vat': 45360000, 'input_vat': 18450000, 'net_vat': 26910000, 'wht': 15120000, 'status': 'FILED', 'prn': 'PRN-2602-44102'},
-        {'month': 'Mar 2026', 'output_vat': 152100000, 'input_vat': 22800000, 'net_vat': 129300000, 'wht': 50700000, 'status': 'FILED', 'prn': 'PRN-2603-11894'},
-        {'month': 'Apr 2026', 'output_vat': 206640000, 'input_vat': 13305500, 'net_vat': 193334500, 'wht': 68880000, 'status': 'PENDING', 'prn': 'Awaiting Approval'},
+        {'month': 'Jan 2026', 'due_date': '15 Feb 2026', 'output_vat': 76950000, 'input_vat': 14200000, 'net_vat': 62750000, 'wht': 25650000, 'status': 'FILED', 'status_display': 'Filed', 'prn': 'PRN-2601-98421'},
+        {'month': 'Feb 2026', 'due_date': '15 Mar 2026', 'output_vat': 45360000, 'input_vat': 18450000, 'net_vat': 26910000, 'wht': 15120000, 'status': 'FILED', 'status_display': 'Filed', 'prn': 'PRN-2602-44102'},
+        {'month': 'Mar 2026', 'due_date': '15 Apr 2026', 'output_vat': 152100000, 'input_vat': 22800000, 'net_vat': 129300000, 'wht': 50700000, 'status': 'FILED', 'status_display': 'Filed', 'prn': 'PRN-2603-11894'},
+        {'month': 'Apr 2026', 'due_date': '15 May 2026', 'output_vat': 206640000, 'input_vat': 13305500, 'net_vat': 193334500, 'wht': 68880000, 'status': 'PENDING', 'status_display': 'Pending', 'prn': 'Pending filing'},
     ]
     for f in monthly_filings:
         f['output_vat_fmt'] = f"{f['output_vat']:,}"
@@ -472,7 +542,7 @@ def get_tax_summary() -> Dict[str, Any]:
 
 
 def get_leads_list() -> List[Dict[str, Any]]:
-    return [
+    leads = [
         {
             'public_id': 'LEAD-2026-081',
             'name': 'Dr. Patrick Ssenyonga',
@@ -522,6 +592,10 @@ def get_leads_list() -> List[Dict[str, Any]]:
             'created_at': '2026-04-24',
         },
     ]
+    for l in leads:
+        l['status_display'] = get_status_display(l['status'])
+        l['get_status_display'] = lambda s=l['status_display']: s
+    return leads
 
 
 def get_site_files_list() -> List[Dict[str, Any]]:

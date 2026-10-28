@@ -19,14 +19,22 @@ from accounts.decorators import require_recent_auth
 from accounts.forms import JimcanAuthenticationForm
 from accounts.user_views import UserListView
 from jimcan.security import security_event
-from dashboard.data_store import (
-    get_expenses_summary,
-    get_projects_list,
-    get_invoices_list,
+from dashboard.selectors import (
+    get_active_projects,
+    get_contract_portfolio_total,
+    get_invoices,
+    get_invoiced_totals,
+    get_collections_total,
+    get_outstanding_receivables_total,
+    get_overdue_invoices_summary,
+    get_direct_expenses_totals,
+    get_tax_report_summary,
+    get_leads_summary,
+    get_dashboard_overview_metrics,
+    get_invoice_aging_buckets,
     get_rates_catalog,
-    get_tax_summary,
-    get_leads_list,
     get_site_files_list,
+    get_status_display,
 )
 
 # Role permissions map according to docs/design/roles-permissions.md & navigation.py
@@ -144,17 +152,11 @@ def _require_auth(request):
 def overview_view(request):
     """
     Landing overview view: graph-free, ultra-minimalist light-mode dashboard interface.
-    Employs IBM Plex typography, extreme scale contrast, and split-view inspector.
+    Draws from centralized domain selectors (dashboard.selectors) ensuring identical
+    reconciled figures between Overview and detail views.
     Enforces server-side data scoping: users without 'accounts.view_financials'
     (e.g., Site staff) receive zero money-flow figures in context, HTML, or JSON.
     """
-    # Load structured demo data from fixtures
-    demo_file = settings.BASE_DIR / 'fixtures' / 'demo_data.json'
-    demo_data = {}
-    if demo_file.exists():
-        with open(demo_file, 'r', encoding='utf-8') as f:
-            demo_data = json.load(f)
-
     can_view_financials = request.user.has_perm('accounts.view_financials') if request.user.is_authenticated else False
     can_view_leads = request.user.has_perm('accounts.view_leads') if request.user.is_authenticated else False
     can_view_rates = request.user.has_perm('accounts.view_rates') if request.user.is_authenticated else False
@@ -171,37 +173,35 @@ def overview_view(request):
             can_view_leads = False
             can_view_rates = False
 
-    raw_projects = demo_data.get('projects', [])
-    raw_invoices = demo_data.get('sample_invoices', []) if can_view_financials else []
-    raw_leads = demo_data.get('leads', []) if can_view_leads else []
-    raw_rate_library = demo_data.get('rate_library', []) if can_view_rates else []
+    projects = get_active_projects(can_view_financials=can_view_financials)
+    for p in projects:
+        if can_view_financials:
+            p['contract_value_ugx'] = p.get('contract_value', 0)
+            p['cost_to_date_ugx'] = p.get('actual_cost_ugx', 0)
+            p['committed_cost'] = p.get('actual_cost_ugx', 0)
+
+    invoices = get_invoices() if can_view_financials else []
+    leads_summary = get_leads_summary(can_view_financials=can_view_financials)
+    leads = leads_summary['leads'] if can_view_leads else []
+    rate_library = get_rates_catalog() if can_view_rates else []
 
     feed_items = []
-    projects = []
-
-    for p_raw in raw_projects:
-        p = p_raw.copy()
+    for p in projects:
         if can_view_financials:
-            p['contract_value_fmt'] = f"{p.get('contract_value_ugx', 0):,}"
-            p['cost_to_date_fmt'] = f"{p.get('cost_to_date_ugx', 0):,}"
-            val_display = f"{p.get('contract_value_ugx', 0):,}"
-            raw_val = p.get('contract_value_ugx', 0)
+            val_display = p.get('contract_value_fmt', '')
+            raw_val = p.get('contract_value', 0)
             details = {
                 'RECORD IDENTIFIER': p.get('code'),
                 'ENTITY CLASSIFICATION': 'CONSTRUCTION BUILD WORKSPACE',
                 'PRINCIPAL CLIENT': p.get('client'),
                 'SITE COORDINATES': p.get('location'),
                 'ACTIVE STAGE': p.get('current_phase', '').upper(),
-                'CONTRACT VALUATION': f"UGX {p.get('contract_value_ugx', 0):,}",
-                'CUMULATIVE COST': f"UGX {p.get('cost_to_date_ugx', 0):,}",
+                'CONTRACT VALUATION': f"UGX {p.get('contract_value', 0):,}",
+                'CUMULATIVE COST': f"UGX {p.get('actual_cost_ugx', 0):,}",
                 'SCHEDULE COMMENCEMENT': p.get('start_date'),
                 'TARGET COMMISSIONING': p.get('target_completion'),
-                'COMPLIANCE STATUS': 'VERIFIED // ZERO BREACH'
             }
         else:
-            # Server-side data scoping: completely scrub money-flow figures from project object
-            p.pop('contract_value_ugx', None)
-            p.pop('cost_to_date_ugx', None)
             val_display = ''
             raw_val = 0
             details = {
@@ -212,9 +212,7 @@ def overview_view(request):
                 'ACTIVE STAGE': p.get('current_phase', '').upper(),
                 'SCHEDULE COMMENCEMENT': p.get('start_date'),
                 'TARGET COMMISSIONING': p.get('target_completion'),
-                'COMPLIANCE STATUS': 'VERIFIED // ZERO BREACH'
             }
-        projects.append(p)
 
         feed_items.append({
             'type': 'project',
@@ -225,60 +223,58 @@ def overview_view(request):
             'value': val_display,
             'raw_value': raw_val,
             'timestamp': p.get('start_date'),
-            'status': p.get('current_phase', '').upper(),
+            'status': p.get('current_phase_display', p.get('current_phase', '')),
             'has_alert': False,
-            'details': details
+            'details': details,
         })
 
-    invoices = []
     if can_view_financials:
-        for inv_raw in raw_invoices:
-            inv = inv_raw.copy()
-            has_alert = inv.get('balance_due_ugx', 0) > 0
-            inv['net_amount_fmt'] = f"{inv.get('net_amount_ugx', 0):,}"
-            inv['vat_18_fmt'] = f"{inv.get('vat_18_ugx', 0):,}"
-            inv['gross_amount_fmt'] = f"{inv.get('gross_amount_ugx', 0):,}"
-            inv['paid_amount_fmt'] = f"{inv.get('paid_amount_ugx', 0):,}"
-            inv['balance_due_fmt'] = f"{inv.get('balance_due_ugx', 0):,}"
-            invoices.append(inv)
+        for inv in invoices:
+            has_alert = inv.get('balance_due', 0) > 0 and inv.get('status') == 'OVERDUE'
+            inv['invoice_number'] = inv['number']
+            inv['gross_amount_ugx'] = inv['gross_amount']
+            inv['net_amount_ugx'] = inv['net_amount']
+            inv['subtotal'] = inv['net_amount']
+            inv['total'] = inv['gross_amount']
+            inv['vat_18_ugx'] = inv['vat_amount']
+            inv['tax_amount'] = inv['vat_amount']
+            inv['paid_amount_ugx'] = inv['paid_amount']
+            inv['balance_due_ugx'] = inv['balance_due']
+
             feed_items.append({
                 'type': 'invoice',
                 'type_label': 'INVOICE',
-                'id': inv.get('invoice_number'),
-                'title': f"Milestone Billing Claim · {inv.get('project_code')}",
-                'subtitle': f"Net UGX {inv.get('net_amount_ugx', 0):,} + VAT 18%",
-                'value': f"{inv.get('gross_amount_ugx', 0):,}",
-                'raw_value': inv.get('gross_amount_ugx', 0),
-                'timestamp': '2026-10-18',
-                'status': inv.get('status', '').replace('_', ' ').upper(),
+                'id': inv.get('number'),
+                'title': f"{inv.get('claim_title')} · {inv.get('project_code')}",
+                'subtitle': f"Net UGX {inv.get('net_amount', 0):,} + VAT 18%",
+                'value': f"{inv.get('gross_amount', 0):,}",
+                'raw_value': inv.get('gross_amount', 0),
+                'timestamp': inv.get('issue_date'),
+                'status': inv.get('status_display', inv.get('status')),
                 'has_alert': has_alert,
                 'details': {
-                    'RECORD IDENTIFIER': inv.get('invoice_number'),
+                    'RECORD IDENTIFIER': inv.get('number'),
                     'ENTITY CLASSIFICATION': 'CLIENT TAX INVOICE',
                     'ASSOCIATED PROJECT': inv.get('project_code'),
-                    'NET REVENUE': f"UGX {inv.get('net_amount_ugx', 0):,}",
-                    'STATUTORY VAT (18%)': f"UGX {inv.get('vat_18_ugx', 0):,}",
-                    'GROSS CLAIM': f"UGX {inv.get('gross_amount_ugx', 0):,}",
-                    'REMITTED TOTAL': f"UGX {inv.get('paid_amount_ugx', 0):,}",
-                    'OUTSTANDING BALANCE': f"UGX {inv.get('balance_due_ugx', 0):,}",
-                    'RECONCILIATION STATE': inv.get('status', '').replace('_', ' ').upper(),
-                    'URA FISCAL STATUS': 'EFRIS COMPLIANT'
-                }
+                    'NET REVENUE': f"UGX {inv.get('net_amount', 0):,}",
+                    'STATUTORY VAT (18%)': f"UGX {inv.get('vat_amount', 0):,}",
+                    'GROSS CLAIM': f"UGX {inv.get('gross_amount', 0):,}",
+                    'REMITTED TOTAL': f"UGX {inv.get('paid_amount', 0):,}",
+                    'OUTSTANDING BALANCE': f"UGX {inv.get('balance_due', 0):,}",
+                    'RECONCILIATION STATE': inv.get('status_display'),
+                },
             })
 
-    leads = []
     if can_view_leads:
-        for l_raw in raw_leads:
-            l = l_raw.copy()
+        for l in leads:
             if can_view_financials:
-                l['budget_fmt'] = f"{l.get('budget_ugx', 0):,}"
-                budget_val = f"{l.get('budget_ugx', 0):,}"
-                budget_detail = f"UGX {l.get('budget_ugx', 0):,}"
+                budget_val = f"{l.get('budget', 0):,}"
+                budget_detail = f"UGX {l.get('budget', 0):,}"
+                l['budget_ugx'] = l.get('budget', 0)
             else:
-                l.pop('budget_ugx', None)
                 budget_val = ''
                 budget_detail = 'REDACTED'
-            leads.append(l)
+                l.pop('budget_ugx', None)
             feed_items.append({
                 'type': 'lead',
                 'type_label': 'LEAD',
@@ -288,7 +284,7 @@ def overview_view(request):
                 'value': budget_val,
                 'raw_value': 0,
                 'timestamp': l.get('created_at', '')[:10],
-                'status': l.get('status', '').upper(),
+                'status': l.get('status_display', l.get('status')),
                 'has_alert': False,
                 'details': {
                     'RECORD IDENTIFIER': l.get('public_id'),
@@ -299,24 +295,21 @@ def overview_view(request):
                     'DEVELOPMENT SCOPE': l.get('project_type'),
                     'PROPOSED SITE': l.get('location'),
                     'INDICATIVE BUDGET': budget_detail,
-                    'PIPELINE POSITION': l.get('status', '').upper(),
-                    'QUALIFICATION DATE': l.get('created_at', '')[:10]
-                }
+                    'PIPELINE POSITION': l.get('status_display'),
+                    'QUALIFICATION DATE': l.get('created_at', '')[:10],
+                },
             })
 
-    rate_library = []
     if can_view_rates:
-        for r_raw in raw_rate_library:
-            r = r_raw.copy()
+        for r in rate_library:
             if can_view_financials:
-                r['standard_rate_fmt'] = f"{r.get('standard_rate_ugx', 0):,}"
-                rate_val = f"{r.get('standard_rate_ugx', 0):,}/{r.get('unit')}"
-                rate_detail = f"UGX {r.get('standard_rate_ugx', 0):,}"
+                r['standard_rate_ugx'] = r.get('standard_rate', 0)
+                rate_val = f"{r.get('standard_rate', 0):,}/{r.get('unit')}"
+                rate_detail = f"UGX {r.get('standard_rate', 0):,}"
             else:
                 r.pop('standard_rate_ugx', None)
                 rate_val = f"Unit: {r.get('unit')}"
                 rate_detail = 'STANDARD UNIT SPEC'
-            rate_library.append(r)
             feed_items.append({
                 'type': 'rate',
                 'type_label': 'RATE',
@@ -326,7 +319,7 @@ def overview_view(request):
                 'value': rate_val,
                 'raw_value': 0,
                 'timestamp': '2026-10-01',
-                'status': 'ACTIVE',
+                'status': 'Active',
                 'has_alert': False,
                 'details': {
                     'RECORD IDENTIFIER': r.get('code'),
@@ -335,8 +328,8 @@ def overview_view(request):
                     'STANDARD UNIT': r.get('unit'),
                     'APPROVED UNIT RATE': rate_detail,
                     'CURRENCY SPEC': 'UGX (FIXED BASE)' if can_view_financials else 'REDACTED',
-                    'SCHEDULE VALIDITY': 'ANNUAL SCHEDULE 2026'
-                }
+                    'SCHEDULE VALIDITY': 'ANNUAL SCHEDULE 2026',
+                },
             })
 
     context = {
@@ -352,25 +345,41 @@ def overview_view(request):
     }
 
     if can_view_financials:
-        total_contract_value = sum(p.get('contract_value_ugx', 0) for p in raw_projects)
-        total_cost_to_date = sum(p.get('cost_to_date_ugx', 0) for p in raw_projects)
-        total_invoiced_gross = sum(inv.get('gross_amount_ugx', 0) for inv in raw_invoices)
-        total_balance_due = sum(inv.get('balance_due_ugx', 0) for inv in raw_invoices)
-        total_collected_gross = total_invoiced_gross - total_balance_due
-        cost_percentage = round((total_cost_to_date / total_contract_value * 100), 1) if total_contract_value else 0
-        invoiced_percentage = round((total_invoiced_gross / total_contract_value * 100), 1) if total_contract_value else 0
-
+        metrics = get_dashboard_overview_metrics()
         context.update({
-            'currency': demo_data.get('currency', 'UGX'),
-            'total_contract_value': f"{total_contract_value:,}",
-            'total_cost_to_date': f"{total_cost_to_date:,}",
-            'total_invoiced_gross': f"{total_invoiced_gross:,}",
-            'total_balance_due': f"{total_balance_due:,}",
-            'total_collected_gross': f"{total_collected_gross:,}",
-            'committed_cost': total_cost_to_date,
-            'total_receivable': total_balance_due,
-            'cost_percentage': cost_percentage,
-            'invoiced_percentage': invoiced_percentage,
+            'currency': 'UGX',
+            'total_contract_value': metrics['contract_value_fmt'],
+            'total_contract_value_raw': metrics['contract_value'],
+            'contract_value': metrics['contract_value'],
+            'total_cost_to_date': metrics['committed_cost_fmt'],
+            'committed_cost': metrics['committed_cost'],
+            'committed_cost_fmt': metrics['committed_cost_fmt'],
+            'committed_cost_gross': metrics['committed_cost_gross'],
+            'committed_cost_gross_fmt': metrics['committed_cost_gross_fmt'],
+            'total_invoiced_gross': metrics['invoiced_gross_fmt'],
+            'total_invoiced_gross_raw': metrics['invoiced_gross'],
+            'invoiced': metrics['invoiced_gross'],
+            'invoiced_gross': metrics['invoiced_gross'],
+            'invoiced_net': metrics['invoiced_net'],
+            'invoiced_net_fmt': metrics['invoiced_net_fmt'],
+            'total_balance_due': metrics['still_owed_fmt'],
+            'total_receivable': metrics['still_owed'],
+            'still_owed': metrics['still_owed'],
+            'total_collected_gross': metrics['collected_fmt'],
+            'collected': metrics['collected'],
+            'overdue_count': metrics['overdue_count'],
+            'overdue_amount': metrics['overdue_amount'],
+            'overdue_amount_fmt': metrics['overdue_amount_fmt'],
+            'output_vat': metrics['output_vat'],
+            'output_vat_fmt': metrics['output_vat_fmt'],
+            'input_vat': metrics['input_vat'],
+            'input_vat_fmt': metrics['input_vat_fmt'],
+            'net_vat_payable': metrics['net_vat_payable'],
+            'net_vat_payable_fmt': metrics['net_vat_payable_fmt'],
+            'cost_percentage': metrics['cost_percentage'],
+            'invoiced_percentage': metrics['invoiced_percentage'],
+            'collected_percentage': metrics['collected_percentage'],
+            'collection_of_contract_percentage': metrics['collection_of_contract_percentage'],
             'invoices': invoices,
             'invoices_count': len(invoices),
         })
@@ -416,19 +425,17 @@ def leads_view(request):
         if role.lower() in ('admin', 'manager', 'accountant'):
             can_view_financials = True
 
-    raw_leads = get_leads_list()
-    leads = []
-    for l_raw in raw_leads:
-        l = l_raw.copy()
-        if not can_view_financials:
-            l.pop('budget', None)
-            l.pop('budget_fmt', None)
-        leads.append(l)
-
+    leads_data = get_leads_summary(can_view_financials=can_view_financials)
     return render(request, 'dashboard/leads.html', {
         'page_title': 'Commercial Leads & Tenders',
-        'leads': leads,
-        'leads_count': len(leads),
+        'leads': leads_data['leads'],
+        'stages': leads_data['stages'],
+        'leads_count': leads_data['count'],
+        'pipeline_total': leads_data['pipeline_total'],
+        'pipeline_total_fmt': leads_data['pipeline_total_fmt'],
+        'won_total': leads_data['won_total'],
+        'won_total_fmt': leads_data['won_total_fmt'],
+        'site_visit_count': leads_data['site_visit_count'],
         'can_view_financials': can_view_financials,
     })
 
@@ -441,19 +448,10 @@ def projects_view(request):
         if role.lower() in ('admin', 'manager', 'accountant'):
             can_view_financials = True
 
-    raw_projects = get_projects_list()
-    projects = []
-    for p_raw in raw_projects:
-        p = p_raw.copy()
-        if not can_view_financials:
-            p.pop('contract_value', None)
-            p.pop('contract_value_fmt', None)
-            p.pop('actual_cost_ugx', None)
-            p.pop('actual_cost_fmt', None)
-            p.pop('budget_spent_pct', None)
-        projects.append(p)
+    projects = get_active_projects(can_view_financials=can_view_financials)
+    exp_summary = get_direct_expenses_totals()
+    total_contract_value = get_contract_portfolio_total()
 
-    exp_summary = get_expenses_summary()
     context = {
         'page_title': 'Active Construction Builds',
         'projects': projects,
@@ -461,7 +459,9 @@ def projects_view(request):
         'can_view_financials': can_view_financials,
     }
     if can_view_financials:
-        context['total_gross_fmt'] = exp_summary['total_gross_fmt']
+        context['total_gross_fmt'] = exp_summary['gross_fmt']
+        context['total_contract_value'] = total_contract_value
+        context['total_contract_value_fmt'] = f"{total_contract_value:,}"
 
     return render(request, 'dashboard/projects.html', context)
 
@@ -478,13 +478,35 @@ def rates_view(request):
 
 @require_dashboard_perm('accounts.view_invoices', 'invoices')
 def invoices_view(request):
-    invoices = get_invoices_list()
-    projects = get_projects_list()
+    invoices = get_invoices()
+    projects = get_active_projects()
+    inv_totals = get_invoiced_totals(invoices)
+    total_collected = get_collections_total(invoices)
+    total_balance = get_outstanding_receivables_total(invoices)
+    overdue_summary = get_overdue_invoices_summary(invoices)
+    aging_buckets = get_invoice_aging_buckets(invoices)
+    collection_rate = round((total_collected / inv_totals['gross'] * 100), 1) if inv_totals['gross'] else 0.0
+
     return render(request, 'dashboard/invoices.html', {
         'page_title': 'Client Invoices & Milestone Claims',
         'invoices': invoices,
         'invoices_count': len(invoices),
         'projects': projects,
+        'total_gross': inv_totals['gross'],
+        'total_gross_fmt': inv_totals['gross_fmt'],
+        'total_net': inv_totals['net'],
+        'total_net_fmt': inv_totals['net_fmt'],
+        'total_vat': inv_totals['output_vat'],
+        'total_vat_fmt': inv_totals['output_vat_fmt'],
+        'total_collected': total_collected,
+        'total_collected_fmt': f"{total_collected:,}",
+        'total_balance': total_balance,
+        'total_balance_fmt': f"{total_balance:,}",
+        'overdue_count': overdue_summary['count'],
+        'overdue_amount': overdue_summary['amount'],
+        'overdue_amount_fmt': overdue_summary['amount_fmt'],
+        'collection_rate': collection_rate,
+        'aging_buckets': aging_buckets,
     })
 
 
@@ -496,8 +518,8 @@ def expenses_view(request):
         if role.lower() in ('admin', 'manager', 'accountant'):
             can_view_financials = True
 
-    exp_data = get_expenses_summary()
-    projects = get_projects_list()
+    exp_data = get_direct_expenses_totals()
+    projects = get_active_projects(can_view_financials=can_view_financials)
 
     expenses = []
     for e_raw in exp_data['expenses']:
@@ -521,9 +543,9 @@ def expenses_view(request):
     }
     if can_view_financials:
         context.update({
-            'total_net_fmt': exp_data['total_net_fmt'],
-            'total_vat_fmt': exp_data['total_vat_fmt'],
-            'total_gross_fmt': exp_data['total_gross_fmt'],
+            'total_net_fmt': exp_data['net_fmt'],
+            'total_vat_fmt': exp_data['input_vat_fmt'],
+            'total_gross_fmt': exp_data['gross_fmt'],
             'category_breakdown': exp_data['category_breakdown'],
         })
 
@@ -532,7 +554,7 @@ def expenses_view(request):
 
 @require_dashboard_perm('accounts.view_tax_reports', 'tax')
 def tax_view(request):
-    tax_data = get_tax_summary()
+    tax_data = get_tax_report_summary()
     return render(request, 'dashboard/tax.html', {
         'page_title': 'URA Tax & Statutory Reports',
         **tax_data,

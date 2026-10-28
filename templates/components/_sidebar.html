@@ -19,15 +19,15 @@
         <img src="{% static 'img/favicon/logo.png' %}" alt="Jimcan" class="h-6 w-6 object-contain">
       </div>
       <div class="flex flex-col" x-show="sidebarMode === 'expanded'">
-        <span class="font-display text-base font-bold" style="color: var(--text); line-height: 1.1;">Jimcan</span>
-        <span style="font-size: 12px; line-height: 16px; color: var(--text-muted); font-family: var(--font-body);">Operations</span>
+        <span class="font-display text-base font-bold" style="color: var(--sidebar-text); line-height: 1.1;">Jimcan</span>
+        <span style="font-size: 12px; line-height: 16px; color: var(--sidebar-muted); font-family: var(--font-body);">Operations</span>
       </div>
     </a>
 
     <!-- Mobile Drawer Close Button (Below 1024px Only) -->
     <button type="button"
-            class="lg:hidden p-1.5 rounded"
-            style="color: var(--text-muted); background: transparent; border: none; cursor: pointer;"
+            class="lg:hidden p-1.5 rounded text-slate-400 hover:text-white"
+            style="background: transparent; border: none; cursor: pointer;"
             @click="sidebarDrawerOpen = false"
             aria-label="Close navigation drawer">
       <i data-lucide="x" class="w-5 h-5"></i>
@@ -64,10 +64,10 @@
 
     <!-- Administration Group -->
     {% if admin_nav %}
-      <div style="border-top: 1px solid var(--line); padding-top: var(--s4);">
+      <div style="border-top: 1px solid var(--sidebar-border); padding-top: var(--s4);">
         <div x-show="sidebarMode === 'expanded'"
              class="nav-section-title">
-          SETTING
+          SETTINGS
         </div>
         <div class="space-y-1">
           {% for item in admin_nav %}
@@ -113,7 +113,7 @@
   </div>
 
   <!-- User Block (Bottom of Sidebar) -->
-  <div class="p-3 border-t" style="border-color: var(--line);">
+  <div class="p-3 border-t" style="border-color: var(--sidebar-border);">
     {% include "components/_user_menu.html" %}
   </div>
 

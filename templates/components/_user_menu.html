@@ -1,9 +1,9 @@
-<!-- User Profile & Session Menu (Clean Light Design) -->
+<!-- User Profile & Session Menu (Enterprise Dark Integration) -->
 <div x-data="{ userMenuOpen: false }" class="relative" style="width: 100%;">
   <button type="button"
           @click="userMenuOpen = !userMenuOpen"
           @keydown.escape="userMenuOpen = false"
-          class="w-full flex items-center rounded-xl transition-all text-left hover:bg-slate-50"
+          class="w-full flex items-center rounded-xl transition-colors text-left hover:bg-white/[0.08]"
           style="background: transparent; border: none; cursor: pointer; padding: var(--s2);"
           :class="sidebarMode === 'collapsed' ? 'justify-center' : 'justify-between'"
           aria-haspopup="true"
@@ -11,59 +11,56 @@
           :aria-label="'User menu for ' + '{% if user.first_name %}{{ user.first_name }}{% elif user.username %}{{ user.username }}{% else %}Admin{% endif %}'"
           :title="sidebarMode === 'collapsed' ? '{% if user.first_name %}{{ user.first_name }}{% elif user.username %}{{ user.username }}{% else %}Admin{% endif %}' : ''">
     <div class="flex items-center gap-3 min-w-0" :class="sidebarMode === 'collapsed' ? 'justify-center' : ''">
-      <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-display font-bold text-xs"
-           style="background-color: var(--ink); color: #FFFFFF;">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-display font-bold text-xs bg-slate-800 text-slate-100 border border-slate-700">
         {% if user.first_name %}{{ user.first_name|slice:":1"|upper }}{% elif user.username %}{{ user.username|slice:":1"|upper }}{% else %}A{% endif %}
       </div>
       <div class="min-w-0 flex-1" x-show="sidebarMode === 'expanded'">
-        <div class="truncate font-semibold text-sm" style="color: var(--text); line-height: 18px; font-family: var(--font-body);">
+        <div class="truncate font-semibold text-sm leading-snug text-slate-100">
           {% if user.first_name %}{{ user.first_name }}{% elif user.username %}{{ user.username }}{% else %}Admin{% endif %}
         </div>
-        <div class="truncate text-xs" style="color: var(--text-muted); line-height: 16px; font-family: var(--font-body);">
+        <div class="truncate text-xs leading-tight text-slate-400">
           {% if user.email %}{{ user.email }}{% elif current_role_display %}{{ current_role_display }}{% else %}Administrator{% endif %}
         </div>
       </div>
     </div>
-    <div class="nav-icon-box" x-show="sidebarMode === 'expanded'" style="color: var(--text-muted);">
-      <i data-lucide="log-out" class="w-4 h-4"></i>
+    <div class="nav-icon-box text-slate-400" x-show="sidebarMode === 'expanded'">
+      <i data-lucide="chevrons-up-down" class="w-4 h-4"></i>
     </div>
   </button>
 
   <!-- Dropdown Menu -->
   <div x-show="userMenuOpen"
        @click.away="userMenuOpen = false"
-       class="absolute bottom-full mb-2 p-2 space-y-1 z-50 text-xs"
-       style="background-color: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-data); width: 240px; box-shadow: var(--shadow-create);"
-       :style="sidebarMode === 'collapsed' ? 'left: calc(100% + 8px); bottom: 0;' : 'left: 0; bottom: calc(100% + 8px);'"
+       class="absolute mb-2 p-2 space-y-1 z-50 text-xs bg-white text-slate-900 border border-slate-200 rounded-xl shadow-xl"
+       style="width: 240px;"
+       :style="sidebarMode === 'collapsed' ? 'left: calc(100% + 12px); bottom: 0;' : 'left: 0; bottom: calc(100% + 8px);'"
        style="display: none;">
 
     {% if not user.is_authenticated %}
     <!-- Role Switcher -->
-    <div class="px-3 py-1 font-semibold" style="font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--line);">
+    <div class="px-3 py-1 font-semibold text-[11px] text-slate-500 border-b border-slate-100">
       Simulate active role
     </div>
     {% for r_code, r_label in all_roles %}
       <a href="?role={{ r_code }}"
-         class="flex items-center justify-between px-3 py-2 rounded transition-colors no-underline"
-         style="color: var(--text); border-radius: var(--radius-data); {% if current_role == r_code %}background-color: var(--paper-sunk); font-weight: 600;{% endif %}">
+         class="flex items-center justify-between px-3 py-2 rounded-lg transition-colors no-underline text-slate-800 hover:bg-slate-50 {% if current_role == r_code %}bg-slate-100 font-semibold{% endif %}">
         <span>{{ r_label }}</span>
         {% if current_role == r_code %}
-          <i data-lucide="check" class="w-3.5 h-3.5" style="color: var(--ink);"></i>
+          <i data-lucide="check" class="w-3.5 h-3.5 text-slate-900"></i>
         {% endif %}
       </a>
     {% endfor %}
-    <div style="border-top: 1px solid var(--line); margin: 4px 0;"></div>
+    <div class="border-t border-slate-100 my-1"></div>
     {% else %}
-    <div class="px-3 py-2" style="border-bottom: 1px solid var(--line);">
-      <div class="text-xs font-semibold" style="color: var(--text-muted);">Assigned Role</div>
-      <div class="text-sm font-semibold" style="color: var(--ink);">{{ current_role_display }}</div>
+    <div class="px-3 py-2 border-b border-slate-100">
+      <div class="text-[11px] font-medium text-slate-500">Assigned role</div>
+      <div class="text-sm font-semibold text-slate-900">{{ current_role_display }}</div>
     </div>
     {% endif %}
 
     <a href="{% url 'password_change' %}"
-       class="flex items-center gap-2 px-3 py-2 rounded transition-colors no-underline"
-       style="color: var(--text); border-radius: var(--radius-data);">
-      <i data-lucide="key-round" class="w-4 h-4" style="color: var(--text-muted);"></i>
+       class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors no-underline text-slate-700 hover:bg-slate-50">
+      <i data-lucide="key-round" class="w-4 h-4 text-slate-400"></i>
       <span>Change password</span>
     </a>
 
@@ -71,9 +68,9 @@
     <form method="post" action="{% url 'logout' %}">
       {% csrf_token %}
       <button type="submit"
-              class="w-full flex items-center gap-2 px-3 py-2 rounded text-left transition-colors font-semibold"
-              style="color: var(--red); background: transparent; border: none; cursor: pointer; border-radius: var(--radius-data);">
-        <i data-lucide="log-out" class="w-4 h-4" style="color: var(--red);"></i>
+              class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors font-medium text-red-600 hover:bg-red-50"
+              style="background: transparent; border: none; cursor: pointer;">
+        <i data-lucide="log-out" class="w-4 h-4 text-red-600"></i>
         <span>Sign out</span>
       </button>
     </form>

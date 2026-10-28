@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static dashboard_tags %}
 
 {% block title %}Site Expenses & Disbursements · Jimcan Operations{% endblock %}
 
@@ -36,12 +36,6 @@
       <span>/</span>
       <span class="font-semibold text-charcoal">Site Expenses &amp; Disbursements</span>
     </div>
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-        <span>100 Verified Records (Live Data)</span>
-      </span>
-    </div>
   </div>
 
   <!-- Header Banner -->
@@ -49,7 +43,7 @@
     <div>
       <h1 class="text-2xl lg:text-3xl font-display font-bold text-charcoal tracking-tight">Site Expenses &amp; Disbursements</h1>
       <p class="text-xs text-muted mt-1 leading-relaxed">
-        Direct site disbursements, material procurement, plant hire, and subcontractor payments imported from <code class="bg-bone px-1 py-0.5 rounded text-charcoal font-mono">construction_expenses.xlsx</code>.
+        Direct site disbursements, material procurement, plant hire, and subcontractor payments across active builds.
       </p>
     </div>
     <div class="flex items-center gap-2.5">
@@ -59,139 +53,93 @@
         <i data-lucide="upload-cloud" class="w-4 h-4"></i>
         <span>Upload New Excel</span>
       </button>
-      <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs font-semibold px-3 py-2 flex items-center gap-1.5">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-        <span>Back</span>
-      </a>
     </div>
   </div>
 
-  <!-- 4 Primary KPI Summary Cards -->
+  <!-- 4 Primary KPI Summary Cards (Clean Metrics, No Pastel Icon Boxes) -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     {% if can_view_financials %}
     <!-- Card 1: Gross Disbursements -->
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Gross Disbursements</span>
-        <div class="w-8 h-8 rounded-lg bg-slate-100 text-charcoal flex items-center justify-center">
-          <i data-lucide="wallet-cards" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+      <span class="text-xs font-semibold text-muted">Gross disbursements</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         UGX {{ total_gross_fmt }}
       </div>
-      <div class="text-[11px] text-muted mt-1 flex items-center gap-1">
-        <span class="text-emerald-700 font-bold font-mono">100 Vouchers</span>
-        <span>across 8 projects</span>
+      <div class="text-xs text-muted mt-1 tabular-nums">
+        {{ expenses_count }} vouchers across 8 active builds
       </div>
     </div>
 
     <!-- Card 2: Net Direct Costs -->
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Net Direct Costs</span>
-        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-          <i data-lucide="receipt" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+      <span class="text-xs font-semibold text-muted">Net direct costs</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         UGX {{ total_net_fmt }}
       </div>
-      <div class="text-[11px] text-muted mt-1">
+      <div class="text-xs text-muted mt-1">
         Base project expenditure before tax
       </div>
     </div>
 
     <!-- Card 3: Recoverable Input VAT -->
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Input VAT (18%)</span>
-        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-          <i data-lucide="badge-percent" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+      <span class="text-xs font-semibold text-muted">Input VAT (18%)</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         UGX {{ total_vat_fmt }}
       </div>
-      <div class="text-[11px] text-emerald-700 mt-1 font-semibold flex items-center gap-1">
-        <i data-lucide="check" class="w-3.5 h-3.5"></i>
-        <span>Claimable on URA monthly returns</span>
+      <div class="text-xs text-muted mt-1">
+        Claimable on URA monthly returns
       </div>
     </div>
 
     <!-- Card 4: Top Category -->
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Largest Spend Category</span>
-        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-          <i data-lucide="pie-chart" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-xl font-display font-bold text-charcoal mt-2 truncate">
+      <span class="text-xs font-semibold text-muted">Largest spend category</span>
+      <div class="text-xl font-display font-bold text-charcoal mt-2 truncate" title="{{ category_breakdown.0.name }}">
         {{ category_breakdown.0.name }}
       </div>
-      <div class="text-[11px] text-muted mt-1 font-mono">
+      <div class="text-xs text-muted mt-1 tabular-nums">
         UGX {{ category_breakdown.0.total_fmt }} ({{ category_breakdown.0.pct }}%)
       </div>
     </div>
     {% else %}
     <!-- Scoped View for Site Staff: Operational Vouchers Overview -->
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Logged Site Vouchers</span>
-        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-          <i data-lucide="receipt" class="w-4 h-4"></i>
-        </div>
+      <span class="text-xs font-semibold text-muted">Logged site vouchers</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
+        {{ expenses_count }} Records
       </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
-        100 Records
-      </div>
-      <div class="text-[11px] text-muted mt-1">
+      <div class="text-xs text-muted mt-1">
         Across 8 active project sites
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Active Build Sites</span>
-        <div class="w-8 h-8 rounded-lg bg-slate-100 text-charcoal flex items-center justify-center">
-          <i data-lucide="hard-hat" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-charcoal mt-2">
+      <span class="text-xs font-semibold text-muted">Active build sites</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         8 Projects
       </div>
-      <div class="text-[11px] text-muted mt-1">
+      <div class="text-xs text-muted mt-1">
         Kampala, Entebbe, Mukono &amp; Upcountry
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Trade Categories</span>
-        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-          <i data-lucide="layers" class="w-4 h-4"></i>
-        </div>
-      </div>
-      <div class="text-2xl font-display font-bold text-emerald-800 mt-2">
+      <span class="text-xs font-semibold text-muted">Trade categories</span>
+      <div class="text-2xl font-display font-bold text-charcoal mt-2 tabular-nums">
         11 Categories
       </div>
-      <div class="text-[11px] text-emerald-700 mt-1 font-semibold">
+      <div class="text-xs text-muted mt-1">
         Materials, Labour, Plant Hire, etc.
       </div>
     </div>
 
     <div class="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">Audit Integrity</span>
-        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-          <i data-lucide="shield-check" class="w-4 h-4"></i>
-        </div>
-      </div>
+      <span class="text-xs font-semibold text-muted">Audit integrity</span>
       <div class="text-2xl font-display font-bold text-charcoal mt-2">
-        Verified
+        Active
       </div>
-      <div class="text-[11px] text-muted mt-1">
+      <div class="text-xs text-muted mt-1">
         All vouchers matched to receipts
       </div>
     </div>
@@ -253,17 +201,17 @@
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-bone border-b border-line text-[11px] font-mono font-semibold uppercase text-muted tracking-wider">
-            <th class="py-3 px-3.5">Date</th>
-            <th class="py-3 px-3.5">Voucher</th>
-            <th class="py-3 px-3.5">Project</th>
-            <th class="py-3 px-3.5">Category</th>
-            <th class="py-3 px-4">Description</th>
-            <th class="py-3 px-3.5 text-right">Net (UGX)</th>
-            <th class="py-3 px-3.5 text-right">VAT (18%)</th>
-            <th class="py-3 px-4 text-right">Total Gross</th>
-            <th class="py-3 px-3.5">Paid To</th>
-            <th class="py-3 px-3.5 text-center">Method</th>
+          <tr class="bg-slate-50/80 border-b border-line text-xs font-semibold text-muted">
+            <th class="py-3 px-3.5 min-w-[105px]">Date</th>
+            <th class="py-3 px-3.5 min-w-[110px]">Voucher #</th>
+            <th class="py-3 px-3.5 min-w-[100px]">Project</th>
+            <th class="py-3 px-3.5 min-w-[140px]">Category</th>
+            <th class="py-3 px-4 min-w-[220px]">Description</th>
+            <th class="py-3 px-3.5 text-right min-w-[115px]">Net (UGX)</th>
+            <th class="py-3 px-3.5 text-right min-w-[110px]">VAT (18%)</th>
+            <th class="py-3 px-4 text-right min-w-[125px]">Total gross</th>
+            <th class="py-3 px-3.5 min-w-[140px]">Paid to</th>
+            <th class="py-3 px-3.5 text-center min-w-[100px]">Method</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-line text-xs font-normal">
@@ -277,47 +225,42 @@
                 voucher_no: '{{ exp.voucher_no|escapejs }}',
                 paid_to: '{{ exp.paid_to|escapejs }}'
               })"
-              class="hover:bg-bone/60 transition-colors">
+              class="hover:bg-slate-50/70 transition-colors">
             
-            <td class="py-3 px-3.5 font-mono text-muted text-[11px] whitespace-nowrap">
-              {{ exp.date }}
+            <td class="py-3 px-3.5 text-muted whitespace-nowrap tabular-nums">
+              {{ exp.date|date_display }}
             </td>
             
-            <td class="py-3 px-3.5 font-mono font-bold text-charcoal text-[11px] whitespace-nowrap">
+            <td class="py-3 px-3.5 font-mono font-medium text-charcoal whitespace-nowrap">
               {{ exp.voucher_no }}
             </td>
             
             <td class="py-3 px-3.5 whitespace-nowrap">
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 text-slate-800 border border-slate-200">
                 {{ exp.project_code }}
               </span>
             </td>
 
             <td class="py-3 px-3.5 whitespace-nowrap">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium 
-                {% if exp.category == 'Materials' %}bg-amber-50 text-amber-900 border border-amber-200
-                {% elif exp.category == 'Labour' %}bg-blue-50 text-blue-900 border border-blue-200
-                {% elif exp.category == 'Equipment Hire' %}bg-purple-50 text-purple-900 border border-purple-200
-                {% elif exp.category == 'Subcontractor' %}bg-indigo-50 text-indigo-900 border border-indigo-200
-                {% elif exp.category == 'Safety' %}bg-emerald-50 text-emerald-900 border border-emerald-200
-                {% else %}bg-slate-100 text-slate-800 border border-slate-200{% endif %}">
-                {{ exp.category }}
-              </span>
+              <div class="category-tag">
+                <span class="category-dot"></span>
+                <span>{{ exp.category }}</span>
+              </div>
             </td>
 
             <td class="py-3 px-4 font-medium text-charcoal max-w-xs truncate" title="{{ exp.description }}">
               {{ exp.description }}
             </td>
 
-            <td class="py-3 px-3.5 font-mono text-right text-muted">
-              {{ exp.net_fmt }}
+            <td class="py-3 px-3.5 text-right text-muted tabular-nums whitespace-nowrap">
+              UGX {{ exp.net_fmt }}
             </td>
 
-            <td class="py-3 px-3.5 font-mono text-right text-emerald-700">
-              {% if exp.vat_ugx > 0 %}{{ exp.vat_fmt }}{% else %}<span class="text-slate-400">&mdash;</span>{% endif %}
+            <td class="py-3 px-3.5 text-right text-muted tabular-nums whitespace-nowrap">
+              {% if exp.vat_ugx > 0 %}UGX {{ exp.vat_fmt }}{% else %}<span class="text-muted">-</span>{% endif %}
             </td>
 
-            <td class="py-3 px-4 font-mono font-bold text-right text-charcoal whitespace-nowrap">
+            <td class="py-3 px-4 font-semibold text-right text-charcoal whitespace-nowrap tabular-nums">
               UGX {{ exp.gross_fmt }}
             </td>
 
@@ -326,11 +269,7 @@
             </td>
 
             <td class="py-3 px-3.5 text-center whitespace-nowrap">
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold
-                {% if exp.payment_method == 'Bank Transfer' %}bg-blue-50 text-blue-700
-                {% elif exp.payment_method == 'Mobile Money' %}bg-emerald-50 text-emerald-700
-                {% elif exp.payment_method == 'Cheque' %}bg-amber-50 text-amber-800
-                {% else %}bg-slate-100 text-slate-700{% endif %}">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
                 {{ exp.payment_method }}
               </span>
             </td>
@@ -342,14 +281,14 @@
     </div>
 
     <!-- Table Footer with Reconciled Totals -->
-    <div class="p-4 bg-bone/70 border-t border-line flex flex-col sm:flex-row items-center justify-between text-xs text-muted gap-3">
+    <div class="p-4 bg-slate-50/70 border-t border-line flex flex-col sm:flex-row items-center justify-between text-xs text-muted gap-3">
       <div class="flex items-center gap-2">
-        <span>Showing all <strong>100 records</strong> from <code class="font-mono text-charcoal">construction_expenses.xlsx</code></span>
+        <span>Showing all <strong class="text-charcoal">{{ expenses_count }} records</strong></span>
       </div>
-      <div class="flex items-center gap-4 font-mono font-semibold text-charcoal">
-        <span>Reconciled Sum:</span>
+      <div class="flex items-center gap-4 text-xs font-semibold text-charcoal">
+        <span>Reconciled sum:</span>
         {% if can_view_financials %}
-          <span class="text-emerald-800 text-sm font-bold">UGX {{ total_gross_fmt }}</span>
+          <span class="text-charcoal text-sm font-bold tabular-nums">UGX {{ total_gross_fmt }}</span>
         {% else %}
           <span class="text-muted text-xs font-mono">CONFIDENTIAL</span>
         {% endif %}

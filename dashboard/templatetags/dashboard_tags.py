@@ -24,6 +24,58 @@ def _to_decimal(val):
     except (InvalidOperation, ValueError):
         return None
 
+import datetime
+
+@register.filter(name='ugx')
+def ugx(value):
+    """
+    Standardize currency to 'UGX 1,234,567' convention.
+    """
+    d = _to_decimal(value)
+    if d is None:
+        return mark_safe('<span aria-label="Not available" class="text-muted">-</span>')
+    sign = '-' if d < 0 else ''
+    full = abs(d).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+    return f'{sign}UGX {full:,}'
+
+@register.filter(name='ugx_kpi')
+def ugx_kpi(value):
+    """
+    Strictly format KPI values as 'UGX 1.34B' or 'UGX 534.7M' or 'UGX 420,000'.
+    """
+    d = _to_decimal(value)
+    if d is None:
+        return mark_safe('<span aria-label="Not available" class="text-muted">-</span>')
+    sign = '-' if d < 0 else ''
+    d = abs(d)
+    if d >= Decimal('1000000000'):
+        b = (d / Decimal('1000000000')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        s = f'{b:.2f}'.rstrip('0').rstrip('.')
+        return f'{sign}UGX {s}B'
+    elif d >= Decimal('1000000'):
+        m = (d / Decimal('1000000')).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)
+        return f'{sign}UGX {m:.1f}M'
+    else:
+        full = d.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        return f'{sign}UGX {full:,}'
+
+@register.filter(name='date_display')
+def date_display(value):
+    """
+    Format date as 'DD Mon YYYY' (e.g. '20 Jan 2026').
+    Accepts datetime.date, datetime.datetime, or ISO string 'YYYY-MM-DD'.
+    """
+    if not value:
+        return mark_safe('<span aria-label="Not available" class="text-muted">-</span>')
+    if isinstance(value, (datetime.date, datetime.datetime)):
+        return value.strftime('%d %b %Y')
+    val_str = str(value).strip()
+    try:
+        dt = datetime.datetime.strptime(val_str[:10], '%Y-%m-%d')
+        return dt.strftime('%d %b %Y')
+    except (ValueError, IndexError):
+        return val_str
+
 @register.filter(name='ugx_compact')
 def ugx_compact(value):
     """
@@ -214,11 +266,11 @@ def sentence_case(text):
 @register.filter(name='status_badge')
 def status_badge(status_raw):
     """
-    Maps existing status values to standard badge markup:
-    - Paid or on track: text --green on --green-tint
-    - Overdue or over budget: text --red on --red-tint
-    - Pending or on hold: text --amber on --amber-tint
-    - Neutral or draft: text --text-muted on --paper-sunk
+    Maps existing status values to standard badge markup per Phase 2 rules:
+    - Paid / Completed: Subtle green (#DCFCE7 text #166534)
+    - Pending / Part Paid: Subtle amber (#FEF3C7 text #92400E)
+    - Overdue / Danger: Subtle red (#FEE2E2 text #991B1B)
+    - Neutral / Draft: Subtle slate (#F1F5F9 text #475569)
     """
     if not status_raw:
         return mark_safe('<span class="status-badge status-neutral"><span class="badge-dot"></span>Not available</span>')
@@ -226,25 +278,29 @@ def status_badge(status_raw):
     st = str(status_raw).strip().lower().replace('_', ' ')
     
     # Mapping table
-    # Green (paid or on track)
+    # Green: Paid / Completed / Won / Active
     if st in ('paid', 'won', 'active', 'foundation', 'superstructure', 'finishes', 'brief', 'design', 'handover', 'completed'):
-        label = st.title()
+        label = 'Paid' if st == 'paid' else ('Completed' if st == 'completed' else st.capitalize())
         variant = 'status-green'
-    # Red (overdue or over budget)
-    elif st in ('overdue', 'partially paid', 'part paid', 'lost', 'failed', 'blocked'):
-        label = st.title()
-        variant = 'status-red'
-    # Amber (pending or on hold)
-    elif st in ('pending', 'quoted', 'site visit', 'sent', 'on hold', 'review'):
-        label = st.title()
+    # Amber: Pending / Part Paid / Quoted / Site visit / Sent
+    elif st in ('partially paid', 'part paid', 'pending', 'quoted', 'site visit', 'sent', 'on hold', 'review'):
+        if st in ('partially paid', 'part paid'):
+            label = 'Part paid'
+        elif st == 'site visit':
+            label = 'Site visit'
+        else:
+            label = st.capitalize()
         variant = 'status-amber'
-    # Neutral (draft, new, void)
+    # Red: Overdue / Danger / Lost / Failed
+    elif st in ('overdue', 'lost', 'failed', 'blocked'):
+        label = st.capitalize()
+        variant = 'status-red'
+    # Neutral: Draft, New, Void
     elif st in ('draft', 'new', 'void', 'archived'):
-        label = st.title()
+        label = st.capitalize()
         variant = 'status-neutral'
     else:
-        # Fallback to neutral per brief requirement
-        label = st.title()
+        label = st.capitalize()
         variant = 'status-neutral'
         
     return mark_safe(f'<span class="status-badge {variant}"><span class="badge-dot"></span>{label}</span>')
