@@ -10,10 +10,12 @@ Loads and caches real construction operational data derived directly from constr
 - Field site uploads and document attachments
 """
 
+from __future__ import annotations
+
 from datetime import date
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 from django.conf import settings
 import openpyxl
 
