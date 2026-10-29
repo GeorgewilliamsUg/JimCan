@@ -1,112 +1,222 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Setup Checklist · Jimcan Operations{% endblock %}
+{% block title %}System Setup Checklist · Settings · Jimcan Operations{% endblock %}
 
 {% block content %}
-<div class="space-y-8 max-w-5xl">
-  <!-- Page Header & Breadcrumbs -->
-  <header class="border-b border-line pb-6">
-    <nav aria-label="Breadcrumbs" class="mb-2">
-      <ol class="flex items-center gap-1.5 text-xs text-muted font-medium">
+<div class="space-y-6 max-w-7xl mx-auto"
+     x-data="{ 
+       specModalOpen: false, 
+       selectedItem: { 
+         id: '', 
+         title: '', 
+         desc: '', 
+         value: '', 
+         authority: '', 
+         status: '', 
+         status_label: '',
+         module_url: '' 
+       },
+       openSpec(item) {
+         this.selectedItem = item;
+         this.specModalOpen = true;
+         this.$nextTick(() => { if (window.lucide) window.lucide.createIcons(); });
+       }
+     }">
+
+  <!-- Top Breadcrumbs & Page Header -->
+  <header class="border-b border-slate-200 pb-5">
+    <nav aria-label="Breadcrumbs" class="mb-2.5">
+      <ol class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
         <li>
-          <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1">
+          <a href="{% url 'dashboard:overview' %}" class="hover:text-slate-900 flex items-center gap-1 transition-colors">
             <i data-lucide="home" class="w-3.5 h-3.5"></i>
             <span>Home</span>
           </a>
         </li>
         <li class="flex items-center gap-1.5">
-          <span class="text-steel">/</span>
-          <a href="{% url 'dashboard:settings' %}" class="hover:text-charcoal">Settings</a>
+          <span class="text-slate-300">/</span>
+          <span class="text-slate-500">Settings</span>
         </li>
         <li class="flex items-center gap-1.5">
-          <span class="text-steel">/</span>
-          <span class="text-charcoal font-semibold" aria-current="page">Setup Checklist</span>
+          <span class="text-slate-300">/</span>
+          <span class="text-slate-900 font-semibold" aria-current="page">System Configuration</span>
         </li>
       </ol>
     </nav>
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <div class="flex items-center gap-2 mb-1">
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-safety text-white">S-95</span>
-          <span class="text-xs font-mono text-muted">Admin Onboarding Scaffolding</span>
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-900 text-white tracking-wide">ENTERPRISE GOVERNANCE</span>
+          <span class="text-xs font-mono text-slate-500">Kampala Directorate · Operational Parameters</span>
         </div>
-        <h1 class="text-3xl font-display font-bold text-charcoal tracking-tight">System Setup Checklist</h1>
-        <p class="text-muted text-sm mt-1 max-w-2xl">
-          Core organizational parameters, document numbering, tax calculation rates, and user credentials required before field deployment.
+        <h1 class="text-2xl sm:text-3xl font-display font-bold text-slate-900 tracking-tight">System Setup Checklist</h1>
+        <p class="text-slate-600 text-sm mt-1 max-w-2xl leading-relaxed">
+          Organizational profile, statutory tax rules, sequential document numbering, and operational baseline parameters governing Jimcan Construction &amp; Engineering.
         </p>
       </div>
 
-      <div class="card p-4 bg-white border border-line rounded-xl flex-shrink-0 sm:min-w-[220px]">
-        <div class="flex items-center justify-between text-xs mb-1.5">
-          <span class="font-mono text-muted uppercase tracking-wider text-[10px] font-bold">Launch Readiness</span>
-          <span class="font-mono font-bold text-safety">{{ completed_count }}/{{ total_count }} ({{ progress_percent }}%)</span>
-        </div>
-        <div class="w-full bg-bone h-2 rounded-full overflow-hidden border border-line">
-          <div class="bg-safety h-full rounded-full transition-all duration-300" style="width: {{ progress_percent }}%;"></div>
-        </div>
+      <div class="flex items-center gap-2.5 flex-shrink-0">
+        <a href="{% url 'dashboard:settings_team' %}"
+           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs">
+          <i data-lucide="users" class="w-4 h-4 text-slate-500"></i>
+          <span>Team &amp; Roles</span>
+        </a>
+        <a href="{% url 'dashboard:audit' %}"
+           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs">
+          <i data-lucide="shield-check" class="w-4 h-4 text-slate-500"></i>
+          <span>Audit Ledger</span>
+        </a>
       </div>
+    </div>
+
+    <!-- Integrated Settings Sub-Navigation Tabs -->
+    <div class="flex items-center gap-6 mt-6 -mb-5 border-b border-transparent">
+      <a href="{% url 'dashboard:settings' %}"
+         class="pb-3 text-sm font-semibold text-slate-900 border-b-2 border-slate-900 flex items-center gap-2">
+        <i data-lucide="sliders" class="w-4 h-4"></i>
+        <span>System Parameters</span>
+      </a>
+      <a href="{% url 'dashboard:settings_team' %}"
+         class="pb-3 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span>Team &amp; Permissions</span>
+      </a>
+      <a href="{% url 'dashboard:audit' %}"
+         class="pb-3 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2">
+        <i data-lucide="shield" class="w-4 h-4"></i>
+        <span>Security &amp; Audit Log</span>
+      </a>
     </div>
   </header>
 
-  <!-- Notice Banner: Safe Static Scaffolding -->
-  <div class="p-4 bg-bone rounded-xl border border-line flex items-start gap-3">
-    <div class="w-8 h-8 rounded-lg bg-brass-light text-brass-dark flex items-center justify-center flex-shrink-0">
-      <i data-lucide="shield-check" class="w-4 h-4"></i>
+  <!-- System Health & Status Matrix -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Readiness Card -->
+    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+      <div class="flex items-center justify-between text-xs mb-2">
+        <span class="text-xs font-mono font-medium text-slate-500 uppercase tracking-wider">Launch Readiness</span>
+        <span class="font-mono font-bold text-slate-900 text-xs">{{ completed_count }}/{{ total_count }} ({{ progress_percent }}%)</span>
+      </div>
+      <div class="space-y-2">
+        <div class="text-xl font-bold font-display text-slate-900">
+          {{ completed_count }} Parameters Verified
+        </div>
+        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+          <div class="bg-slate-900 h-full rounded-full transition-all duration-500" style="width: {{ progress_percent }}%;"></div>
+        </div>
+      </div>
     </div>
-    <div class="text-xs text-muted">
-      <strong class="font-bold text-charcoal">Phase 2 Scaffolding Active:</strong>
-      All configuration modules render safely using decoupled system contracts without requiring unmigrated database models. Full administrative edit mutations become interactive in Phase 15.
+
+    <!-- Statutory Fiscal Card -->
+    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex items-center justify-between">
+      <div>
+        <div class="text-xs font-mono font-medium text-slate-500 uppercase tracking-wider">Statutory Tax</div>
+        <div class="text-xl font-bold font-display text-slate-900 mt-1">18% VAT · 6% WHT</div>
+        <div class="text-xs text-emerald-700 font-medium flex items-center gap-1 mt-1">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>URA Registered</span>
+        </div>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="calculator" class="w-5 h-5"></i>
+      </div>
+    </div>
+
+    <!-- Active Sequences Card -->
+    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex items-center justify-between">
+      <div>
+        <div class="text-xs font-mono font-medium text-slate-500 uppercase tracking-wider">Document Series</div>
+        <div class="text-xl font-bold font-display text-slate-900 mt-1">JC-INV-2026-</div>
+        <div class="text-xs text-slate-500 font-mono mt-1">Sequential Counters</div>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="hash" class="w-5 h-5"></i>
+      </div>
+    </div>
+
+    <!-- System Currency & Timezone -->
+    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex items-center justify-between">
+      <div>
+        <div class="text-xs font-mono font-medium text-slate-500 uppercase tracking-wider">Operational Base</div>
+        <div class="text-xl font-bold font-display text-slate-900 mt-1">UGX (Shillings)</div>
+        <div class="text-xs text-slate-500 font-mono mt-1">East Africa Time (UTC+3)</div>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="coins" class="w-5 h-5"></i>
+      </div>
     </div>
   </div>
 
-  <!-- Checklist Sections Grid -->
-  <div class="space-y-6">
+  <!-- Settings Configuration Modules -->
+  <div class="space-y-5">
     {% for sec in sections %}
-      <section class="card bg-white border border-line rounded-xl p-6 space-y-4">
+      <section class="bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden">
         <!-- Section Header -->
-        <div class="flex items-center justify-between pb-3 border-b border-line">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-charcoal text-white flex items-center justify-center">
-              <i data-lucide="{{ sec.icon }}" class="w-4 h-4 text-safety"></i>
+        <div class="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+              <i data-lucide="{{ sec.icon }}" class="w-4 h-4"></i>
             </div>
-            <h2 class="font-display text-lg font-bold text-charcoal tracking-wide">{{ sec.category }}</h2>
+            <div>
+              <h2 class="font-display text-base font-bold text-slate-900 tracking-tight">{{ sec.category }}</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Parameters governing operational execution and system compliance</p>
+            </div>
           </div>
-          <span class="text-[11px] font-mono text-muted">{{ sec.items|length }} parameters</span>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-mono px-2.5 py-1 rounded bg-slate-100 text-slate-600 border border-slate-200/70">
+              {{ sec.items|length }} parameters
+            </span>
+          </div>
         </div>
 
-        <!-- Items List -->
-        <div class="divide-y divide-line">
+        <!-- Items Table / List -->
+        <div class="divide-y divide-slate-100">
           {% for item in sec.items %}
-            <div class="py-3.5 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="flex items-start gap-3 min-w-0">
-                <div class="mt-0.5">
+            <div class="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors">
+              <div class="flex items-start gap-3.5 min-w-0">
+                <div class="mt-0.5 flex-shrink-0">
                   {% if item.status == 'completed' %}
-                    <span class="w-5 h-5 rounded-full bg-go-light text-go flex items-center justify-center">
+                    <span class="w-5 h-5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center" title="Verified & Active">
                       <i data-lucide="check" class="w-3.5 h-3.5"></i>
                     </span>
                   {% else %}
-                    <span class="w-5 h-5 rounded-full bg-bone text-muted border border-line flex items-center justify-center font-mono text-[10px]">
-                      •
+                    <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center font-mono text-[10px]" title="Pending Review">
+                      &bull;
                     </span>
                   {% endif %}
                 </div>
-                <div class="min-w-0">
-                  <div class="font-bold text-sm text-charcoal flex items-center gap-2">
+                <div class="min-w-0 space-y-1">
+                  <div class="font-semibold text-sm text-slate-900 flex items-center gap-2 flex-wrap">
                     <span>{{ item.title }}</span>
+                    {% if item.value %}
+                      <span class="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200/70">
+                        {{ item.value }}
+                      </span>
+                    {% endif %}
                   </div>
-                  <p class="text-xs text-muted mt-0.5">{{ item.desc }}</p>
+                  <p class="text-xs text-slate-600 leading-relaxed max-w-3xl">{{ item.desc }}</p>
                 </div>
               </div>
 
               <div class="flex items-center gap-3 sm:flex-shrink-0 pl-8 sm:pl-0">
-                <span class="chip {% if item.status == 'completed' %}chip-won{% else %}chip-new{% endif %} font-mono text-[11px]">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-medium {% if item.status == 'completed' %}bg-emerald-50 text-emerald-800 border border-emerald-200/80{% else %}bg-slate-100 text-slate-600 border border-slate-200{% endif %}">
                   {{ item.status_label }}
                 </span>
                 <button type="button" 
-                        class="btn btn-secondary text-xs py-1.5 px-3 min-h-[32px] hover:border-steel"
-                        @click="$dispatch('show-toast', { message: 'Configuration for {{ item.title|escapejs }} is managed by System Admin.', type: 'info' })">
-                  Inspect
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-colors shadow-xs"
+                        @click="openSpec({
+                          id: '{{ item.id|escapejs }}',
+                          title: '{{ item.title|escapejs }}',
+                          desc: '{{ item.desc|escapejs }}',
+                          value: '{{ item.value|default:item.desc|escapejs }}',
+                          authority: '{{ item.authority|default:'Executive Administration'|escapejs }}',
+                          status: '{{ item.status|escapejs }}',
+                          status_label: '{{ item.status_label|escapejs }}',
+                          module_url: '{{ item.module_url|default:''|escapejs }}'
+                        })">
+                  <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-400"></i>
+                  <span>Inspect</span>
                 </button>
               </div>
             </div>
@@ -116,14 +226,101 @@
     {% endfor %}
   </div>
 
-  <!-- Bottom Action Bar -->
-  <div class="flex items-center justify-between pt-4 border-t border-line">
-    <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary text-xs">
-      <i data-lucide="arrow-left" class="w-3.5 h-3.5 mr-1.5"></i> Back to Dashboard
-    </a>
-    <div class="text-xs font-mono text-muted">
-      All parameters audited under EAT (UTC+3)
+  <!-- Institutional Governance Assurance Footer -->
+  <footer class="p-4 bg-white rounded-xl border border-slate-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-500">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="shield-check" class="w-4 h-4"></i>
+      </div>
+      <span>All organizational parameters, statutory tax rates, and sequential counters are audited under <strong>East Africa Time (EAT, UTC+3)</strong>.</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="{% url 'dashboard:overview' %}" class="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Dashboard
+      </a>
+      <span class="text-slate-300">|</span>
+      <span class="font-mono text-slate-400 text-[11px]">HMAC SHA-256 Ledger</span>
+    </div>
+  </footer>
+
+  <!-- Technical Parameter Specification Modal -->
+  <div x-show="specModalOpen"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
+       style="display: none;"
+       @keydown.escape.window="specModalOpen = false"
+       role="dialog"
+       aria-modal="true"
+       :aria-labelledby="'modal-title-' + selectedItem.id">
+    
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-5"
+         @click.outside="specModalOpen = false">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200" x-text="selectedItem.id"></span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium"
+                  :class="selectedItem.status === 'completed' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'"
+                  x-text="selectedItem.status_label"></span>
+          </div>
+          <h3 class="text-lg font-bold font-display text-slate-900" x-text="selectedItem.title"></h3>
+        </div>
+        <button type="button"
+                @click="specModalOpen = false"
+                class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-mono uppercase text-[10px] font-bold text-slate-400 mb-1">Live Operating Value</label>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 font-medium" x-text="selectedItem.value"></div>
+        </div>
+
+        <div>
+          <label class="block font-mono uppercase text-[10px] font-bold text-slate-400 mb-1">Functional Description</label>
+          <p class="text-slate-600 leading-relaxed" x-text="selectedItem.desc"></p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-lg">
+            <span class="block text-[10px] font-mono uppercase text-slate-400 mb-0.5">Governing Authority</span>
+            <span class="font-medium text-slate-800 text-xs" x-text="selectedItem.authority"></span>
+          </div>
+          <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-lg">
+            <span class="block text-[10px] font-mono uppercase text-slate-400 mb-0.5">Audit Integrity</span>
+            <span class="font-medium text-slate-800 text-xs">HMAC SHA-256 Logged</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <button type="button"
+                @click="specModalOpen = false"
+                class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          Dismiss
+        </button>
+        <template x-if="selectedItem.module_url">
+          <a :href="selectedItem.module_url"
+             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs">
+            <span>Open Module</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </a>
+        </template>
+      </div>
+
     </div>
   </div>
+
 </div>
 {% endblock content %}

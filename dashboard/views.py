@@ -586,45 +586,45 @@ def setup_checklist_view(request):
             'category': 'Organization & Branding (S-93)',
             'icon': 'building-2',
             'items': [
-                {'id': 'org_profile', 'title': 'Company Legal Profile', 'desc': 'Jimcan legal name, registered address, phone, and contact email.', 'status': 'completed', 'status_label': 'Ready'},
-                {'id': 'org_tin', 'title': 'URA Tax Identification Number (TIN)', 'desc': '10-digit URA registration for formal tax compliance.', 'status': 'completed', 'status_label': 'Ready'},
-                {'id': 'org_logo', 'title': 'Document Header & Print Branding', 'desc': 'High-resolution logo for client invoices, quotes, and BOQ exports.', 'status': 'pending', 'status_label': 'Pending'},
+                {'id': 'org_profile', 'title': 'Company Legal Profile', 'desc': 'Jimcan legal name, registered address, phone, and contact email.', 'status': 'completed', 'status_label': 'Ready', 'value': 'Jimcan Construction & Engineering Ltd. · Kampala, UG', 'authority': 'Executive Directorate'},
+                {'id': 'org_tin', 'title': 'URA Tax Identification Number (TIN)', 'desc': '10-digit URA registration for formal tax compliance.', 'status': 'completed', 'status_label': 'Ready', 'value': '1002938471 (URA Verified)', 'authority': 'Uganda Revenue Authority'},
+                {'id': 'org_logo', 'title': 'Document Header & Print Branding', 'desc': 'High-resolution logo for client invoices, quotes, and BOQ exports.', 'status': 'pending', 'status_label': 'Pending', 'value': 'Vector Assets (.SVG, .PNG 300DPI)', 'authority': 'Marketing & Communications'},
             ]
         },
         {
             'category': 'Tax & Calculation Rules (S-94)',
             'icon': 'calculator',
             'items': [
-                {'id': 'tax_vat', 'title': 'Standard VAT Rate (18%)', 'desc': 'Applicable to taxable commercial construction supplies in Uganda.', 'status': 'completed', 'status_label': 'Default 18%'},
-                {'id': 'tax_wht', 'title': 'Withholding Tax (WHT 6%)', 'desc': 'Contractor withholding rate on eligible invoice payments.', 'status': 'completed', 'status_label': 'Default 6%'},
-                {'id': 'tax_currency', 'title': 'Operational Currency (UGX)', 'desc': 'Ugandan Shilling configured as system-wide base currency.', 'status': 'completed', 'status_label': 'UGX Fixed'},
+                {'id': 'tax_vat', 'title': 'Standard VAT Rate (18%)', 'desc': 'Applicable to taxable commercial construction supplies in Uganda.', 'status': 'completed', 'status_label': 'Default 18%', 'value': '18.00% Statutory VAT (Commercial Supplies)', 'authority': 'URA Domestic Taxes', 'module_url': '/tax/'},
+                {'id': 'tax_wht', 'title': 'Withholding Tax (WHT 6%)', 'desc': 'Contractor withholding rate on eligible invoice payments.', 'status': 'completed', 'status_label': 'Default 6%', 'value': '6.00% Contractor Withholding Rate', 'authority': 'Ministry of Finance / URA', 'module_url': '/tax/'},
+                {'id': 'tax_currency', 'title': 'Operational Currency (UGX)', 'desc': 'Ugandan Shilling configured as system-wide base currency.', 'status': 'completed', 'status_label': 'UGX Fixed', 'value': 'UGX · Ugandan Shilling (Zero Decimal Base)', 'authority': 'Bank of Uganda Standards', 'module_url': '/tax/'},
             ]
         },
         {
             'category': 'Document Numbering Sequences (S-95)',
             'icon': 'hash',
             'items': [
-                {'id': 'seq_inv', 'title': 'Invoice Sequence Counter', 'desc': 'Prefix: JC-INV-2026- | Current next number: 001', 'status': 'completed', 'status_label': 'Configured'},
-                {'id': 'seq_quo', 'title': 'Quotation / Estimate Sequence', 'desc': 'Prefix: JC-QUO-2026- | Current next number: 001', 'status': 'completed', 'status_label': 'Configured'},
-                {'id': 'seq_prj', 'title': 'Project Code Format', 'desc': 'Prefix: JC-PRJ- | Current next number: 101', 'status': 'completed', 'status_label': 'Configured'},
+                {'id': 'seq_inv', 'title': 'Invoice Sequence Counter', 'desc': 'Prefix: JC-INV-2026- | Current next number: 001', 'status': 'completed', 'status_label': 'Configured', 'value': 'JC-INV-2026-001 (Sequential Auto-increment)', 'authority': 'Finance Directorate', 'module_url': '/invoices/'},
+                {'id': 'seq_quo', 'title': 'Quotation / Estimate Sequence', 'desc': 'Prefix: JC-QUO-2026- | Current next number: 001', 'status': 'completed', 'status_label': 'Configured', 'value': 'JC-QUO-2026-001 (Sequential Auto-increment)', 'authority': 'Commercial Operations'},
+                {'id': 'seq_prj', 'title': 'Project Code Format', 'desc': 'Prefix: JC-PRJ- | Current next number: 101', 'status': 'completed', 'status_label': 'Configured', 'value': 'JC-PRJ-101 (Standard Series)', 'authority': 'Engineering Directorate', 'module_url': '/projects/'},
             ]
         },
         {
             'category': 'BOQ Master Rates & Units (S-50)',
             'icon': 'notebook-tabs',
             'items': [
-                {'id': 'rate_units', 'title': 'Standard Measurement Units', 'desc': 'Meters (m), Square Meters (m²), Cubic Meters (m³), Kilograms (kg), Bags.', 'status': 'completed', 'status_label': 'Loaded'},
-                {'id': 'rate_base', 'title': 'Core Material Master Rates', 'desc': 'Cement, aggregates, rebar, sand, timber, and masonry unit costs.', 'status': 'pending', 'status_label': 'Phase 7'},
+                {'id': 'rate_units', 'title': 'Standard Measurement Units', 'desc': 'Meters (m), Square Meters (m²), Cubic Meters (m³), Kilograms (kg), Bags.', 'status': 'completed', 'status_label': 'Loaded', 'value': 'SI Metric Units (m, m², m³, kg, bags)', 'authority': 'UNBS / Procurement', 'module_url': '/rates/'},
+                {'id': 'rate_base', 'title': 'Core Material Master Rates', 'desc': 'Cement, aggregates, rebar, sand, timber, and masonry unit costs.', 'status': 'pending', 'status_label': 'Pending', 'value': 'Structural Materials (Cement, Sand, Rebar)', 'authority': 'Procurement Directorate', 'module_url': '/rates/'},
             ]
         },
         {
             'category': 'Initial Team & Role Permissions (S-96)',
             'icon': 'users',
             'items': [
-                {'id': 'users_admin', 'title': 'Primary Administrator Account', 'desc': 'Full company view, system settings, and audit visibility.', 'status': 'completed', 'status_label': 'Active'},
-                {'id': 'users_manager', 'title': 'Project Manager Onboarding', 'desc': 'Site supervision, milestone tracking, and commercial quotations.', 'status': 'pending', 'status_label': 'Pending Invite'},
-                {'id': 'users_engineer', 'title': 'Site Engineer Mobile Accounts', 'desc': 'Field execution view, daily progress logs, and site upload queue.', 'status': 'pending', 'status_label': 'Pending Invite'},
-                {'id': 'users_accountant', 'title': 'Accountant Compliance Account', 'desc': 'Financial oversight, tax declarations, and expense disbursements.', 'status': 'pending', 'status_label': 'Pending Invite'},
+                {'id': 'users_admin', 'title': 'Primary Administrator Account', 'desc': 'Full company view, system settings, and audit visibility.', 'status': 'completed', 'status_label': 'Active', 'value': 'Role: Owner / Admin (Full Operations Access)', 'authority': 'Security Architecture', 'module_url': '/settings/team/'},
+                {'id': 'users_manager', 'title': 'Project Manager Onboarding', 'desc': 'Site supervision, milestone tracking, and commercial quotations.', 'status': 'pending', 'status_label': 'Pending Invite', 'value': 'Role: Project Manager (Sites & Claims)', 'authority': 'Operations Directorate', 'module_url': '/settings/team/'},
+                {'id': 'users_engineer', 'title': 'Site Engineer Mobile Accounts', 'desc': 'Field execution view, daily progress logs, and site upload queue.', 'status': 'pending', 'status_label': 'Pending Invite', 'value': 'Role: Site Engineer (Field Media & Logs)', 'authority': 'Field Directorate', 'module_url': '/settings/team/'},
+                {'id': 'users_accountant', 'title': 'Accountant Compliance Account', 'desc': 'Financial oversight, tax declarations, and expense disbursements.', 'status': 'pending', 'status_label': 'Pending Invite', 'value': 'Role: Accountant (Financial Oversight)', 'authority': 'Finance Directorate', 'module_url': '/settings/team/'},
             ]
         },
     ]
