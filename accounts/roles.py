@@ -215,6 +215,19 @@ def assign_role(user: User, role_name: str) -> None:
                 if perm:
                     user.user_permissions.add(perm)
 
+    # Sync granular permission overrides if defined on UserProfile
+    if hasattr(user, 'profile'):
+        flag_perm_map = {
+            'can_view_boq': ['view_rates'],
+            'can_approve_expenses': ['change_expenses'],
+            'can_export_tax_reports': ['view_tax_reports', 'export_reports'],
+            'can_manage_leads': ['view_leads', 'add_leads', 'change_leads'],
+        }
+        for flag, codenames in flag_perm_map.items():
+            if getattr(user.profile, flag, False):
+                perms = Permission.objects.filter(codename__in=codenames)
+                user.user_permissions.add(*perms)
+
     user.save(update_fields=['is_superuser', 'is_staff'])
 
     # Sync UserProfile role

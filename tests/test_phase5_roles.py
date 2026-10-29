@@ -273,6 +273,20 @@ ROUTE_PERMISSIONS_TABLE = {
         'Finance': 403,
         'Owner': 302,
     },
+    'accounts:user_vault_credential': {
+        'kwargs': {'user_id': 1},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
+    'accounts:team_vault_credential': {
+        'kwargs': {'user_id': 1},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
     'dashboard:overview': {
         'kwargs': {},
         'Anonymous': 302,
@@ -364,6 +378,13 @@ ROUTE_PERMISSIONS_TABLE = {
         'Finance': 403,
         'Owner': 200,
     },
+    'dashboard:settings_users_create': {
+        'kwargs': {},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
     'dashboard:settings_team': {
         'kwargs': {},
         'Anonymous': 302,
@@ -371,7 +392,21 @@ ROUTE_PERMISSIONS_TABLE = {
         'Finance': 403,
         'Owner': 200,
     },
+    'dashboard:settings_team_create': {
+        'kwargs': {},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
     'dashboard:dashboard_team': {
+        'kwargs': {},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
+    'dashboard:dashboard_team_create': {
         'kwargs': {},
         'Anonymous': 302,
         'Site staff': 403,

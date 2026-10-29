@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseNotAllowed
+from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -28,6 +28,7 @@ from accounts.roles import (
     ROLE_ADMIN,
     assign_role,
     get_user_role,
+    is_admin,
 )
 from accounts.services import (
     send_setup_link,
@@ -54,6 +55,7 @@ class UserListView(View):
     """
     Renders the central user and role management roster (/settings/users/ or /settings/team/).
     Accessible exclusively to users holding the 'accounts.manage_users' permission.
+    Provides credential oversight (vault decryption for Owner/Admin) and granular permission badges.
     """
     template_name = 'accounts/user_list.html'
 
@@ -61,6 +63,7 @@ class UserListView(View):
         users = User.objects.all().select_related('profile').order_by('username')
         user_list = []
         active_owners = 0
+        is_requester_admin = is_admin(request.user)
 
         for u in users:
             role = get_user_role(u) or 'No Role'
@@ -73,6 +76,22 @@ class UserListView(View):
             created_at = profile.created_at if profile else u.date_joined
             created_by = profile.created_by if profile else None
 
+            # Credential Oversight: Decrypt initial raw password strictly for Owner/Admin if still pending change
+            vault_password = None
+            if is_requester_admin and profile and must_change:
+                vault_password = profile.get_initial_vault_password()
+
+            privileges = []
+            if profile:
+                if profile.can_view_boq or profile.can_view_boq_rates:
+                    privileges.append({'id': 'boq', 'label': 'BOQ Pricing', 'color': 'indigo'})
+                if profile.can_approve_expenses:
+                    privileges.append({'id': 'expenses', 'label': 'Approve Expenses', 'color': 'emerald'})
+                if profile.can_export_tax_reports:
+                    privileges.append({'id': 'tax', 'label': 'Tax Export', 'color': 'blue'})
+                if profile.can_manage_leads:
+                    privileges.append({'id': 'leads', 'label': 'Manage Leads', 'color': 'purple'})
+
             user_list.append({
                 'id': u.pk,
                 'username': u.username,
@@ -83,6 +102,13 @@ class UserListView(View):
                 'role': role,
                 'is_active': u.is_active,
                 'must_change_password': must_change,
+                'vault_password': vault_password,
+                'has_vault_record': bool(profile and profile.initial_credential_vault and must_change),
+                'privileges': privileges,
+                'can_view_boq': profile.can_view_boq if profile else False,
+                'can_approve_expenses': profile.can_approve_expenses if profile else False,
+                'can_export_tax_reports': profile.can_export_tax_reports if profile else False,
+                'can_manage_leads': profile.can_manage_leads if profile else False,
                 'created_at': created_at,
                 'created_by': created_by,
                 'has_mfa': has_mfa,
@@ -99,8 +125,10 @@ class UserListView(View):
             'total_users': len(user_list),
             'active_owners_count': active_owners,
             'create_form': create_form,
+            'is_admin': is_requester_admin,
         }
         return render(request, self.template_name, context)
+
 
 
 @method_decorator(permission_required('accounts.manage_users', raise_exception=True), name='dispatch')
@@ -128,13 +156,15 @@ class UserCreateView(View):
             role = form.cleaned_data['role']
             temp_password = getattr(form, 'generated_password', None)
 
-            # Trigger automated onboarding credentials email
+            # Trigger automated onboarding credentials email if requested
+            send_email = getattr(form, 'send_email_requested', True)
             email_sent, email_err = False, None
-            if temp_password:
-                email_sent, email_err = send_onboarding_email(user, temp_password, request=request)
-            else:
-                send_setup_link(user, request=request)
-                email_sent = True
+            if send_email:
+                if temp_password:
+                    email_sent, email_err = send_onboarding_email(user, temp_password, request=request)
+                else:
+                    send_setup_link(user, request=request)
+                    email_sent = True
 
             # Record tamper-evident audit event
             record_event(
@@ -145,7 +175,7 @@ class UserCreateView(View):
                 request=request,
                 description=(
                     f"Admin '{request.user.username}' provisioned user account '{user.username}' "
-                    f"({user.email}) with assigned role '{role}'. Onboarding credentials dispatched."
+                    f"({user.email}) with assigned role '{role}'. Onboarding credentials {'dispatched' if email_sent else 'stored in vault'}."
                 )
             )
 
@@ -155,11 +185,17 @@ class UserCreateView(View):
                     f"User account '{user.get_full_name() or user.username}' ({user.email}) created successfully with role '{role}'. "
                     f"An onboarding email with temporary credentials has been dispatched."
                 )
-            else:
+            elif send_email:
                 messages.warning(
                     request,
                     f"User account '{user.get_full_name() or user.username}' created, but credentials email could not be delivered: {email_err}. "
-                    f"Temporary Password: {temp_password}"
+                    f"Temporary Password has been safely recorded in the administrative vault."
+                )
+            else:
+                messages.success(
+                    request,
+                    f"User account '{user.get_full_name() or user.username}' ({user.email}) created successfully with role '{role}'. "
+                    f"Temporary credentials have been stored in the administrative vault."
                 )
             return redirect('accounts:user_list')
 
@@ -354,13 +390,16 @@ class UserResetPasswordView(View):
         target_user.set_password(temp_password)
         target_user.save()
 
-        # Enforce must_change_password
+        # Enforce must_change_password and update encrypted temporary credential vault
         if hasattr(target_user, 'profile'):
+            target_user.profile.set_initial_vault_password(temp_password)
             target_user.profile.must_change_password = True
-            target_user.profile.save(update_fields=['must_change_password'])
+            target_user.profile.save()
         else:
             from accounts.models import UserProfile
-            UserProfile.objects.create(user=target_user, must_change_password=True)
+            prof = UserProfile.objects.create(user=target_user, must_change_password=True)
+            prof.set_initial_vault_password(temp_password)
+            prof.save()
 
         # Terminate all active sessions for this user
         sign_out_everywhere(target_user)
@@ -391,7 +430,29 @@ class UserResetPasswordView(View):
             messages.warning(
                 request,
                 f"Password reset, but notification email could not be delivered: {email_err}. "
-                f"Temporary Password: {temp_password}"
+                f"Temporary Password has been safely recorded in the administrative vault."
             )
 
         return redirect('accounts:user_list')
+
+
+@method_decorator(permission_required('accounts.manage_users', raise_exception=True), name='dispatch')
+class UserVaultCredentialView(View):
+    """
+    API endpoint for Owner/Admin to safely inspect provisioned credentials.
+    Returns decrypted initial temporary password strictly when must_change_password is True.
+    """
+    def get(self, request, user_id):
+        if not is_admin(request.user):
+            raise PermissionDenied("Only Administrator or Owner can inspect vault credentials.")
+
+        target_user = get_object_or_404(User, pk=user_id)
+        vault_pw = target_user.get_initial_vault_password() if hasattr(target_user, 'get_initial_vault_password') else None
+        return JsonResponse({
+            'user_id': target_user.pk,
+            'username': target_user.username,
+            'has_vault': bool(vault_pw),
+            'password': vault_pw,
+            'must_change_password': target_user.profile.must_change_password if hasattr(target_user, 'profile') else False,
+        })
+

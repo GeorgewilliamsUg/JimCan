@@ -93,9 +93,9 @@ class ReauthForm(forms.Form):
 
 class UserCreateForm(forms.ModelForm):
     """
-    Form for Admin/Owner provisioning a new user account with RBAC and onboarding credentials.
-    Supports auto-generated 12-char temporary passwords or custom initial passwords,
-    email validation and uniqueness, and must_change_password enforcement.
+    Form for Admin/Owner provisioning a new user account with RBAC, granular permission
+    overrides, administrative credential vault encryption, and onboarding credentials.
+    Enforces username and email uniqueness across active and inactive accounts.
     """
     first_name = forms.CharField(
         max_length=150,
@@ -119,72 +119,123 @@ class UserCreateForm(forms.ModelForm):
     )
     email = forms.EmailField(
         required=True,
-        label=_("Email Address"),
+        label=_("Work Email Address"),
         widget=forms.EmailInput(attrs={
             'class': 'auth-input',
             'placeholder': 'sarah.k@jimcanconstruction.site',
             'required': 'required',
         })
     )
+    username = forms.CharField(
+        max_length=150,
+        required=False,
+        label=_("Username"),
+        widget=forms.TextInput(attrs={
+            'class': 'auth-input',
+            'placeholder': 'e.g. sarah_k',
+        })
+    )
     role = forms.ChoiceField(
         choices=(),
         required=True,
-        label=_("Assigned Role"),
+        label=_("System Role"),
         widget=forms.Select(attrs={'class': 'auth-input'})
     )
     password_option = forms.ChoiceField(
         choices=[
-            ('auto', _('Auto-generate secure temporary password')),
-            ('manual', _('Enter custom temporary password')),
+            ('auto', _('Auto-generate strong credentials')),
+            ('manual', _('Manual Entry (Set explicit password)')),
         ],
         initial='auto',
         required=False,
         widget=forms.RadioSelect(attrs={'class': 'password-option-radio'}),
-        label=_("Password Option"),
+        label=_("Password Configuration"),
     )
     custom_password = forms.CharField(
         required=False,
         strip=False,
-        label=_("Custom Temporary Password"),
+        label=_("Custom Initial Password"),
         widget=forms.PasswordInput(attrs={
             'class': 'auth-input',
             'placeholder': '••••••••••••',
             'autocomplete': 'new-password',
         })
     )
+
+    # Granular Feature Toggles
+    can_view_boq = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Access BOQ Master Pricing (can_view_boq_rates)"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
+    )
+    can_approve_expenses = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Permission to sign off on vouchers (can_approve_expenses)"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
+    )
+    can_export_tax_reports = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Permission to download URA schedules (can_export_tax_reports)"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
+    )
+    can_manage_leads = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Edit and reassign pipeline items (can_manage_leads)"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
+    )
+
+    # Action Checkboxes
     must_change_password = forms.BooleanField(
         required=False,
         initial=True,
-        label=_("Require password change upon first login"),
+        label=_("Require password change on first sign-in"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
+    )
+    send_onboarding_email = forms.BooleanField(
+        required=False,
+        initial=True,
+        label=_("Dispatch onboarding email with credentials"),
         widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
     )
 
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email', 'username')
-        widgets = {
-            'username': forms.TextInput(attrs={'class': 'auth-input', 'placeholder': 'Optional username'}),
-        }
 
     def __init__(self, *args, **kwargs):
         from accounts.roles import ROLE_CHOICES
         super().__init__(*args, **kwargs)
         self.fields['role'].choices = ROLE_CHOICES
-        self.fields['username'].required = False
         if not self.is_bound:
             self.fields['must_change_password'].initial = True
+            self.fields['send_onboarding_email'].initial = True
 
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
         if not email:
             raise forms.ValidationError(_("Email address is required."))
-        # Verify email uniqueness
+        # Verify email uniqueness across all active and inactive accounts
         qs = User.objects.filter(email__iexact=email)
         if self.instance and self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
             raise forms.ValidationError(_("A user account with this email address already exists."))
         return email
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '').strip()
+        if username:
+            # Verify username uniqueness across all active and inactive accounts
+            qs = User.objects.filter(username__iexact=username)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError(_("A user account with this username already exists."))
+        return username
 
     def clean_role(self):
         from accounts.roles import ALL_OPERATIONAL_ROLES
@@ -211,14 +262,32 @@ class UserCreateForm(forms.ModelForm):
             base_username = email.split('@')[0].replace('+', '').replace('.', '_')
             candidate = base_username[:140]
             counter = 1
-            while User.objects.filter(username=candidate).exists():
+            while User.objects.filter(username__iexact=candidate).exists():
                 candidate = f"{base_username[:135]}_{counter}"
                 counter += 1
             cleaned_data['username'] = candidate
 
         return cleaned_data
 
+    def _sync_user_permissions(self, user):
+        from django.contrib.auth.models import Permission
+        if not hasattr(user, 'profile'):
+            return
+
+        flag_perm_map = {
+            'can_view_boq': ['view_rates'],
+            'can_approve_expenses': ['change_expenses'],
+            'can_export_tax_reports': ['view_tax_reports', 'export_reports'],
+            'can_manage_leads': ['view_leads', 'add_leads', 'change_leads'],
+        }
+
+        for flag, codenames in flag_perm_map.items():
+            if getattr(user.profile, flag, False):
+                perms = Permission.objects.filter(codename__in=codenames)
+                user.user_permissions.add(*perms)
+
     def save(self, commit=True, created_by=None):
+        from accounts.models import UserProfile
         from accounts.roles import assign_role
         from accounts.services import generate_temporary_password
 
@@ -235,34 +304,47 @@ class UserCreateForm(forms.ModelForm):
         user.is_staff = False
         user.is_superuser = False
         self.generated_password = temp_password
+        self.send_email_requested = self.cleaned_data.get('send_onboarding_email', True)
 
         if commit:
             user.save()
             role = self.cleaned_data.get('role')
-            assign_role(user, role)
 
             # Configure profile
             must_change = self.cleaned_data.get('must_change_password', True)
-            if hasattr(user, 'profile'):
-                user.profile.must_change_password = must_change
-                if created_by:
-                    user.profile.created_by = created_by
-                user.profile.save()
-            else:
-                from accounts.models import UserProfile
-                UserProfile.objects.create(
-                    user=user,
-                    role=role,
-                    must_change_password=must_change,
-                    created_by=created_by,
-                )
+            can_view_boq = self.cleaned_data.get('can_view_boq', False)
+            can_approve_expenses = self.cleaned_data.get('can_approve_expenses', False)
+            can_export_tax_reports = self.cleaned_data.get('can_export_tax_reports', False)
+            can_manage_leads = self.cleaned_data.get('can_manage_leads', False)
+
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.role = role
+            profile.must_change_password = must_change
+            profile.can_view_boq = can_view_boq
+            profile.can_view_boq_rates = can_view_boq
+            profile.can_approve_expenses = can_approve_expenses
+            profile.can_export_tax_reports = can_export_tax_reports
+            profile.can_manage_leads = can_manage_leads
+            if created_by:
+                profile.created_by = created_by
+
+            # Store encrypted password in administrative vault
+            profile.set_initial_vault_password(temp_password)
+            profile.save()
+
+            # Attach updated profile to in-memory user instance
+            user.profile = profile
+
+            # Assign role and sync permissions
+            assign_role(user, role)
+            self._sync_user_permissions(user)
 
         return user
 
 
 class UserEditForm(forms.ModelForm):
     """
-    Form for editing user details and role assignment (Phase 5 Task 4).
+    Form for editing user details, role assignment, and granular permission overrides.
     Prevents demotion of the last active Owner and prevents privilege escalation.
     """
     role = forms.ChoiceField(
@@ -270,6 +352,31 @@ class UserEditForm(forms.ModelForm):
         required=True,
         label=_("Assigned Role"),
         widget=forms.Select(attrs={'class': 'auth-input'})
+    )
+
+    can_view_boq = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Access BOQ Master Pricing (can_view_boq_rates)"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
+    )
+    can_approve_expenses = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Permission to sign off on vouchers (can_approve_expenses)"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
+    )
+    can_export_tax_reports = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Permission to download URA schedules (can_export_tax_reports)"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
+    )
+    can_manage_leads = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Edit and reassign pipeline items (can_manage_leads)"),
+        widget=forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 text-slate-900 focus:ring-slate-900'})
     )
 
     class Meta:
@@ -289,6 +396,23 @@ class UserEditForm(forms.ModelForm):
             current_role = get_user_role(self.instance)
             if current_role:
                 self.fields['role'].initial = current_role
+            if hasattr(self.instance, 'profile'):
+                self.fields['can_view_boq'].initial = self.instance.profile.can_view_boq
+                self.fields['can_approve_expenses'].initial = self.instance.profile.can_approve_expenses
+                self.fields['can_export_tax_reports'].initial = self.instance.profile.can_export_tax_reports
+                self.fields['can_manage_leads'].initial = self.instance.profile.can_manage_leads
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip().lower()
+        if not email:
+            raise forms.ValidationError(_("Email address is required."))
+        # Verify email uniqueness across all accounts
+        qs = User.objects.filter(email__iexact=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError(_("A user account with this email address already exists."))
+        return email
 
     def clean_role(self):
         from accounts.roles import ALL_OPERATIONAL_ROLES, ROLE_OWNER, ROLE_ADMIN, get_user_role
@@ -300,7 +424,7 @@ class UserEditForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             current_role = get_user_role(self.instance)
             if current_role in (ROLE_OWNER, ROLE_ADMIN) and new_role not in (ROLE_OWNER, ROLE_ADMIN) and self.instance.is_active:
-                active_owners = User.objects.filter(is_active=True, groups__name=ROLE_OWNER)
+                active_owners = User.objects.filter(is_active=True, groups__name__in=[ROLE_OWNER, ROLE_ADMIN])
                 if active_owners.count() <= 1:
                     raise forms.ValidationError(_("Cannot demote the last active Owner account."))
         return new_role
@@ -313,6 +437,32 @@ class UserEditForm(forms.ModelForm):
         if commit:
             user.save()
             role = self.cleaned_data.get('role')
+
+            if hasattr(user, 'profile'):
+                can_view_boq = self.cleaned_data.get('can_view_boq', False)
+                user.profile.can_view_boq = can_view_boq
+                user.profile.can_view_boq_rates = can_view_boq
+                user.profile.can_approve_expenses = self.cleaned_data.get('can_approve_expenses', False)
+                user.profile.can_export_tax_reports = self.cleaned_data.get('can_export_tax_reports', False)
+                user.profile.can_manage_leads = self.cleaned_data.get('can_manage_leads', False)
+                user.profile.save()
+
             assign_role(user, role)
+
+            # Sync permissions
+            from django.contrib.auth.models import Permission
+            flag_perm_map = {
+                'can_view_boq': ['view_rates'],
+                'can_approve_expenses': ['change_expenses'],
+                'can_export_tax_reports': ['view_tax_reports', 'export_reports'],
+                'can_manage_leads': ['view_leads', 'add_leads', 'change_leads'],
+            }
+            for flag, codenames in flag_perm_map.items():
+                perms = Permission.objects.filter(codename__in=codenames)
+                if getattr(user.profile, flag, False):
+                    user.user_permissions.add(*perms)
+                else:
+                    user.user_permissions.remove(*perms)
+
         return user
 

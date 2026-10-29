@@ -1,21 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Team & Role Management · Jimcan Operations{% endblock %}
+{% block title %}Team Credentials Ledger & Role Management · Jimcan Operations{% endblock %}
 
 {% block content %}
 <div class="space-y-6 max-w-7xl mx-auto"
      x-data="{ 
        createModalOpen: false, 
        passwordOption: 'auto',
-       resetModalOpen: false,
-       resetUserId: null,
-       resetUserName: '',
-       resetUserEmail: '',
-       openResetModal(id, name, email) {
-         this.resetUserId = id;
-         this.resetUserName = name;
-         this.resetUserEmail = email;
-         this.resetModalOpen = true;
+       manualPassword: '',
+       generatePassword() {
+         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*';
+         let pass = '';
+         for (let i = 0; i < 12; i++) {
+           pass += chars.charAt(Math.floor(Math.random() * chars.length));
+         }
+         this.manualPassword = pass;
        }
      }">
 
@@ -35,7 +34,7 @@
         </li>
         <li class="flex items-center gap-1.5">
           <span class="text-steel">/</span>
-          <span class="text-charcoal font-semibold" aria-current="page">Team & Roles</span>
+          <span class="text-charcoal font-semibold" aria-current="page">Team &amp; Credential Oversight</span>
         </li>
       </ol>
     </nav>
@@ -43,28 +42,28 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2 mb-1">
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-ink text-white">RBAC-01</span>
-          <span class="text-xs font-mono text-muted">Role-Based Access Control</span>
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-ink text-white">RBAC-VAULT</span>
+          <span class="text-xs font-mono text-muted">Admin User Provisioning &amp; Credential Oversight</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-display font-bold text-charcoal tracking-tight">Team & User Management</h1>
         <p class="text-muted text-sm mt-1 max-w-2xl">
-          Provision team accounts, assign operational roles (Admin, Project Manager, Site Engineer, Accountant), manage account lifecycle, and trigger automated onboarding email credentials.
+          Team Credentials Ledger, role assignment, granular permission overrides, and administrative credential oversight prior to initial user password rotation.
         </p>
       </div>
 
       <div class="flex items-center gap-3">
         <button type="button"
                 @click="createModalOpen = true"
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm transition-all"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm transition-all hover:opacity-95"
                 style="background-color: var(--ink);">
           <i data-lucide="user-plus" class="w-4 h-4"></i>
-          <span>Add Team Member</span>
+          <span>Provision User</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Flash Messages / Toasts -->
+  <!-- Flash Messages / Alerts -->
   {% if messages %}
     <div class="space-y-2">
       {% for message in messages %}
@@ -76,7 +75,7 @@
     </div>
   {% endif %}
 
-  <!-- KPI / Status Cards -->
+  <!-- KPI / Security Status Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="p-4 bg-white border border-line rounded-xl flex items-center justify-between shadow-sm">
       <div>
@@ -100,45 +99,50 @@
 
     <div class="p-4 bg-white border border-line rounded-xl flex items-center justify-between shadow-sm">
       <div>
-        <div class="text-xs font-mono text-muted uppercase">Security Controls</div>
+        <div class="text-xs font-mono text-muted uppercase">Credential Vault</div>
         <div class="text-xs font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
-          <i data-lucide="lock" class="w-3.5 h-3.5"></i>
-          <span>Password Force Change Active</span>
+          <i data-lucide="key" class="w-3.5 h-3.5"></i>
+          <span>Fernet-256 Symmetric Encryption</span>
         </div>
       </div>
       <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-        <i data-lucide="key" class="w-5 h-5"></i>
+        <i data-lucide="lock" class="w-5 h-5"></i>
       </div>
     </div>
   </div>
 
-  <!-- Users Table Card -->
+  <!-- Team Credentials Roster Table -->
   <div class="bg-white border border-line rounded-xl overflow-hidden shadow-sm">
-    <div class="p-4 border-b border-line flex items-center justify-between">
-      <div class="font-semibold text-sm text-charcoal">Operations Team Roster</div>
-      <div class="text-xs text-muted font-mono">{{ total_users }} registered accounts</div>
+    <div class="p-4 border-b border-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div>
+        <div class="font-semibold text-sm text-charcoal">Team Credentials Ledger</div>
+        <div class="text-xs text-muted font-mono">Provisioned accounts, assigned permissions, and initial vault credentials</div>
+      </div>
+      <div class="text-xs text-muted font-mono bg-slate-50 px-2.5 py-1 rounded-md border border-line">
+        {{ total_users }} registered accounts
+      </div>
     </div>
 
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-sm">
         <thead>
-          <tr class="border-b border-line bg-slate-50 text-xs font-mono text-muted uppercase">
-            <th class="py-3 px-4">Name</th>
-            <th class="py-3 px-4">Email</th>
-            <th class="py-3 px-4">Assigned Role</th>
+          <tr class="border-b border-line bg-slate-50 text-xs font-mono text-muted uppercase tracking-wider">
+            <th class="py-3 px-4">User</th>
+            <th class="py-3 px-4">Contact</th>
+            <th class="py-3 px-4">Role &amp; Privileges</th>
+            <th class="py-3 px-4">Provisioned Credentials</th>
             <th class="py-3 px-4">Status</th>
-            <th class="py-3 px-4">Must Change Password</th>
-            <th class="py-3 px-4">Date Added</th>
-            <th class="py-3 px-4 text-right">Row Actions</th>
+            <th class="py-3 px-4 text-right">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-line">
           {% for u in users %}
             <tr class="hover:bg-slate-50/80 transition-colors {% if not u.is_active %}opacity-60 bg-slate-50/50{% endif %}">
-              <!-- Name -->
+              
+              <!-- 1. User (Avatar, Full Name, Username) -->
               <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-slate-200 text-charcoal font-bold text-xs flex items-center justify-center flex-shrink-0">
+                  <div class="w-9 h-9 rounded-full bg-slate-200 text-charcoal font-bold text-xs flex items-center justify-center flex-shrink-0">
                     {% if u.first_name %}{{ u.first_name|slice:":1"|upper }}{% elif u.username %}{{ u.username|slice:":1"|upper }}{% else %}?{% endif %}
                   </div>
                   <div>
@@ -153,86 +157,127 @@
                 </div>
               </td>
 
-              <!-- Email -->
+              <!-- 2. Contact (Email) -->
               <td class="py-3 px-4 text-xs font-mono text-charcoal">
                 {{ u.email|default:"—" }}
               </td>
 
-              <!-- Assigned Role -->
+              <!-- 3. Role & Privileges (Primary Role badge + active permission chips) -->
               <td class="py-3 px-4">
-                {% if u.role == 'Admin' or u.role == 'Owner' %}
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-900 text-white">
-                    <i data-lucide="crown" class="w-3 h-3"></i>
-                    <span>Admin</span>
-                  </span>
-                {% elif u.role == 'Project Manager' %}
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
-                    <i data-lucide="briefcase" class="w-3 h-3"></i>
-                    <span>Project Manager</span>
-                  </span>
-                {% elif u.role == 'Site Engineer' or u.role == 'Site staff' %}
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                    <i data-lucide="hard-hat" class="w-3 h-3"></i>
-                    <span>Site Engineer</span>
-                  </span>
-                {% elif u.role == 'Accountant' or u.role == 'Auditor' or u.role == 'Finance' %}
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                    <i data-lucide="calculator" class="w-3 h-3"></i>
-                    <span>Accountant</span>
-                  </span>
+                <div>
+                  {% if u.role == 'Admin' or u.role == 'Owner' %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-900 text-white">
+                      <i data-lucide="crown" class="w-3 h-3"></i>
+                      <span>Admin</span>
+                    </span>
+                  {% elif u.role == 'Project Manager' %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
+                      <i data-lucide="briefcase" class="w-3 h-3"></i>
+                      <span>Project Manager</span>
+                    </span>
+                  {% elif u.role == 'Site Engineer' or u.role == 'Site staff' %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                      <i data-lucide="hard-hat" class="w-3 h-3"></i>
+                      <span>Site Engineer</span>
+                    </span>
+                  {% elif u.role == 'Accountant' or u.role == 'Auditor' or u.role == 'Finance' %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                      <i data-lucide="calculator" class="w-3 h-3"></i>
+                      <span>Accountant</span>
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                      <span>{{ u.role }}</span>
+                    </span>
+                  {% endif %}
+
+                  <!-- Granular Permission Chips -->
+                  {% if u.privileges %}
+                    <div class="flex flex-wrap gap-1 mt-1.5">
+                      {% for priv in u.privileges %}
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200" title="{{ priv.label }}">
+                          {{ priv.label }}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </td>
+
+              <!-- 4. Provisioned Credentials (Username + Masked Password with secure reveal / copy or User Changed / Encrypted) -->
+              <td class="py-3 px-4">
+                {% if u.has_vault_record and u.must_change_password and is_admin %}
+                  <div class="space-y-1" x-data="{ revealed: false, copied: false, val: '{{ u.vault_password|default:''|escapejs }}' }">
+                    <div class="flex items-center gap-1.5">
+                      <template x-if="!revealed">
+                        <span class="font-mono text-xs text-charcoal bg-slate-100 px-2 py-0.5 rounded border border-slate-200 tracking-widest select-none">••••••••••••</span>
+                      </template>
+                      <template x-if="revealed">
+                        <span class="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300 select-all" x-text="val"></span>
+                      </template>
+
+                      <button type="button" 
+                              @click="revealed = !revealed" 
+                              class="p-1 rounded hover:bg-slate-200 text-slate-600 transition-colors"
+                              :title="revealed ? 'Hide Password' : 'Show Initial Password'">
+                        <i x-show="!revealed" data-lucide="eye" class="w-3.5 h-3.5"></i>
+                        <i x-show="revealed" data-lucide="eye-off" class="w-3.5 h-3.5"></i>
+                      </button>
+
+                      <button type="button" 
+                              @click="navigator.clipboard.writeText(val); copied = true; setTimeout(() => copied = false, 2000)" 
+                              class="p-1 rounded hover:bg-slate-200 text-slate-600 transition-colors relative"
+                              title="Copy Initial Password">
+                        <i x-show="!copied" data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        <i x-show="copied" data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                        <span x-show="copied" x-transition class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-mono px-1.5 py-0.5 rounded shadow z-10 whitespace-nowrap">Copied!</span>
+                      </button>
+                    </div>
+                    <div class="text-[10px] text-amber-700 font-mono flex items-center gap-1">
+                      <i data-lucide="clock" class="w-3 h-3"></i>
+                      <span>Initial Vault (wipes on 1st login)</span>
+                    </div>
+                  </div>
                 {% else %}
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                    <span>{{ u.role }}</span>
-                  </span>
+                  <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono text-muted bg-slate-100 border border-slate-200">
+                    <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i>
+                    <span>User Changed / Encrypted</span>
+                  </div>
                 {% endif %}
               </td>
 
-              <!-- Status (Active / Suspended) -->
+              <!-- 5. Status (Active, First Login Pending, Suspended) -->
               <td class="py-3 px-4">
-                {% if u.is_active %}
-                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span>Active</span>
-                  </span>
-                {% else %}
-                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                {% if not u.is_active %}
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
                     <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                     <span>Suspended</span>
                   </span>
-                {% endif %}
-              </td>
-
-              <!-- Must Change Password Flag -->
-              <td class="py-3 px-4">
-                {% if u.must_change_password %}
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200" title="User is required to set a new password upon next login">
-                    <i data-lucide="clock" class="w-3 h-3 text-amber-600"></i>
-                    <span>Pending First Login</span>
+                {% elif u.must_change_password %}
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="User must rotate password before dashboard access is permitted">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>First Login Pending</span>
                   </span>
                 {% else %}
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-medium bg-slate-50 text-slate-600 border border-slate-200">
-                    <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
-                    <span>Updated</span>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Active</span>
                   </span>
                 {% endif %}
               </td>
 
-              <!-- Date Added -->
-              <td class="py-3 px-4 text-xs font-mono text-muted">
-                {{ u.created_at|date:"M d, Y" }}
-              </td>
-
-              <!-- Row Actions -->
+              <!-- 6. Actions (Edit Roles/Permissions, Suspend, Force Reset, Resend Welcome Email) -->
               <td class="py-3 px-4 text-right">
-                <div class="inline-flex items-center gap-1">
-                  <!-- 1. Edit Role -->
+                <div class="inline-flex items-center gap-1 justify-end">
+                  
+                  <!-- Action 1: Edit Roles / Permissions -->
                   <a href="{% url 'accounts:user_edit' u.id %}"
                      class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"
-                     title="Edit Role & Profile">
-                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                     title="Edit Roles &amp; Permissions">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
                   </a>
 
-                  <!-- 2. Suspend / Reactivate User -->
+                  <!-- Action 2: Suspend / Reactivate -->
                   {% if u.is_active %}
                     {% if u.role == 'Owner' and active_owners_count <= 1 %}
                       <span class="p-1.5 text-steel cursor-not-allowed" title="Cannot suspend the last active Owner/Admin account">
@@ -243,7 +288,7 @@
                         {% csrf_token %}
                         <button type="submit"
                                 class="p-1.5 rounded-lg hover:bg-red-50 text-red-700 transition-colors"
-                                title="Suspend User (terminates active sessions)"
+                                title="Suspend User Account"
                                 onclick="return confirm('Suspend user {{ u.full_name }} (@{{ u.username }})? All active sessions will be terminated immediately.');">
                           <i data-lucide="user-x" class="w-4 h-4"></i>
                         </button>
@@ -254,32 +299,46 @@
                       {% csrf_token %}
                       <button type="submit"
                               class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-700 transition-colors"
-                              title="Reactivate User"
+                              title="Reactivate User Account"
                               onclick="return confirm('Reactivate user {{ u.full_name }} (@{{ u.username }})?');">
                         <i data-lucide="user-check" class="w-4 h-4"></i>
                       </button>
                     </form>
                   {% endif %}
 
-                  <!-- 3. Reset Password & Resend Invitation -->
+                  <!-- Action 3: Force Reset (sets temporary password in vault & emails user) -->
                   {% if u.is_active %}
                     <form method="post" action="{% url 'accounts:user_reset_password' u.id %}" class="inline">
                       {% csrf_token %}
                       <button type="submit"
-                              class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"
-                              title="Reset Password & Resend Invitation"
-                              onclick="return confirm('Reset password for {{ u.full_name }} and dispatch a new onboarding email to {{ u.email }}?');">
-                        <i data-lucide="mail-warning" class="w-4 h-4"></i>
+                              class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-700 transition-colors"
+                              title="Force Password Reset &amp; Vault Update"
+                              onclick="return confirm('Force reset password for {{ u.full_name }}? A new temporary password will be securely generated, recorded in the administrative vault, and emailed.');">
+                        <i data-lucide="key-round" class="w-4 h-4"></i>
                       </button>
                     </form>
                   {% endif %}
+
+                  <!-- Action 4: Resend Welcome Email -->
+                  {% if u.is_active %}
+                    <form method="post" action="{% url 'accounts:user_send_setup_link' u.id %}" class="inline">
+                      {% csrf_token %}
+                      <button type="submit"
+                              class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-700 transition-colors"
+                              title="Resend Welcome / Activation Email"
+                              onclick="return confirm('Resend onboarding activation email to {{ u.email }}?');">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+
                 </div>
               </td>
             </tr>
           {% empty %}
             <tr>
-              <td colspan="7" class="py-8 text-center text-muted">
-                No staff accounts found.
+              <td colspan="6" class="py-8 text-center text-muted">
+                No team accounts found.
               </td>
             </tr>
           {% endfor %}
@@ -288,7 +347,7 @@
     </div>
   </div>
 
-  <!-- User Creation Modal Dialog (Phase 2 Requirement) -->
+  <!-- User Provisioning Modal Dialog -->
   <div x-show="createModalOpen" 
        x-transition:enter="transition ease-out duration-200"
        x-transition:enter-start="opacity-0"
@@ -302,14 +361,17 @@
        aria-modal="true"
        @keydown.escape.window="createModalOpen = false">
     
-    <div class="bg-white rounded-xl border border-line max-w-lg w-full p-6 space-y-5 shadow-2xl overflow-y-auto max-h-[90vh]"
+    <div class="bg-white rounded-xl border border-line max-w-xl w-full p-6 space-y-5 shadow-2xl overflow-y-auto max-h-[90vh]"
          @click.away="createModalOpen = false">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-line pb-4">
         <div>
-          <h2 class="text-lg font-bold font-display text-charcoal">Provision Staff Account</h2>
-          <p class="text-xs text-muted mt-0.5">Configure operational role and dispatch onboarding credentials.</p>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-ink text-white">SEC-05</span>
+            <h2 class="text-lg font-bold font-display text-charcoal">Provision Staff Account</h2>
+          </div>
+          <p class="text-xs text-muted mt-0.5">Assign credentials, operational role, and granular permission flags.</p>
         </div>
         <button type="button" @click="createModalOpen = false" class="p-1.5 text-muted hover:text-charcoal rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -320,7 +382,7 @@
       <form method="post" action="{% url 'accounts:user_create' %}" class="space-y-4">
         {% csrf_token %}
 
-        <!-- First & Last Name -->
+        <!-- Full Name (First and Last) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
@@ -336,69 +398,141 @@
           </div>
         </div>
 
-        <!-- Email Address -->
+        <!-- Work Email Address -->
         <div>
           <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
-            Email Address <span class="text-red-500">*</span>
+            Work Email Address <span class="text-red-500">*</span>
           </label>
           <input type="email" name="email" required placeholder="sarah.k@jimcanconstruction.site" class="auth-input w-full">
-          <p class="text-[11px] text-muted mt-1 font-mono">Credentials email will be automatically dispatched to this address.</p>
+          <p class="text-[11px] text-muted mt-1 font-mono">Uniqueness is checked across active and inactive accounts.</p>
         </div>
 
-        <!-- Assigned Role -->
+        <!-- Unique Username -->
         <div>
           <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
-            Assigned Role <span class="text-red-500">*</span>
+            Unique Username
+          </label>
+          <input type="text" name="username" placeholder="Leave blank to auto-derive from email" class="auth-input w-full">
+          <p class="text-[11px] text-muted mt-1 font-mono">Custom username or auto-derived handle (e.g. sarah_kigozi).</p>
+        </div>
+
+        <!-- System Role Selector -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
+            System Role <span class="text-red-500">*</span>
           </label>
           <select name="role" required class="auth-input w-full">
             <option value="Admin">Admin / Owner (Full System &amp; Financial Access)</option>
             <option value="Project Manager">Project Manager (Projects, BOQ, Site Uploads, Financial Summaries)</option>
-            <option value="Site Engineer">Site Engineer (Site Logs, Expense Submissions, Progress)</option>
+            <option value="Site Engineer" selected>Site Engineer (Site Logs, Expense Submissions, Progress)</option>
             <option value="Accountant">Auditor / Accountant (Invoices, Expenses, Tax, BOQ Rates)</option>
           </select>
         </div>
 
-        <!-- Password Option Toggle -->
+        <!-- Password Configuration: Option A vs Option B -->
         <div class="border-t border-line pt-3">
           <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-2">
-            Initial Password Option <span class="text-red-500">*</span>
+            Password Configuration <span class="text-red-500">*</span>
           </label>
           <div class="space-y-2">
+            
+            <!-- Option B: Auto-generate strong credentials -->
             <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-line cursor-pointer hover:bg-slate-50 transition-colors"
                    :class="passwordOption === 'auto' ? 'border-slate-800 bg-slate-50/50' : ''">
               <input type="radio" name="password_option" value="auto" x-model="passwordOption" class="text-slate-900 focus:ring-slate-900">
-              <div>
-                <div class="text-xs font-semibold text-charcoal">Auto-generate secure temporary password</div>
-                <div class="text-[11px] text-muted">12-character random string (letters, numbers, special characters)</div>
+              <div class="flex-1">
+                <div class="text-xs font-semibold text-charcoal flex items-center justify-between">
+                  <span>Auto-generate strong credentials</span>
+                  <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">Recommended</span>
+                </div>
+                <div class="text-[11px] text-muted">12-character high-entropy cryptographic string</div>
               </div>
             </label>
 
+            <!-- Option A: Manual Entry -->
             <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-line cursor-pointer hover:bg-slate-50 transition-colors"
                    :class="passwordOption === 'manual' ? 'border-slate-800 bg-slate-50/50' : ''">
               <input type="radio" name="password_option" value="manual" x-model="passwordOption" class="text-slate-900 focus:ring-slate-900">
-              <div>
-                <div class="text-xs font-semibold text-charcoal">Enter custom temporary password</div>
-                <div class="text-[11px] text-muted">Manually enter a temporary initial password</div>
+              <div class="flex-1">
+                <div class="text-xs font-semibold text-charcoal">Manual Entry</div>
+                <div class="text-[11px] text-muted">Admin sets explicit initial password</div>
               </div>
             </label>
           </div>
 
-          <!-- Custom password input field -->
-          <div x-show="passwordOption === 'manual'" x-transition class="mt-3">
-            <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
-              Custom Password
-            </label>
-            <input type="password" name="custom_password" placeholder="Minimum 8 characters" class="auth-input w-full">
+          <!-- Manual password input field with Auto-generate helper button -->
+          <div x-show="passwordOption === 'manual'" x-transition class="mt-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold">
+                Initial Password
+              </label>
+              <button type="button" 
+                      @click="generatePassword()" 
+                      class="text-[11px] font-mono text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3"></i>
+                <span>Auto-generate strong password</span>
+              </button>
+            </div>
+            <input type="text" 
+                   name="custom_password" 
+                   x-model="manualPassword" 
+                   placeholder="Enter at least 8 characters" 
+                   class="auth-input w-full font-mono text-xs">
           </div>
         </div>
 
-        <!-- Require Password Change Checkbox -->
-        <div class="pt-2">
+        <!-- Granular Feature Toggles -->
+        <div class="border-t border-line pt-3">
+          <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-2">
+            Granular Permission Overrides
+          </label>
+          <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-line text-xs">
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" name="can_view_boq" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+              <div>
+                <span class="font-semibold text-charcoal">Access BOQ Master Pricing (<code class="text-[11px] font-mono">can_view_boq_rates</code>)</span>
+                <p class="text-[11px] text-muted">Grants access to bill of quantities unit rates and pricing schedules.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" name="can_approve_expenses" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+              <div>
+                <span class="font-semibold text-charcoal">Sign Off on Vouchers (<code class="text-[11px] font-mono">can_approve_expenses</code>)</span>
+                <p class="text-[11px] text-muted">Allows authorization and sign-off on expense vouchers.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" name="can_export_tax_reports" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+              <div>
+                <span class="font-semibold text-charcoal">Download URA Tax Schedules (<code class="text-[11px] font-mono">can_export_tax_reports</code>)</span>
+                <p class="text-[11px] text-muted">Permission to generate and export Uganda Revenue Authority tax schedules.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" name="can_manage_leads" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+              <div>
+                <span class="font-semibold text-charcoal">Manage Leads &amp; Pipeline (<code class="text-[11px] font-mono">can_manage_leads</code>)</span>
+                <p class="text-[11px] text-muted">Edit, reassign, and advance commercial pipeline opportunities.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Checkboxes -->
+        <div class="border-t border-line pt-3 space-y-2">
           <label class="flex items-center gap-2.5 cursor-pointer">
             <input type="checkbox" name="must_change_password" checked value="true" class="rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-            <span class="text-xs font-medium text-charcoal">Require password change upon first login</span>
+            <span class="text-xs font-semibold text-charcoal">Require password change on first sign-in (Default: Checked)</span>
           </label>
-          <p class="text-[11px] text-muted pl-6 mt-0.5">Blocks dashboard navigation until user updates their password.</p>
+          <p class="text-[11px] text-muted pl-6">Stores an encrypted copy in the administrative vault and wipes it immediately once user changes password.</p>
+
+          <label class="flex items-center gap-2.5 cursor-pointer pt-1">
+            <input type="checkbox" name="send_onboarding_email" checked value="true" class="rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+            <span class="text-xs font-semibold text-charcoal">Dispatch onboarding email with credentials (Default: Checked)</span>
+          </label>
         </div>
 
         <!-- Modal Actions -->
@@ -407,22 +541,22 @@
             Cancel
           </button>
           <button type="submit"
-                  class="px-5 py-2 rounded-lg text-xs font-semibold text-white transition-all shadow-sm flex items-center gap-2"
+                  class="px-5 py-2 rounded-lg text-xs font-semibold text-white transition-all shadow-sm flex items-center gap-2 hover:opacity-95"
                   style="background-color: var(--ink);">
             <i data-lucide="send" class="w-3.5 h-3.5"></i>
-            <span>Provision Account &amp; Send Email</span>
+            <span>Provision Account</span>
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Security Guardrails Banner -->
+  <!-- Enterprise Security & Vault Oversight Banner -->
   <div class="p-4 bg-slate-50 border border-line rounded-xl text-xs text-muted flex items-start gap-3">
     <i data-lucide="shield-check" class="w-4 h-4 text-slate-700 flex-shrink-0 mt-0.5"></i>
     <div>
-      <strong class="font-bold text-charcoal">Enterprise Security Standards:</strong>
-      All accounts operate under strict least privilege. Deactivating a user immediately revokes all active database sessions. Newly provisioned accounts are forced to reset their temporary password before access is granted. User deletion is permanently disabled to safeguard audit trails.
+      <strong class="font-bold text-charcoal">Administrative Vault &amp; Oversight Architecture:</strong>
+      Initial passwords are symmetrically encrypted using Fernet (AES-128-CBC + HMAC-SHA256) and displayed strictly to Owner/SuperAdmin users. Once a user executes their mandatory initial password rotation, the vault ciphertext is permanently purged and nullified from the database.
     </div>
   </div>
 

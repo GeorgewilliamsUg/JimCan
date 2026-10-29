@@ -407,3 +407,11 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'sgeorge.ug@gmail.com')
 SERVER_EMAIL = os.environ.get('SERVER_EMAIL', 'sgeorge.ug@gmail.com')
+
+# ------------------------------------------------------------------------------
+# 12. Administrative Credential Vault Configuration (Fernet Symmetric Encryption)
+# ------------------------------------------------------------------------------
+CREDENTIAL_VAULT_KEY = os.environ.get(
+    'CREDENTIAL_VAULT_KEY',
+    's8hK8Z5mQ3Yw9VpB7XrG2TdF1JnL6PcM4WqS0vA5kE8='
+)

@@ -18,8 +18,11 @@ urlpatterns = [
     path('shell-demo/', views.shell_demo_view, name='shell_demo'),
     path('settings/', views.settings_view, name='settings'),
     path('settings/users/', views.UserListView.as_view(), name='settings_users'),
+    path('settings/users/create/', views.UserCreateView.as_view(), name='settings_users_create'),
     path('settings/team/', views.UserListView.as_view(), name='settings_team'),
+    path('settings/team/create/', views.UserCreateView.as_view(), name='settings_team_create'),
     path('dashboard/team/', views.UserListView.as_view(), name='dashboard_team'),
+    path('dashboard/team/create/', views.UserCreateView.as_view(), name='dashboard_team_create'),
     path('setup/', views.setup_checklist_view, name='setup_checklist'),
     path('audit/', views.audit_view, name='audit'),
 

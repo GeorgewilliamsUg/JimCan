@@ -13,6 +13,7 @@ from accounts.user_views import (
     UserToggleActiveView,
     UserSendSetupLinkView,
     UserResetPasswordView,
+    UserVaultCredentialView,
 )
 
 app_name = 'accounts'
@@ -29,7 +30,9 @@ urlpatterns = [
     path('users/<int:user_id>/send-setup-link/', UserSendSetupLinkView.as_view(), name='user_send_setup_link'),
     path('users/<int:user_id>/reset-password/', UserResetPasswordView.as_view(), name='user_reset_password'),
     path('users/<int:user_id>/reset-mfa/', ResetUserMFAView.as_view(), name='user_reset_mfa'),
+    path('users/<int:user_id>/vault-credential/', UserVaultCredentialView.as_view(), name='user_vault_credential'),
     path('team/', UserListView.as_view(), name='team_list'),
     path('team/create/', UserCreateView.as_view(), name='team_create'),
     path('team/<int:user_id>/reset-password/', UserResetPasswordView.as_view(), name='team_reset_password'),
+    path('team/<int:user_id>/vault-credential/', UserVaultCredentialView.as_view(), name='team_vault_credential'),
 ]
