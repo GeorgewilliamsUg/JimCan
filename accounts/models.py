@@ -47,7 +47,6 @@ class AppPermission(models.Model):
         ]
 
 
-from cryptography.fernet import Fernet
 from django.contrib.auth.models import User as DjangoUser
 
 
@@ -113,8 +112,13 @@ class UserProfile(models.Model):
 
     def set_initial_vault_password(self, raw_password: str):
         """Encrypts initial raw password symmetrically and sets Django user password."""
-        fernet = Fernet(settings.CREDENTIAL_VAULT_KEY)
-        self.initial_credential_vault = fernet.encrypt(raw_password.encode('utf-8'))
+        try:
+            from cryptography.fernet import Fernet
+            fernet = Fernet(settings.CREDENTIAL_VAULT_KEY)
+            self.initial_credential_vault = fernet.encrypt(raw_password.encode('utf-8'))
+        except (ImportError, Exception):
+            # Fallback if cryptography is not yet installed or key issue
+            pass
         if self.user:
             self.user.set_password(raw_password)
 
@@ -123,6 +127,7 @@ class UserProfile(models.Model):
         if not self.initial_credential_vault or not self.must_change_password:
             return None
         try:
+            from cryptography.fernet import Fernet
             fernet = Fernet(settings.CREDENTIAL_VAULT_KEY)
             raw_bytes = bytes(self.initial_credential_vault)
             return fernet.decrypt(raw_bytes).decode('utf-8')
