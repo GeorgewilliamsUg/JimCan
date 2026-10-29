@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import login_not_required
 from django.utils.decorators import method_decorator
 from accounts.decorators import require_recent_auth
 from accounts.forms import JimcanAuthenticationForm
-from accounts.user_views import UserListView
+from accounts.user_views import UserListView, UserCreateView, UserResetPasswordView
 from jimcan.security import security_event
 from dashboard.selectors import (
     get_active_projects,

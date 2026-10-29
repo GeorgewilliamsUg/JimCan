@@ -245,6 +245,34 @@ ROUTE_PERMISSIONS_TABLE = {
         'Finance': 403,
         'Owner': 302,  # POST action redirects
     },
+    'accounts:user_reset_password': {
+        'kwargs': {'user_id': 1},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 302,  # POST action redirects
+    },
+    'accounts:team_list': {
+        'kwargs': {},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
+    'accounts:team_create': {
+        'kwargs': {},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
+    'accounts:team_reset_password': {
+        'kwargs': {'user_id': 1},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 302,
+    },
     'dashboard:overview': {
         'kwargs': {},
         'Anonymous': 302,
@@ -330,6 +358,20 @@ ROUTE_PERMISSIONS_TABLE = {
         'Owner': 200,  # With step-up session active
     },
     'dashboard:settings_users': {
+        'kwargs': {},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
+    'dashboard:settings_team': {
+        'kwargs': {},
+        'Anonymous': 302,
+        'Site staff': 403,
+        'Finance': 403,
+        'Owner': 200,
+    },
+    'dashboard:dashboard_team': {
         'kwargs': {},
         'Anonymous': 302,
         'Site staff': 403,
@@ -607,7 +649,7 @@ class TestExhaustiveRouteTable(BasePhase5TestCase):
                 client = self._get_client_for_role(role)
 
                 # Determine if route should be GET or POST (e.g. toggle active or logout)
-                if route_name in ('accounts:user_toggle_active', 'accounts:user_send_setup_link', 'accounts:user_reset_mfa'):
+                if route_name in ('accounts:user_toggle_active', 'accounts:user_send_setup_link', 'accounts:user_reset_mfa', 'accounts:user_reset_password', 'accounts:team_reset_password'):
                     response = client.post(url)
                 elif route_name in ('logout', 'accounts:logout'):
                     response = client.post(url)

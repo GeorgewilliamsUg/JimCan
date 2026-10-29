@@ -11,7 +11,8 @@ from accounts.user_views import (
     UserCreateView,
     UserEditView,
     UserToggleActiveView,
-    UserSendSetupLinkView
+    UserSendSetupLinkView,
+    UserResetPasswordView,
 )
 
 app_name = 'accounts'
@@ -26,5 +27,9 @@ urlpatterns = [
     path('users/<int:user_id>/', UserEditView.as_view(), name='user_edit'),
     path('users/<int:user_id>/toggle-active/', UserToggleActiveView.as_view(), name='user_toggle_active'),
     path('users/<int:user_id>/send-setup-link/', UserSendSetupLinkView.as_view(), name='user_send_setup_link'),
+    path('users/<int:user_id>/reset-password/', UserResetPasswordView.as_view(), name='user_reset_password'),
     path('users/<int:user_id>/reset-mfa/', ResetUserMFAView.as_view(), name='user_reset_mfa'),
+    path('team/', UserListView.as_view(), name='team_list'),
+    path('team/create/', UserCreateView.as_view(), name='team_create'),
+    path('team/<int:user_id>/reset-password/', UserResetPasswordView.as_view(), name='team_reset_password'),
 ]

@@ -195,6 +195,13 @@ class MFAEnforcementMiddleware:
         if not user or not user.is_authenticated:
             return self.get_response(request)
 
+        # Force Password Change requirement check for first login / temporary passwords
+        if hasattr(user, 'profile') and user.profile.must_change_password:
+            force_pwd = ForcePasswordChangeMiddleware(lambda req: None)
+            pwd_resp = force_pwd(request)
+            if pwd_resp is not None:
+                return pwd_resp
+
         # 3. If user is already verified via 2FA, pass through
         if hasattr(user, 'is_verified') and user.is_verified():
             return self.get_response(request)
@@ -237,6 +244,79 @@ class MFAEnforcementMiddleware:
         target_url = reverse('two_factor:login') if has_device else reverse('two_factor:setup')
 
         # HTMX intercept
+        is_htmx = request.headers.get('HX-Request') == 'true' or getattr(request, 'htmx', False)
+        if is_htmx:
+            resp = HttpResponse(status=204)
+            resp['HX-Redirect'] = target_url
+            return resp
+
+        return redirect(target_url)
+
+
+class ForcePasswordChangeMiddleware:
+    """
+    Forces newly provisioned or reset users with must_change_password=True
+    to update their password before accessing any dashboard or operational routes.
+    """
+    EXEMPT_URL_NAMES = (
+        'password_change',
+        'password_change_done',
+        'logout',
+        'accounts:logout',
+        'two_factor:setup',
+        'two_factor:setup_complete',
+        'two_factor:qr',
+        'two_factor:backup_tokens',
+    )
+    EXEMPT_PREFIXES = (
+        '/password_change',
+        '/logout',
+        '/account/two_factor',
+        '/two-factor',
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path_info
+        static_url = getattr(settings, 'STATIC_URL', '/static/')
+        media_url = getattr(settings, 'MEDIA_URL', '/media/')
+        if (static_url and static_url != '/' and path.startswith(static_url)) or \
+           (media_url and media_url != '/' and path.startswith(media_url)):
+            return self.get_response(request)
+
+        user = getattr(request, 'user', None)
+        if not user or not user.is_authenticated:
+            return self.get_response(request)
+
+        # Check if user must change password
+        must_change = False
+        if hasattr(user, 'profile') and user.profile.must_change_password:
+            must_change = True
+
+        if not must_change:
+            return self.get_response(request)
+
+        # Allow exempt routes
+        if any(path.startswith(prefix) for prefix in self.EXEMPT_PREFIXES):
+            return self.get_response(request)
+
+        from django.urls import resolve
+        try:
+            match = resolve(path)
+            if match.url_name in self.EXEMPT_URL_NAMES or match.view_name in self.EXEMPT_URL_NAMES:
+                return self.get_response(request)
+        except Exception:
+            pass
+
+        # User must change password -> redirect directly to password change view
+        from django.http import HttpResponse
+        from django.shortcuts import redirect
+        from django.urls import reverse
+
+        target_url = reverse('password_change')
+
         is_htmx = request.headers.get('HX-Request') == 'true' or getattr(request, 'htmx', False)
         if is_htmx:
             resp = HttpResponse(status=204)

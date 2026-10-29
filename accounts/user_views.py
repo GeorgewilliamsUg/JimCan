@@ -25,10 +25,16 @@ from accounts.forms import UserCreateForm, UserEditForm
 from accounts.roles import (
     ALL_ROLES,
     ROLE_OWNER,
+    ROLE_ADMIN,
     assign_role,
     get_user_role,
 )
-from accounts.services import send_setup_link, sign_out_everywhere
+from accounts.services import (
+    send_setup_link,
+    sign_out_everywhere,
+    generate_temporary_password,
+    send_onboarding_email,
+)
 from audit.services import record_event
 
 User = get_user_model()
@@ -46,40 +52,53 @@ def _is_recent_auth(request, minutes: int = 10) -> bool:
 @method_decorator(permission_required('accounts.manage_users', raise_exception=True), name='dispatch')
 class UserListView(View):
     """
-    Renders the central user and role management roster (/settings/users/).
+    Renders the central user and role management roster (/settings/users/ or /settings/team/).
     Accessible exclusively to users holding the 'accounts.manage_users' permission.
     """
     template_name = 'accounts/user_list.html'
 
     def get(self, request):
-        users = User.objects.all().order_by('username')
+        users = User.objects.all().select_related('profile').order_by('username')
         user_list = []
         active_owners = 0
 
         for u in users:
             role = get_user_role(u) or 'No Role'
             has_mfa = user_has_device(u)
-            if role == ROLE_OWNER and u.is_active:
+            if role in (ROLE_OWNER, ROLE_ADMIN) and u.is_active:
                 active_owners += 1
+
+            profile = getattr(u, 'profile', None)
+            must_change = profile.must_change_password if profile else False
+            created_at = profile.created_at if profile else u.date_joined
+            created_by = profile.created_by if profile else None
+
             user_list.append({
                 'id': u.pk,
                 'username': u.username,
                 'first_name': u.first_name,
                 'last_name': u.last_name,
+                'full_name': u.get_full_name() or u.username,
                 'email': u.email,
                 'role': role,
                 'is_active': u.is_active,
+                'must_change_password': must_change,
+                'created_at': created_at,
+                'created_by': created_by,
                 'has_mfa': has_mfa,
                 'date_joined': u.date_joined,
                 'last_login': u.last_login,
                 'is_current_user': (u.pk == request.user.pk),
             })
 
+        create_form = UserCreateForm()
+
         context = {
-            'page_title': 'User Management & Roles',
+            'page_title': 'Team & Role Management',
             'users': user_list,
             'total_users': len(user_list),
             'active_owners_count': active_owners,
+            'create_form': create_form,
         }
         return render(request, self.template_name, context)
 
@@ -88,9 +107,9 @@ class UserListView(View):
 @method_decorator(require_recent_auth(minutes=10), name='dispatch')
 class UserCreateView(View):
     """
-    Owner provisions a new staff account.
-    Requires step-up re-authentication. Creates account with unusable password,
-    assigns exactly one of the three roles, and emails a one-time activation link.
+    Admin/Owner provisions a new staff account.
+    Requires step-up re-authentication. Creates account, assigns role,
+    and dispatches automated onboarding email credentials.
     """
     template_name = 'accounts/user_form.html'
 
@@ -105,11 +124,17 @@ class UserCreateView(View):
     def post(self, request):
         form = UserCreateForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(created_by=request.user)
             role = form.cleaned_data['role']
+            temp_password = getattr(form, 'generated_password', None)
 
-            # Dispatch one-time setup activation link
-            send_setup_link(user, request=request)
+            # Trigger automated onboarding credentials email
+            email_sent, email_err = False, None
+            if temp_password:
+                email_sent, email_err = send_onboarding_email(user, temp_password, request=request)
+            else:
+                send_setup_link(user, request=request)
+                email_sent = True
 
             # Record tamper-evident audit event
             record_event(
@@ -119,17 +144,30 @@ class UserCreateView(View):
                 alert=False,
                 request=request,
                 description=(
-                    f"Owner '{request.user.username}' provisioned user account '{user.username}' "
-                    f"with assigned role '{role}'. One-time activation link dispatched."
+                    f"Admin '{request.user.username}' provisioned user account '{user.username}' "
+                    f"({user.email}) with assigned role '{role}'. Onboarding credentials dispatched."
                 )
             )
 
-            messages.success(
-                request,
-                f"User account '{user.username}' provisioned successfully with role '{role}'. "
-                f"A one-time activation link has been sent to {user.email}."
-            )
+            if email_sent:
+                messages.success(
+                    request,
+                    f"User account '{user.get_full_name() or user.username}' ({user.email}) created successfully with role '{role}'. "
+                    f"An onboarding email with temporary credentials has been dispatched."
+                )
+            else:
+                messages.warning(
+                    request,
+                    f"User account '{user.get_full_name() or user.username}' created, but credentials email could not be delivered: {email_err}. "
+                    f"Temporary Password: {temp_password}"
+                )
             return redirect('accounts:user_list')
+
+        # Clean flash messages for form validation errors
+        for field, errors in form.errors.items():
+            for error in errors:
+                field_label = form.fields[field].label if field in form.fields else field.replace('_', ' ').capitalize()
+                messages.error(request, f"{field_label}: {error}")
 
         return render(request, self.template_name, {
             'form': form,
@@ -295,4 +333,65 @@ class UserSendSetupLinkView(View):
             request,
             f"A one-time activation link has been sent to {target_user.email}."
         )
+        return redirect('accounts:user_list')
+
+
+@method_decorator(permission_required('accounts.manage_users', raise_exception=True), name='dispatch')
+@method_decorator(require_recent_auth(minutes=10), name='dispatch')
+class UserResetPasswordView(View):
+    """
+    Resets an active user's credentials with an auto-generated 12-char temporary password,
+    enforces must_change_password=True, terminates all active sessions,
+    and dispatches the automated onboarding credentials email.
+    """
+    def post(self, request, user_id):
+        target_user = get_object_or_404(User, pk=user_id)
+        if not target_user.is_active:
+            messages.error(request, "Cannot reset credentials for a suspended/deactivated account.")
+            return redirect('accounts:user_list')
+
+        temp_password = generate_temporary_password(12)
+        target_user.set_password(temp_password)
+        target_user.save()
+
+        # Enforce must_change_password
+        if hasattr(target_user, 'profile'):
+            target_user.profile.must_change_password = True
+            target_user.profile.save(update_fields=['must_change_password'])
+        else:
+            from accounts.models import UserProfile
+            UserProfile.objects.create(user=target_user, must_change_password=True)
+
+        # Terminate all active sessions for this user
+        sign_out_everywhere(target_user)
+
+        # Dispatch onboarding credentials email
+        email_sent, email_err = send_onboarding_email(target_user, temp_password, request=request)
+
+        # Record tamper-evident audit event
+        record_event(
+            event_type="password_reset",
+            actor=request.user,
+            target_user=target_user,
+            alert=True,
+            request=request,
+            description=(
+                f"Admin '{request.user.username}' reset credentials for '{target_user.username}'. "
+                f"All active sessions terminated and onboarding email dispatched."
+            )
+        )
+
+        if email_sent:
+            messages.success(
+                request,
+                f"Password reset for '{target_user.get_full_name() or target_user.username}'. "
+                f"A new temporary password has been emailed to {target_user.email}."
+            )
+        else:
+            messages.warning(
+                request,
+                f"Password reset, but notification email could not be delivered: {email_err}. "
+                f"Temporary Password: {temp_password}"
+            )
+
         return redirect('accounts:user_list')

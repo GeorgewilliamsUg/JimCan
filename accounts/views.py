@@ -103,6 +103,9 @@ class AccountSetupView(View):
         if form.is_valid():
             form.save()
             sign_out_everywhere(user)
+            if hasattr(user, 'profile') and user.profile.must_change_password:
+                user.profile.must_change_password = False
+                user.profile.save(update_fields=['must_change_password'])
             from django.contrib.auth import login as auth_login
             auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             request.session['reauth_at'] = timezone.now().timestamp()
@@ -117,7 +120,7 @@ class JimcanPasswordChangeView(PasswordChangeView):
     """
     Password change view (Phase 2 Task 2).
     Requires current password, invalidates all other active sessions for this user,
-    and logs a security event.
+    toggles must_change_password to False, and logs a security event.
     """
     template_name = 'registration/password_change_form.html'
     success_url = reverse_lazy('dashboard:overview')
@@ -128,6 +131,12 @@ class JimcanPasswordChangeView(PasswordChangeView):
         update_session_auth_hash(self.request, form.user)
         # Terminate all other sessions for this user
         terminated_count = sign_out_everywhere(form.user, keep_session_key=self.request.session.session_key)
+
+        # Toggle must_change_password to False
+        if hasattr(form.user, 'profile') and form.user.profile.must_change_password:
+            form.user.profile.must_change_password = False
+            form.user.profile.save(update_fields=['must_change_password'])
+
         security_event("password_changed", user=form.user, terminated_sessions=terminated_count, request=self.request)
         messages.success(self.request, "Password updated successfully. All other active sessions have been signed out.")
         return response

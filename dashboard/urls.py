@@ -18,6 +18,8 @@ urlpatterns = [
     path('shell-demo/', views.shell_demo_view, name='shell_demo'),
     path('settings/', views.settings_view, name='settings'),
     path('settings/users/', views.UserListView.as_view(), name='settings_users'),
+    path('settings/team/', views.UserListView.as_view(), name='settings_team'),
+    path('dashboard/team/', views.UserListView.as_view(), name='dashboard_team'),
     path('setup/', views.setup_checklist_view, name='setup_checklist'),
     path('audit/', views.audit_view, name='audit'),
 
