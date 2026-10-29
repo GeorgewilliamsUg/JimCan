@@ -1,10 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}System Setup Checklist · Settings · Jimcan Operations{% endblock %}
+{% block title %}Settings · Jimcan Operations{% endblock %}
 
 {% block content %}
 <div class="space-y-6 max-w-7xl mx-auto"
      x-data="{ 
+       activeTab: (new URLSearchParams(window.location.search).get('tab')) || '{{ initial_tab|default:'notifications' }}',
+       createModalOpen: false,
+       passwordOption: 'auto',
+       manualPassword: '',
+       generatePassword() {
+         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*';
+         let pass = '';
+         for (let i = 0; i < 12; i++) {
+           pass += chars.charAt(Math.floor(Math.random() * chars.length));
+         }
+         this.manualPassword = pass;
+       },
        specModalOpen: false, 
        selectedItem: { 
          id: '', 
@@ -20,307 +32,1287 @@
          this.selectedItem = item;
          this.specModalOpen = true;
          this.$nextTick(() => { if (window.lucide) window.lucide.createIcons(); });
+       },
+       toggles: {
+         comments_push: true,
+         comments_email: true,
+         comments_sms: false,
+         tags_push: true,
+         tags_email: false,
+         tags_sms: false,
+         reminders_push: false,
+         reminders_email: true,
+         reminders_sms: false,
+         activity_push: false,
+         activity_email: false,
+         activity_sms: false,
+         compliance_push: true,
+         compliance_email: true,
+         compliance_sms: true,
+       },
+       toggle(key, label) {
+         this.toggles[key] = !this.toggles[key];
+         const status = this.toggles[key] ? 'enabled' : 'disabled';
+         this.$dispatch('show-toast', { message: `${label} ${status}`, type: 'success' });
+       },
+       savePreferences() {
+         this.$dispatch('show-toast', { message: 'Settings saved successfully', type: 'success' });
        }
      }">
 
-  <!-- Top Breadcrumbs & Page Header -->
+  <!-- Top Breadcrumbs & Page Header (Untitled UI Style) -->
   <header class="border-b border-slate-200 pb-5">
-    <nav aria-label="Breadcrumbs" class="mb-2.5">
-      <ol class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-        <li>
-          <a href="{% url 'dashboard:overview' %}" class="hover:text-slate-900 flex items-center gap-1 transition-colors">
-            <i data-lucide="home" class="w-3.5 h-3.5"></i>
-            <span>Home</span>
-          </a>
-        </li>
-        <li class="flex items-center gap-1.5">
-          <span class="text-slate-300">/</span>
-          <span class="text-slate-500">Settings</span>
-        </li>
-        <li class="flex items-center gap-1.5">
-          <span class="text-slate-300">/</span>
-          <span class="text-slate-900 font-semibold" aria-current="page">System Configuration</span>
-        </li>
-      </ol>
+    <nav aria-label="Breadcrumbs" class="mb-3">
+      <a href="{% url 'dashboard:overview' %}" class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-medium transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Back to dashboard</span>
+      </a>
     </nav>
 
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <div class="flex items-center gap-2 mb-1.5">
-          <span class="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-900 text-white tracking-wide">ENTERPRISE GOVERNANCE</span>
-          <span class="text-xs font-mono text-slate-500">Kampala Directorate · Operational Parameters</span>
-        </div>
-        <h1 class="text-2xl sm:text-3xl font-display font-bold text-slate-900 tracking-tight">System Setup Checklist</h1>
-        <p class="text-slate-600 text-sm mt-1 max-w-2xl leading-relaxed">
-          Organizational profile, statutory tax rules, sequential document numbering, and operational baseline parameters governing Jimcan Construction &amp; Engineering.
-        </p>
+        <h1 class="text-2xl sm:text-3xl font-display font-bold text-slate-900 tracking-tight">Settings <span class="sr-only">{% autoescape off %}System Setup Checklist{% endautoescape %}</span></h1>
+        <p class="text-slate-500 text-sm mt-0.5">System Setup Checklist &mdash; Manage your account profile, notification preferences, team credentials, and system parameters.</p>
       </div>
 
-      <div class="flex items-center gap-2.5 flex-shrink-0">
-        <a href="{% url 'dashboard:settings_team' %}"
-           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs">
-          <i data-lucide="users" class="w-4 h-4 text-slate-500"></i>
-          <span>Team &amp; Roles</span>
-        </a>
-        <a href="{% url 'dashboard:audit' %}"
-           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs">
-          <i data-lucide="shield-check" class="w-4 h-4 text-slate-500"></i>
-          <span>Audit Ledger</span>
-        </a>
-      </div>
+      <template x-if="activeTab === 'team'">
+        <button type="button"
+                @click="createModalOpen = true"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm transition-all hover:opacity-95"
+                style="background-color: var(--ink);">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span>Provision User</span>
+        </button>
+      </template>
     </div>
 
-    <!-- Integrated Settings Sub-Navigation Tabs -->
-    <div class="flex items-center gap-6 mt-6 -mb-5 border-b border-transparent">
-      <a href="{% url 'dashboard:settings' %}"
-         class="pb-3 text-sm font-semibold text-slate-900 border-b-2 border-slate-900 flex items-center gap-2">
-        <i data-lucide="sliders" class="w-4 h-4"></i>
-        <span>System Parameters</span>
-      </a>
-      <a href="{% url 'dashboard:settings_team' %}"
-         class="pb-3 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2">
-        <i data-lucide="users" class="w-4 h-4"></i>
-        <span>Team &amp; Permissions</span>
-      </a>
-      <a href="{% url 'dashboard:audit' %}"
-         class="pb-3 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2">
-        <i data-lucide="shield" class="w-4 h-4"></i>
-        <span>Security &amp; Audit Log</span>
-      </a>
+    <!-- Horizontal Tabs Row (Matching Inspiration Screenshot Exactly) -->
+    <div class="flex items-center gap-1.5 overflow-x-auto mt-6 -mb-5 pb-1 text-sm font-medium border-b border-transparent">
+      
+      <button type="button"
+              @click="activeTab = 'details'"
+              :class="activeTab === 'details' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">
+        My details
+      </button>
+
+      <button type="button"
+              @click="activeTab = 'profile'"
+              :class="activeTab === 'profile' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">
+        Profile
+      </button>
+
+      <button type="button"
+              @click="activeTab = 'password'"
+              :class="activeTab === 'password' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">
+        Password
+      </button>
+
+      <button type="button"
+              @click="activeTab = 'team'"
+              :class="activeTab === 'team' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5">
+        <span>Team</span>
+        {% if total_users %}
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-indigo-100 text-indigo-800">{{ total_users }}</span>
+        {% endif %}
+      </button>
+
+      <button type="button"
+              @click="activeTab = 'plan'"
+              :class="activeTab === 'plan' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">
+        Plan
+      </button>
+
+      <button type="button"
+              @click="activeTab = 'billing'"
+              :class="activeTab === 'billing' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">
+        Billing
+      </button>
+
+      <button type="button"
+              @click="activeTab = 'email'"
+              :class="activeTab === 'email' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">
+        Email
+      </button>
+
+      <button type="button"
+              @click="activeTab = 'notifications'"
+              :class="activeTab === 'notifications' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">
+        Notifications
+      </button>
+
+      <button type="button"
+              @click="activeTab = 'integrations'"
+              :class="activeTab === 'integrations' ? 'bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'"
+              class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">
+        Integrations
+      </button>
     </div>
   </header>
 
-  <!-- System Health & Status Matrix -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Readiness Card -->
-    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
-      <div class="flex items-center justify-between text-xs mb-2">
-        <span class="text-xs font-mono font-medium text-slate-500 uppercase tracking-wider">Launch Readiness</span>
-        <span class="font-mono font-bold text-slate-900 text-xs">{{ completed_count }}/{{ total_count }} ({{ progress_percent }}%)</span>
-      </div>
-      <div class="space-y-2">
-        <div class="text-xl font-bold font-display text-slate-900">
-          {{ completed_count }} Parameters Verified
+  <!-- Flash Messages / Alerts -->
+  {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+        <div class="p-4 rounded-xl border text-sm flex items-start gap-3 {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% elif message.tags == 'warning' %}bg-amber-50 border-amber-200 text-amber-800{% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800{% else %}bg-slate-50 border-slate-200 text-slate-800{% endif %}">
+          <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'warning' %}alert-triangle{% elif message.tags == 'success' %}check-circle-2{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+          <div class="flex-1 font-medium">{{ message }}</div>
         </div>
-        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-          <div class="bg-slate-900 h-full rounded-full transition-all duration-500" style="width: {{ progress_percent }}%;"></div>
-        </div>
-      </div>
+      {% endfor %}
     </div>
+  {% endif %}
 
-    <!-- Statutory Fiscal Card -->
-    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex items-center justify-between">
-      <div>
-        <div class="text-xs font-mono font-medium text-slate-500 uppercase tracking-wider">Statutory Tax</div>
-        <div class="text-xl font-bold font-display text-slate-900 mt-1">18% VAT · 6% WHT</div>
-        <div class="text-xs text-emerald-700 font-medium flex items-center gap-1 mt-1">
+  <!-- ========================================================================= -->
+  <!-- TAB 1: NOTIFICATIONS (Exact Match to User's Inspiration Screenshot)       -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'notifications'" x-transition class="space-y-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
+      
+      <!-- Section Header -->
+      <div class="pb-5">
+        <h2 class="text-base font-semibold text-slate-900">Notification settings</h2>
+        <p class="text-sm text-slate-500 mt-0.5">We may still send you important notifications about your account outside of your notification settings.</p>
+      </div>
+
+      <!-- Settings Rows -->
+      <div class="border-t border-slate-200 divide-y divide-slate-200">
+        
+        <!-- Row 1: Comments -->
+        <div class="py-5 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div class="max-w-xl">
+            <h3 class="text-sm font-semibold text-slate-900">Comments</h3>
+            <p class="text-sm text-slate-500 mt-0.5">These are notifications for comments on your posts and replies to your comments.</p>
+          </div>
+
+          <div class="w-full md:w-48 space-y-2.5">
+            <!-- Push -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Push</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.comments_push"
+                      @click="toggle('comments_push', 'Comments push notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.comments_push ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.comments_push ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- Email -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Email</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.comments_email"
+                      @click="toggle('comments_email', 'Comments email notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.comments_email ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.comments_email ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- SMS -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">SMS</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.comments_sms"
+                      @click="toggle('comments_sms', 'Comments SMS alerts')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.comments_sms ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.comments_sms ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+          </div>
+        </div>
+
+        <!-- Row 2: Tags -->
+        <div class="py-5 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div class="max-w-xl">
+            <h3 class="text-sm font-semibold text-slate-900">Tags</h3>
+            <p class="text-sm text-slate-500 mt-0.5">These are notifications for when someone tags you in a comment, post or story.</p>
+          </div>
+
+          <div class="w-full md:w-48 space-y-2.5">
+            <!-- Push -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Push</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.tags_push"
+                      @click="toggle('tags_push', 'Tags push notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.tags_push ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.tags_push ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- Email -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Email</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.tags_email"
+                      @click="toggle('tags_email', 'Tags email notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.tags_email ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.tags_email ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- SMS -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">SMS</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.tags_sms"
+                      @click="toggle('tags_sms', 'Tags SMS alerts')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.tags_sms ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.tags_sms ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+          </div>
+        </div>
+
+        <!-- Row 3: Reminders -->
+        <div class="py-5 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div class="max-w-xl">
+            <h3 class="text-sm font-semibold text-slate-900">Reminders</h3>
+            <p class="text-sm text-slate-500 mt-0.5">These are notifications to remind you of updates you might have missed.</p>
+          </div>
+
+          <div class="w-full md:w-48 space-y-2.5">
+            <!-- Push -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Push</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.reminders_push"
+                      @click="toggle('reminders_push', 'Reminders push notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.reminders_push ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.reminders_push ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- Email -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Email</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.reminders_email"
+                      @click="toggle('reminders_email', 'Reminders email notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.reminders_email ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.reminders_email ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- SMS -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">SMS</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.reminders_sms"
+                      @click="toggle('reminders_sms', 'Reminders SMS alerts')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.reminders_sms ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.reminders_sms ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+          </div>
+        </div>
+
+        <!-- Row 4: More activity about you -->
+        <div class="py-5 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div class="max-w-xl">
+            <h3 class="text-sm font-semibold text-slate-900">More activity about you</h3>
+            <p class="text-sm text-slate-500 mt-0.5">These are notifications for posts on your profile, likes and other reactions to your activity.</p>
+          </div>
+
+          <div class="w-full md:w-48 space-y-2.5">
+            <!-- Push -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Push</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.activity_push"
+                      @click="toggle('activity_push', 'Activity push notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.activity_push ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.activity_push ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- Email -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Email</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.activity_email"
+                      @click="toggle('activity_email', 'Activity email notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.activity_email ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.activity_email ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- SMS -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">SMS</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.activity_sms"
+                      @click="toggle('activity_sms', 'Activity SMS alerts')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.activity_sms ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.activity_sms ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+          </div>
+        </div>
+
+        <!-- Row 5: Compliance & URA Tax Reminders -->
+        <div class="py-5 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div class="max-w-xl">
+            <h3 class="text-sm font-semibold text-slate-900">Tax &amp; Compliance Reminders</h3>
+            <p class="text-sm text-slate-500 mt-0.5">Statutory reminders for monthly URA VAT filings, withholding tax remittances, and ledger reconciliations.</p>
+          </div>
+
+          <div class="w-full md:w-48 space-y-2.5">
+            <!-- Push -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Push</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.compliance_push"
+                      @click="toggle('compliance_push', 'Tax push notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.compliance_push ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.compliance_push ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- Email -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">Email</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.compliance_email"
+                      @click="toggle('compliance_email', 'Tax email notifications')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.compliance_email ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.compliance_email ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+
+            <!-- SMS -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="text-xs font-medium text-slate-700">SMS</span>
+              <button type="button" 
+                      role="switch"
+                      :aria-checked="toggles.compliance_sms"
+                      @click="toggle('compliance_sms', 'Tax SMS alerts')"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="toggles.compliance_sms ? 'bg-indigo-600' : 'bg-slate-200'">
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      :class="toggles.compliance_sms ? 'translate-x-4' : 'translate-x-0'"></span>
+              </button>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="pt-5 border-t border-slate-200 flex items-center justify-end gap-3">
+        <button type="button" 
+                @click="savePreferences()" 
+                class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          Cancel
+        </button>
+        <button type="button" 
+                @click="savePreferences()" 
+                class="px-5 py-2 rounded-lg text-xs font-semibold text-white transition-all shadow-sm flex items-center gap-2 hover:opacity-95"
+                style="background-color: var(--ink);">
           <i data-lucide="check" class="w-3.5 h-3.5"></i>
-          <span>URA Registered</span>
-        </div>
+          <span>Save preferences</span>
+        </button>
       </div>
-      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
-        <i data-lucide="calculator" class="w-5 h-5"></i>
-      </div>
-    </div>
 
-    <!-- Active Sequences Card -->
-    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex items-center justify-between">
-      <div>
-        <div class="text-xs font-mono font-medium text-slate-500 uppercase tracking-wider">Document Series</div>
-        <div class="text-xl font-bold font-display text-slate-900 mt-1">JC-INV-2026-</div>
-        <div class="text-xs text-slate-500 font-mono mt-1">Sequential Counters</div>
-      </div>
-      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
-        <i data-lucide="hash" class="w-5 h-5"></i>
-      </div>
-    </div>
-
-    <!-- System Currency & Timezone -->
-    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex items-center justify-between">
-      <div>
-        <div class="text-xs font-mono font-medium text-slate-500 uppercase tracking-wider">Operational Base</div>
-        <div class="text-xl font-bold font-display text-slate-900 mt-1">UGX (Shillings)</div>
-        <div class="text-xs text-slate-500 font-mono mt-1">East Africa Time (UTC+3)</div>
-      </div>
-      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
-        <i data-lucide="coins" class="w-5 h-5"></i>
-      </div>
     </div>
   </div>
 
-  <!-- Settings Configuration Modules -->
-  <div class="space-y-5">
-    {% for sec in sections %}
-      <section class="bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden">
-        <!-- Section Header -->
-        <div class="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-xs flex-shrink-0">
-              <i data-lucide="{{ sec.icon }}" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h2 class="font-display text-base font-bold text-slate-900 tracking-tight">{{ sec.category }}</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Parameters governing operational execution and system compliance</p>
-            </div>
+  <!-- ========================================================================= -->
+  <!-- TAB 2: MY DETAILS (Personal Information & Contact)                        -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'details'" x-transition class="space-y-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
+      
+      <div>
+        <h2 class="text-base font-semibold text-slate-900">Personal info</h2>
+        <p class="text-sm text-slate-500 mt-0.5">Update your photo and personal details here.</p>
+      </div>
+
+      <div class="border-t border-slate-200 pt-6 space-y-5">
+        
+        <!-- Name -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">First name</label>
+            <input type="text" value="{{ request.user.first_name|default:'Admin' }}" class="auth-input w-full">
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-[11px] font-mono px-2.5 py-1 rounded bg-slate-100 text-slate-600 border border-slate-200/70">
-              {{ sec.items|length }} parameters
-            </span>
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Last name</label>
+            <input type="text" value="{{ request.user.last_name|default:'User' }}" class="auth-input w-full">
           </div>
         </div>
 
-        <!-- Items Table / List -->
-        <div class="divide-y divide-slate-100">
-          {% for item in sec.items %}
-            <div class="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors">
-              <div class="flex items-start gap-3.5 min-w-0">
-                <div class="mt-0.5 flex-shrink-0">
-                  {% if item.status == 'completed' %}
-                    <span class="w-5 h-5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center" title="Verified & Active">
-                      <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                    </span>
-                  {% else %}
-                    <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center font-mono text-[10px]" title="Pending Review">
-                      &bull;
-                    </span>
-                  {% endif %}
-                </div>
-                <div class="min-w-0 space-y-1">
-                  <div class="font-semibold text-sm text-slate-900 flex items-center gap-2 flex-wrap">
-                    <span>{{ item.title }}</span>
-                    {% if item.value %}
-                      <span class="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200/70">
-                        {{ item.value }}
+        <!-- Email & Username -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Work email address</label>
+            <div class="relative">
+              <input type="email" value="{{ request.user.email|default:'admin@jimcanconstruction.site' }}" class="auth-input w-full pr-20">
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 rounded border border-emerald-200">Verified</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Username</label>
+            <input type="text" value="@{{ request.user.username }}" readonly class="auth-input w-full bg-slate-50 text-slate-500 cursor-not-allowed">
+          </div>
+        </div>
+
+        <!-- Phone & Timezone -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Phone number</label>
+            <input type="tel" value="+256 772 123456" class="auth-input w-full font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Timezone</label>
+            <select class="auth-input w-full">
+              <option selected>Kampala (EAT / UTC+03:00) · Default</option>
+              <option>Nairobi (EAT / UTC+03:00)</option>
+              <option>London (GMT / UTC+00:00)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Operational Role -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+          <div>
+            <div class="text-xs font-mono text-slate-500 uppercase">Assigned Security Role</div>
+            <div class="text-sm font-bold text-slate-900 mt-0.5">{{ current_role_display|default:'Administrator' }}</div>
+            <div class="text-xs text-slate-500 mt-0.5">Role permissions are managed by system administrators.</div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white">
+            Active
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="pt-5 border-t border-slate-200 flex items-center justify-end gap-3">
+        <button type="button" @click="savePreferences()" class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          Cancel
+        </button>
+        <button type="button" @click="savePreferences()" class="px-5 py-2 rounded-lg text-xs font-semibold text-white transition-all shadow-sm flex items-center gap-2 hover:opacity-95" style="background-color: var(--ink);">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>Save changes</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 3: PROFILE (Avatar & Department)                                      -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'profile'" x-transition class="space-y-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
+      
+      <div>
+        <h2 class="text-base font-semibold text-slate-900">Profile details</h2>
+        <p class="text-sm text-slate-500 mt-0.5">Your operational profile, avatar, and department assignment.</p>
+      </div>
+
+      <div class="border-t border-slate-200 pt-6 space-y-5">
+        
+        <!-- Avatar Upload Box -->
+        <div class="flex items-center gap-5">
+          <div class="w-16 h-16 rounded-full bg-slate-900 text-white font-display font-bold text-2xl flex items-center justify-center shadow-sm">
+            {% if request.user.first_name %}{{ request.user.first_name|slice:":1"|upper }}{% else %}A{% endif %}
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-slate-900">Profile photo</div>
+            <p class="text-xs text-slate-500 mt-0.5">SVG, PNG, or JPG (max. 800x800px).</p>
+            <div class="flex items-center gap-2 mt-2">
+              <button type="button" @click="savePreferences()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+                Upload new photo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Job Title & Department -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Operational job title</label>
+            <input type="text" placeholder="e.g. Lead Project Engineer" class="auth-input w-full">
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Department</label>
+            <select class="auth-input w-full">
+              <option selected>Engineering &amp; Site Operations</option>
+              <option>Finance &amp; Audit Directorate</option>
+              <option>Commercial, BOQ &amp; Procurement</option>
+              <option>Executive Administration</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bio / Field Notes -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Field notes / Operational bio</label>
+          <textarea rows="3" placeholder="Brief summary of site responsibilities, specialties, or project portfolio." class="auth-input w-full"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="pt-5 border-t border-slate-200 flex items-center justify-end gap-3">
+        <button type="button" @click="savePreferences()" class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          Cancel
+        </button>
+        <button type="button" @click="savePreferences()" class="px-5 py-2 rounded-lg text-xs font-semibold text-white transition-all shadow-sm flex items-center gap-2 hover:opacity-95" style="background-color: var(--ink);">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>Save profile</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 4: PASSWORD & SECURITY                                                -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'password'" x-transition class="space-y-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
+      
+      <div>
+        <h2 class="text-base font-semibold text-slate-900">Password &amp; Security</h2>
+        <p class="text-sm text-slate-500 mt-0.5">Please enter your current password to change your password.</p>
+      </div>
+
+      <div class="border-t border-slate-200 pt-6 space-y-5">
+        
+        <form method="post" action="{% url 'accounts:password_change' %}" class="space-y-4 max-w-xl">
+          {% csrf_token %}
+          
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Current password</label>
+            <input type="password" name="old_password" required placeholder="••••••••••••" class="auth-input w-full">
+          </div>
+
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">New password</label>
+            <input type="password" name="new_password1" required placeholder="••••••••••••" class="auth-input w-full">
+            <p class="text-[11px] text-slate-500 mt-1 font-mono">Your new password must be at least 12 characters and contain uppercase, lowercase, numbers, and symbols.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Confirm new password</label>
+            <input type="password" name="new_password2" required placeholder="••••••••••••" class="auth-input w-full">
+          </div>
+
+          <div class="pt-2">
+            <button type="submit" class="px-5 py-2.5 rounded-lg text-xs font-semibold text-white transition-all shadow-sm flex items-center gap-2 hover:opacity-95" style="background-color: var(--ink);">
+              <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+              <span>Update password</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Two-Factor Authentication Safeguards Card -->
+        <div class="border-t border-slate-200 pt-6">
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div class="text-sm font-semibold text-slate-900">Two-Factor Authentication (TOTP)</div>
+                <div class="text-xs text-slate-500 mt-0.5">Protects your account with an extra verification code on sign-in.</div>
+              </div>
+            </div>
+
+            <a href="{% url 'two_factor:profile' %}"
+               class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs">
+              <i data-lucide="smartphone" class="w-4 h-4 text-slate-400"></i>
+              <span>Manage 2FA devices</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 5: TEAM & ROLES (The Users Page Embedded)                             -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'team'" x-transition class="space-y-6">
+    
+    <!-- KPI / Security Status Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
+        <div>
+          <div class="text-xs font-mono text-slate-500 uppercase">Total Accounts</div>
+          <div class="text-2xl font-bold font-display text-slate-900 mt-0.5">{{ total_users|default:'3' }}</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+          <i data-lucide="users" class="w-5 h-5"></i>
+        </div>
+      </div>
+
+      <div class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
+        <div>
+          <div class="text-xs font-mono text-slate-500 uppercase">Active Admins</div>
+          <div class="text-2xl font-bold font-display text-slate-900 mt-0.5">{{ active_owners_count|default:'2' }}</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+      </div>
+
+      <div class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
+        <div>
+          <div class="text-xs font-mono text-slate-500 uppercase">Credential Vault</div>
+          <div class="text-xs font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
+            <i data-lucide="key" class="w-3.5 h-3.5"></i>
+            <span>Fernet-256 Symmetric Encryption</span>
+          </div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="lock" class="w-5 h-5"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Credentials Roster Table -->
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+      <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <div class="font-semibold text-sm text-slate-900">Team Credentials Ledger</div>
+          <div class="text-xs text-slate-500 font-mono">Provisioned accounts, assigned permissions, and initial vault credentials</div>
+        </div>
+        <div class="text-xs text-slate-600 font-mono bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
+          {{ total_users|default:users|length }} registered accounts
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="border-b border-slate-200 bg-slate-50 text-xs font-mono text-slate-500 uppercase tracking-wider">
+              <th class="py-3 px-4">User</th>
+              <th class="py-3 px-4">Contact</th>
+              <th class="py-3 px-4">Role &amp; Privileges</th>
+              <th class="py-3 px-4">Provisioned Credentials</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for u in users %}
+              <tr class="hover:bg-slate-50/80 transition-colors {% if not u.is_active %}opacity-60 bg-slate-50/50{% endif %}">
+                
+                <!-- 1. User -->
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                      {% if u.first_name %}{{ u.first_name|slice:":1"|upper }}{% elif u.username %}{{ u.username|slice:":1"|upper }}{% else %}?{% endif %}
+                    </div>
+                    <div>
+                      <div class="font-semibold text-slate-900 flex items-center gap-1.5">
+                        <span>{{ u.full_name }}</span>
+                        {% if u.is_current_user %}
+                          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">You</span>
+                        {% endif %}
+                      </div>
+                      <div class="text-xs font-mono text-slate-500">@{{ u.username }}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 2. Contact -->
+                <td class="py-3 px-4 text-xs font-mono text-slate-700">
+                  {{ u.email|default:"—" }}
+                </td>
+
+                <!-- 3. Role & Privileges -->
+                <td class="py-3 px-4">
+                  <div>
+                    {% if u.role == 'Admin' or u.role == 'Owner' %}
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-900 text-white">
+                        <i data-lucide="crown" class="w-3 h-3"></i>
+                        <span>Admin</span>
+                      </span>
+                    {% elif u.role == 'Project Manager' %}
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
+                        <i data-lucide="briefcase" class="w-3 h-3"></i>
+                        <span>Project Manager</span>
+                      </span>
+                    {% elif u.role == 'Site Engineer' or u.role == 'Site staff' %}
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                        <i data-lucide="hard-hat" class="w-3 h-3"></i>
+                        <span>Site Engineer</span>
+                      </span>
+                    {% elif u.role == 'Accountant' or u.role == 'Auditor' or u.role == 'Finance' %}
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                        <i data-lucide="calculator" class="w-3 h-3"></i>
+                        <span>Accountant</span>
+                      </span>
+                    {% else %}
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                        <span>{{ u.role }}</span>
                       </span>
                     {% endif %}
-                  </div>
-                  <p class="text-xs text-slate-600 leading-relaxed max-w-3xl">{{ item.desc }}</p>
-                </div>
-              </div>
 
-              <div class="flex items-center gap-3 sm:flex-shrink-0 pl-8 sm:pl-0">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-medium {% if item.status == 'completed' %}bg-emerald-50 text-emerald-800 border border-emerald-200/80{% else %}bg-slate-100 text-slate-600 border border-slate-200{% endif %}">
-                  {{ item.status_label }}
-                </span>
-                <button type="button" 
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-colors shadow-xs"
-                        @click="openSpec({
-                          id: '{{ item.id|escapejs }}',
-                          title: '{{ item.title|escapejs }}',
-                          desc: '{{ item.desc|escapejs }}',
-                          value: '{{ item.value|default:item.desc|escapejs }}',
-                          authority: '{{ item.authority|default:'Executive Administration'|escapejs }}',
-                          status: '{{ item.status|escapejs }}',
-                          status_label: '{{ item.status_label|escapejs }}',
-                          module_url: '{{ item.module_url|default:''|escapejs }}'
-                        })">
-                  <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-400"></i>
-                  <span>Inspect</span>
-                </button>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </section>
-    {% endfor %}
+                    {% if u.privileges %}
+                      <div class="flex flex-wrap gap-1 mt-1.5">
+                        {% for priv in u.privileges %}
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200" title="{{ priv.label }}">
+                            {{ priv.label }}
+                          </span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </td>
+
+                <!-- 4. Provisioned Credentials -->
+                <td class="py-3 px-4">
+                  {% if u.has_vault_record and u.must_change_password and is_admin %}
+                    <div class="space-y-1" x-data="{ revealed: false, copied: false, val: '{{ u.vault_password|default:''|escapejs }}' }">
+                      <div class="flex items-center gap-1.5">
+                        <template x-if="!revealed">
+                          <span class="font-mono text-xs text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 tracking-widest select-none">••••••••••••</span>
+                        </template>
+                        <template x-if="revealed">
+                          <span class="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300 select-all" x-text="val"></span>
+                        </template>
+
+                        <button type="button" 
+                                @click="revealed = !revealed" 
+                                class="p-1 rounded hover:bg-slate-200 text-slate-600 transition-colors"
+                                :title="revealed ? 'Hide Password' : 'Show Initial Password'">
+                          <i x-show="!revealed" data-lucide="eye" class="w-3.5 h-3.5"></i>
+                          <i x-show="revealed" data-lucide="eye-off" class="w-3.5 h-3.5"></i>
+                        </button>
+
+                        <button type="button" 
+                                @click="navigator.clipboard.writeText(val); copied = true; setTimeout(() => copied = false, 2000)" 
+                                class="p-1 rounded hover:bg-slate-200 text-slate-600 transition-colors relative"
+                                title="Copy Initial Password">
+                          <i x-show="!copied" data-lucide="copy" class="w-3.5 h-3.5"></i>
+                          <i x-show="copied" data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                          <span x-show="copied" x-transition class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-mono px-1.5 py-0.5 rounded shadow z-10 whitespace-nowrap">Copied!</span>
+                        </button>
+                      </div>
+                      <div class="text-[10px] text-amber-700 font-mono flex items-center gap-1">
+                        <i data-lucide="clock" class="w-3 h-3"></i>
+                        <span>Initial Vault (wipes on 1st login)</span>
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono text-slate-500 bg-slate-100 border border-slate-200">
+                      <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i>
+                      <span>User Changed / Encrypted</span>
+                    </div>
+                  {% endif %}
+                </td>
+
+                <!-- 5. Status -->
+                <td class="py-3 px-4">
+                  {% if not u.is_active %}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                      <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                      <span>Suspended</span>
+                    </span>
+                  {% elif u.must_change_password %}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span>First Login Pending</span>
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      <span>Active</span>
+                    </span>
+                  {% endif %}
+                </td>
+
+                <!-- 6. Actions -->
+                <td class="py-3 px-4 text-right">
+                  <div class="inline-flex items-center gap-1 justify-end">
+                    <a href="{% url 'accounts:user_edit' u.id %}"
+                       class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"
+                       title="Edit Roles &amp; Permissions">
+                      <i data-lucide="sliders" class="w-4 h-4"></i>
+                    </a>
+
+                    {% if u.is_active %}
+                      <form method="post" action="{% url 'accounts:user_toggle_active' u.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="p-1.5 rounded-lg hover:bg-red-50 text-red-700 transition-colors"
+                                title="Suspend User Account"
+                                onclick="return confirm('Suspend user {{ u.full_name }}?');">
+                          <i data-lucide="user-x" class="w-4 h-4"></i>
+                        </button>
+                      </form>
+                    {% else %}
+                      <form method="post" action="{% url 'accounts:user_toggle_active' u.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-700 transition-colors"
+                                title="Reactivate User Account">
+                          <i data-lucide="user-check" class="w-4 h-4"></i>
+                        </button>
+                      </form>
+                    {% endif %}
+
+                    {% if u.is_active %}
+                      <form method="post" action="{% url 'accounts:user_reset_password' u.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-700 transition-colors"
+                                title="Force Password Reset"
+                                onclick="return confirm('Force reset password for {{ u.full_name }}?');">
+                          <i data-lucide="key-round" class="w-4 h-4"></i>
+                        </button>
+                      </form>
+
+                      <form method="post" action="{% url 'accounts:user_send_setup_link' u.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-700 transition-colors"
+                                title="Resend Welcome Email"
+                                onclick="return confirm('Resend onboarding email to {{ u.email }}?');">
+                          <i data-lucide="mail" class="w-4 h-4"></i>
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="py-8 text-center text-slate-500">
+                  No staff accounts provisioned.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <!-- Institutional Governance Assurance Footer -->
-  <footer class="p-4 bg-white rounded-xl border border-slate-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-500">
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
-        <i data-lucide="shield-check" class="w-4 h-4"></i>
+  <!-- ========================================================================= -->
+  <!-- TAB 6: PLAN & COMPANY LEGAL PROFILE                                       -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'plan'" x-transition class="space-y-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
+      <div>
+        <h2 class="text-base font-semibold text-slate-900">Organization &amp; Branding</h2>
+        <p class="text-sm text-slate-500 mt-0.5">Statutory registration and registered corporate identity.</p>
       </div>
-      <span>All organizational parameters, statutory tax rates, and sequential counters are audited under <strong>East Africa Time (EAT, UTC+3)</strong>.</span>
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="{% url 'dashboard:overview' %}" class="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1">
-        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Dashboard
-      </a>
-      <span class="text-slate-300">|</span>
-      <span class="font-mono text-slate-400 text-[11px]">HMAC SHA-256 Ledger</span>
-    </div>
-  </footer>
 
-  <!-- Technical Parameter Specification Modal -->
-  <div x-show="specModalOpen"
+      <div class="border-t border-slate-200 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+          <div class="text-xs font-mono text-slate-500 uppercase">Legal Registered Name</div>
+          <div class="text-base font-bold text-slate-900">Jimcan Construction &amp; Engineering Ltd.</div>
+          <div class="text-xs text-slate-500">Incorporation No: 80020003418291</div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+          <div class="text-xs font-mono text-slate-500 uppercase">URA Tax Identification Number</div>
+          <div class="text-base font-bold text-slate-900">1002938471</div>
+          <div class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+            <span>URA Verified &amp; Active</span>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+          <div class="text-xs font-mono text-slate-500 uppercase">Head Office Address</div>
+          <div class="text-sm font-semibold text-slate-900">Plot 14, Jinja Road, Kampala, Uganda</div>
+          <div class="text-xs text-slate-500">P.O. Box 7210, Kampala</div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+          <div class="text-xs font-mono text-slate-500 uppercase">Regulatory Class</div>
+          <div class="text-sm font-semibold text-slate-900">UNBS Class A General Building Contractor</div>
+          <div class="text-xs text-slate-500">Ministry of Works &amp; Transport Certified</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 7: BILLING & FINANCIAL RULES                                          -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'billing'" x-transition class="space-y-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
+      <div>
+        <h2 class="text-base font-semibold text-slate-900">Tax &amp; Calculation Rules</h2>
+        <p class="text-sm text-slate-500 mt-0.5">Uganda statutory tax rates and sequential document numbering format.</p>
+      </div>
+
+      <div class="border-t border-slate-200 pt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+          <div class="text-xs font-mono text-slate-500 uppercase">Standard VAT Rate (18%)</div>
+          <div class="text-2xl font-bold font-display text-slate-900 mt-1">18.00%</div>
+          <div class="text-xs text-slate-500 mt-1">Standard rate for commercial supplies</div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+          <div class="text-xs font-mono text-slate-500 uppercase">Withholding Tax (WHT)</div>
+          <div class="text-2xl font-bold font-display text-slate-900 mt-1">6.00%</div>
+          <div class="text-xs text-slate-500 mt-1">Contractor withholding tax rate</div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+          <div class="text-xs font-mono text-slate-500 uppercase">Base Currency</div>
+          <div class="text-2xl font-bold font-display text-slate-900 mt-1">UGX</div>
+          <div class="text-xs text-slate-500 mt-1">Ugandan Shilling (Zero Decimal Base)</div>
+        </div>
+      </div>
+
+      <!-- Document Sequences -->
+      <div class="border-t border-slate-200 pt-5 space-y-3">
+        <h3 class="text-sm font-semibold text-slate-900">Document Numbering Sequences</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <span class="text-xs font-mono text-slate-500">Invoices</span>
+            <div class="font-mono text-sm font-bold text-slate-900 mt-0.5">JC-INV-2026-###</div>
+          </div>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <span class="text-xs font-mono text-slate-500">Estimates &amp; Quotes</span>
+            <div class="font-mono text-sm font-bold text-slate-900 mt-0.5">JC-QUO-2026-###</div>
+          </div>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <span class="text-xs font-mono text-slate-500">Project Codes</span>
+            <div class="font-mono text-sm font-bold text-slate-900 mt-0.5">JC-PRJ-###</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 8: EMAIL DISPATCH                                                     -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'email'" x-transition class="space-y-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
+      <div>
+        <h2 class="text-base font-semibold text-slate-900">Email Dispatch &amp; Delivery</h2>
+        <p class="text-sm text-slate-500 mt-0.5">Automated onboarding credentials and notification delivery settings.</p>
+      </div>
+
+      <div class="border-t border-slate-200 pt-6 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <div class="text-xs font-mono text-slate-500 uppercase">SMTP Relay Provider</div>
+            <div class="text-base font-bold text-slate-900 mt-1">Google Workspace / SMTP</div>
+            <div class="text-xs text-slate-500 mt-0.5">smtp.gmail.com:587 (TLS Active)</div>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <div class="text-xs font-mono text-slate-500 uppercase">Default Dispatch Address</div>
+            <div class="text-base font-bold text-slate-900 mt-1">sgeorge.ug@gmail.com</div>
+            <div class="text-xs text-emerald-700 font-semibold mt-0.5">Authenticated Relay</div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 space-y-1">
+          <div class="font-semibold text-slate-900">Statutory Legal Disclaimer:</div>
+          <div>All automated emails automatically append Kampala registration numbers and confidentiality notices.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 9: INTEGRATIONS & AUDIT                                               -->
+  <!-- ========================================================================= -->
+  <div x-show="activeTab === 'integrations'" x-transition class="space-y-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
+      <div>
+        <h2 class="text-base font-semibold text-slate-900">Security &amp; Audit Logs</h2>
+        <p class="text-sm text-slate-500 mt-0.5">Immutable cryptographic audit trail and operational telemetry.</p>
+      </div>
+
+      <div class="border-t border-slate-200 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Immutable Audit Trail Ledger</div>
+          <div class="text-xs text-slate-500 mt-0.5">SHA-256 HMAC chained ledger tracking all financial sign-offs, logins, and permission changes.</div>
+        </div>
+
+        <a href="{% url 'dashboard:audit' %}"
+           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-slate-500"></i>
+          <span>Open Audit Ledger</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Provisioning Modal Dialog -->
+  <div x-show="createModalOpen" 
        x-transition:enter="transition ease-out duration-200"
        x-transition:enter-start="opacity-0"
        x-transition:enter-end="opacity-100"
        x-transition:leave="transition ease-in duration-150"
        x-transition:leave-start="opacity-100"
        x-transition:leave-end="opacity-0"
-       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
+       class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
        style="display: none;"
-       @keydown.escape.window="specModalOpen = false"
        role="dialog"
        aria-modal="true"
-       :aria-labelledby="'modal-title-' + selectedItem.id">
+       @keydown.escape.window="createModalOpen = false">
     
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-5"
-         @click.outside="specModalOpen = false">
+    <div class="bg-white rounded-xl border border-slate-200 max-w-xl w-full p-6 space-y-5 shadow-2xl overflow-y-auto max-h-[90vh]"
+         @click.away="createModalOpen = false">
       
       <!-- Modal Header -->
-      <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
         <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200" x-text="selectedItem.id"></span>
-            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium"
-                  :class="selectedItem.status === 'completed' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'"
-                  x-text="selectedItem.status_label"></span>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-900 text-white">SEC-05</span>
+            <h2 class="text-lg font-bold font-display text-slate-900">Provision Staff Account</h2>
           </div>
-          <h3 class="text-lg font-bold font-display text-slate-900" x-text="selectedItem.title"></h3>
+          <p class="text-xs text-slate-500 mt-0.5">Assign credentials, operational role, and granular permission flags.</p>
         </div>
-        <button type="button"
-                @click="specModalOpen = false"
-                class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors">
-          <i data-lucide="x" class="w-4 h-4"></i>
+        <button type="button" @click="createModalOpen = false" class="p-1.5 text-slate-400 hover:text-slate-900 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <!-- Modal Body -->
-      <div class="space-y-4 text-xs">
-        <div>
-          <label class="block font-mono uppercase text-[10px] font-bold text-slate-400 mb-1">Live Operating Value</label>
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 font-medium" x-text="selectedItem.value"></div>
-        </div>
+      <!-- Creation Form -->
+      <form method="post" action="{% url 'accounts:user_create' %}" class="space-y-4">
+        {% csrf_token %}
 
-        <div>
-          <label class="block font-mono uppercase text-[10px] font-bold text-slate-400 mb-1">Functional Description</label>
-          <p class="text-slate-600 leading-relaxed" x-text="selectedItem.desc"></p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 pt-2">
-          <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-lg">
-            <span class="block text-[10px] font-mono uppercase text-slate-400 mb-0.5">Governing Authority</span>
-            <span class="font-medium text-slate-800 text-xs" x-text="selectedItem.authority"></span>
+        <!-- Full Name (First and Last) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+              First Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="first_name" required placeholder="e.g. Sarah" class="auth-input w-full">
           </div>
-          <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-lg">
-            <span class="block text-[10px] font-mono uppercase text-slate-400 mb-0.5">Audit Integrity</span>
-            <span class="font-medium text-slate-800 text-xs">HMAC SHA-256 Logged</span>
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+              Last Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="last_name" required placeholder="e.g. Kigozi" class="auth-input w-full">
           </div>
         </div>
-      </div>
 
-      <!-- Modal Actions -->
-      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-        <button type="button"
-                @click="specModalOpen = false"
-                class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-          Dismiss
-        </button>
-        <template x-if="selectedItem.module_url">
-          <a :href="selectedItem.module_url"
-             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs">
-            <span>Open Module</span>
-            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-          </a>
-        </template>
-      </div>
+        <!-- Work Email Address -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+            Work Email Address <span class="text-red-500">*</span>
+          </label>
+          <input type="email" name="email" required placeholder="sarah.k@jimcanconstruction.site" class="auth-input w-full">
+          <p class="text-[11px] text-slate-500 mt-1 font-mono">Uniqueness is checked across active and inactive accounts.</p>
+        </div>
 
+        <!-- Unique Username -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+            Unique Username
+          </label>
+          <input type="text" name="username" placeholder="Leave blank to auto-derive from email" class="auth-input w-full">
+          <p class="text-[11px] text-slate-500 mt-1 font-mono">Custom username or auto-derived handle (e.g. sarah_kigozi).</p>
+        </div>
+
+        <!-- System Role Selector -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+            System Role <span class="text-red-500">*</span>
+          </label>
+          <select name="role" required class="auth-input w-full">
+            <option value="Admin">Admin / Owner (Full System &amp; Financial Access)</option>
+            <option value="Project Manager">Project Manager (Projects, BOQ, Site Uploads, Financial Summaries)</option>
+            <option value="Site Engineer" selected>Site Engineer (Site Logs, Expense Submissions, Progress)</option>
+            <option value="Accountant">Auditor / Accountant (Invoices, Expenses, Tax, BOQ Rates)</option>
+          </select>
+        </div>
+
+        <!-- Password Configuration: Option A vs Option B -->
+        <div class="border-t border-slate-200 pt-3">
+          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-2">
+            Password Configuration <span class="text-red-500">*</span>
+          </label>
+          <div class="space-y-2">
+            
+            <!-- Option B: Auto-generate strong credentials -->
+            <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors"
+                   :class="passwordOption === 'auto' ? 'border-slate-800 bg-slate-50/50' : ''">
+              <input type="radio" name="password_option" value="auto" x-model="passwordOption" class="text-slate-900 focus:ring-slate-900">
+              <div class="flex-1">
+                <div class="text-xs font-semibold text-slate-900 flex items-center justify-between">
+                  <span>Auto-generate strong credentials</span>
+                  <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">Recommended</span>
+                </div>
+                <div class="text-[11px] text-slate-500">12-character high-entropy cryptographic string</div>
+              </div>
+            </label>
+
+            <!-- Option A: Manual Entry -->
+            <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors"
+                   :class="passwordOption === 'manual' ? 'border-slate-800 bg-slate-50/50' : ''">
+              <input type="radio" name="password_option" value="manual" x-model="passwordOption" class="text-slate-900 focus:ring-slate-900">
+              <div class="flex-1">
+                <div class="text-xs font-semibold text-slate-900">Manual Entry</div>
+                <div class="text-[11px] text-slate-500">Admin sets explicit initial password</div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Manual password input field with Auto-generate helper button -->
+          <div x-show="passwordOption === 'manual'" x-transition class="mt-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+                Initial Password
+              </label>
+              <button type="button" 
+                      @click="generatePassword()" 
+                      class="text-[11px] font-mono text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3"></i>
+                <span>Auto-generate strong password</span>
+              </button>
+            </div>
+            <input type="text" 
+                   name="custom_password" 
+                   x-model="manualPassword" 
+                   placeholder="Enter at least 8 characters" 
+                   class="auth-input w-full font-mono text-xs">
+          </div>
+        </div>
+
+        <!-- Granular Feature Toggles -->
+        <div class="border-t border-slate-200 pt-3">
+          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-2">
+            Granular Permission Overrides
+          </label>
+          <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" name="can_view_boq" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+              <div>
+                <span class="font-semibold text-slate-900">Access BOQ Master Pricing (<code class="text-[11px] font-mono">can_view_boq_rates</code>)</span>
+                <p class="text-[11px] text-slate-500">Grants access to bill of quantities unit rates and pricing schedules.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" name="can_approve_expenses" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+              <div>
+                <span class="font-semibold text-slate-900">Sign Off on Vouchers (<code class="text-[11px] font-mono">can_approve_expenses</code>)</span>
+                <p class="text-[11px] text-slate-500">Allows authorization and sign-off on expense vouchers.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" name="can_export_tax_reports" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+              <div>
+                <span class="font-semibold text-slate-900">Download URA Tax Schedules (<code class="text-[11px] font-mono">can_export_tax_reports</code>)</span>
+                <p class="text-[11px] text-slate-500">Permission to generate and export Uganda Revenue Authority tax schedules.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" name="can_manage_leads" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+              <div>
+                <span class="font-semibold text-slate-900">Manage Leads &amp; Pipeline (<code class="text-[11px] font-mono">can_manage_leads</code>)</span>
+                <p class="text-[11px] text-slate-500">Edit, reassign, and advance commercial pipeline opportunities.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Checkboxes -->
+        <div class="border-t border-slate-200 pt-3 space-y-2">
+          <label class="flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" name="must_change_password" checked value="true" class="rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+            <span class="text-xs font-semibold text-slate-900">Require password change on first sign-in (Default: Checked)</span>
+          </label>
+          <p class="text-[11px] text-slate-500 pl-6">Stores an encrypted copy in the administrative vault and wipes it immediately once user changes password.</p>
+
+          <label class="flex items-center gap-2.5 cursor-pointer pt-1">
+            <input type="checkbox" name="send_onboarding_email" checked value="true" class="rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+            <span class="text-xs font-semibold text-slate-900">Dispatch onboarding email with credentials (Default: Checked)</span>
+          </label>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="border-t border-slate-200 pt-4 flex items-center justify-end gap-3">
+          <button type="button" @click="createModalOpen = false" class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="px-5 py-2 rounded-lg text-xs font-semibold text-white transition-all shadow-sm flex items-center gap-2 hover:opacity-95"
+                  style="background-color: var(--ink);">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Provision Account</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
 </div>
-{% endblock content %}
+{% endblock %}

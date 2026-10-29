@@ -50,6 +50,77 @@ def _is_recent_auth(request, minutes: int = 10) -> bool:
     return (timezone.now().timestamp() - float(reauth_at)) <= threshold
 
 
+def get_team_roster_data(requester_user):
+    """Generates the context data dictionary for the team credentials ledger."""
+    users = User.objects.all().select_related('profile').order_by('username')
+    user_list = []
+    active_owners = 0
+    is_requester_admin = is_admin(requester_user)
+
+    for u in users:
+        role = get_user_role(u) or 'No Role'
+        has_mfa = user_has_device(u)
+        if role in (ROLE_OWNER, ROLE_ADMIN) and u.is_active:
+            active_owners += 1
+
+        profile = getattr(u, 'profile', None)
+        must_change = profile.must_change_password if profile else False
+        created_at = profile.created_at if profile else u.date_joined
+        created_by = profile.created_by if profile else None
+
+        # Credential Oversight: Decrypt initial raw password strictly for Owner/Admin if still pending change
+        vault_password = None
+        if is_requester_admin and profile and must_change:
+            vault_password = profile.get_initial_vault_password()
+
+        privileges = []
+        if profile:
+            if profile.can_view_boq or profile.can_view_boq_rates:
+                privileges.append({'id': 'boq', 'label': 'BOQ Pricing', 'color': 'indigo'})
+            if profile.can_approve_expenses:
+                privileges.append({'id': 'expenses', 'label': 'Approve Expenses', 'color': 'emerald'})
+            if profile.can_export_tax_reports:
+                privileges.append({'id': 'tax', 'label': 'Tax Export', 'color': 'blue'})
+            if profile.can_manage_leads:
+                privileges.append({'id': 'leads', 'label': 'Manage Leads', 'color': 'purple'})
+
+        user_list.append({
+            'id': u.pk,
+            'username': u.username,
+            'first_name': u.first_name,
+            'last_name': u.last_name,
+            'full_name': u.get_full_name() or u.username,
+            'email': u.email,
+            'role': role,
+            'is_active': u.is_active,
+            'must_change_password': must_change,
+            'vault_password': vault_password,
+            'has_vault_record': bool(profile and profile.initial_credential_vault and must_change),
+            'privileges': privileges,
+            'can_view_boq': profile.can_view_boq if profile else False,
+            'can_approve_expenses': profile.can_approve_expenses if profile else False,
+            'can_export_tax_reports': profile.can_export_tax_reports if profile else False,
+            'can_manage_leads': profile.can_manage_leads if profile else False,
+            'created_at': created_at,
+            'created_by': created_by,
+            'has_mfa': has_mfa,
+            'date_joined': u.date_joined,
+            'last_login': u.last_login,
+            'is_current_user': (u.pk == getattr(requester_user, 'pk', None)),
+        })
+
+    create_form = UserCreateForm()
+
+    return {
+        'page_title': 'Team & Role Management',
+        'users': user_list,
+        'total_users': len(user_list),
+        'active_owners_count': active_owners,
+        'create_form': create_form,
+        'is_admin': is_requester_admin,
+    }
+
+
 @method_decorator(permission_required('accounts.manage_users', raise_exception=True), name='dispatch')
 class UserListView(View):
     """
@@ -60,73 +131,7 @@ class UserListView(View):
     template_name = 'accounts/user_list.html'
 
     def get(self, request):
-        users = User.objects.all().select_related('profile').order_by('username')
-        user_list = []
-        active_owners = 0
-        is_requester_admin = is_admin(request.user)
-
-        for u in users:
-            role = get_user_role(u) or 'No Role'
-            has_mfa = user_has_device(u)
-            if role in (ROLE_OWNER, ROLE_ADMIN) and u.is_active:
-                active_owners += 1
-
-            profile = getattr(u, 'profile', None)
-            must_change = profile.must_change_password if profile else False
-            created_at = profile.created_at if profile else u.date_joined
-            created_by = profile.created_by if profile else None
-
-            # Credential Oversight: Decrypt initial raw password strictly for Owner/Admin if still pending change
-            vault_password = None
-            if is_requester_admin and profile and must_change:
-                vault_password = profile.get_initial_vault_password()
-
-            privileges = []
-            if profile:
-                if profile.can_view_boq or profile.can_view_boq_rates:
-                    privileges.append({'id': 'boq', 'label': 'BOQ Pricing', 'color': 'indigo'})
-                if profile.can_approve_expenses:
-                    privileges.append({'id': 'expenses', 'label': 'Approve Expenses', 'color': 'emerald'})
-                if profile.can_export_tax_reports:
-                    privileges.append({'id': 'tax', 'label': 'Tax Export', 'color': 'blue'})
-                if profile.can_manage_leads:
-                    privileges.append({'id': 'leads', 'label': 'Manage Leads', 'color': 'purple'})
-
-            user_list.append({
-                'id': u.pk,
-                'username': u.username,
-                'first_name': u.first_name,
-                'last_name': u.last_name,
-                'full_name': u.get_full_name() or u.username,
-                'email': u.email,
-                'role': role,
-                'is_active': u.is_active,
-                'must_change_password': must_change,
-                'vault_password': vault_password,
-                'has_vault_record': bool(profile and profile.initial_credential_vault and must_change),
-                'privileges': privileges,
-                'can_view_boq': profile.can_view_boq if profile else False,
-                'can_approve_expenses': profile.can_approve_expenses if profile else False,
-                'can_export_tax_reports': profile.can_export_tax_reports if profile else False,
-                'can_manage_leads': profile.can_manage_leads if profile else False,
-                'created_at': created_at,
-                'created_by': created_by,
-                'has_mfa': has_mfa,
-                'date_joined': u.date_joined,
-                'last_login': u.last_login,
-                'is_current_user': (u.pk == request.user.pk),
-            })
-
-        create_form = UserCreateForm()
-
-        context = {
-            'page_title': 'Team & Role Management',
-            'users': user_list,
-            'total_users': len(user_list),
-            'active_owners_count': active_owners,
-            'create_form': create_form,
-            'is_admin': is_requester_admin,
-        }
+        context = get_team_roster_data(request.user)
         return render(request, self.template_name, context)
 
 

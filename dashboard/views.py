@@ -630,12 +630,15 @@ def setup_checklist_view(request):
     ]
 
     context = {
-        'page_title': 'Admin Setup Checklist',
+        'page_title': 'Settings · Jimcan Operations',
         'sections': checklist_sections,
         'completed_count': 9,
         'total_count': 14,
         'progress_percent': 64,
+        'initial_tab': request.GET.get('tab', 'notifications'),
     }
+    from accounts.user_views import get_team_roster_data
+    context.update(get_team_roster_data(request.user))
     return render(request, 'accounts/setup_checklist.html', context)
 
 @require_dashboard_perm('accounts.view_audit_log', 'audit')

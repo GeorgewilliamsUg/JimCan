@@ -18,37 +18,19 @@
        }
      }">
 
-  <!-- Top Breadcrumbs & Page Header -->
-  <header class="border-b border-line pb-6">
-    <nav aria-label="Breadcrumbs" class="mb-2">
-      <ol class="flex items-center gap-1.5 text-xs text-muted font-medium">
-        <li>
-          <a href="{% url 'dashboard:overview' %}" class="hover:text-charcoal flex items-center gap-1">
-            <i data-lucide="home" class="w-3.5 h-3.5"></i>
-            <span>Home</span>
-          </a>
-        </li>
-        <li class="flex items-center gap-1.5">
-          <span class="text-steel">/</span>
-          <a href="{% url 'dashboard:settings' %}" class="hover:text-charcoal">Settings</a>
-        </li>
-        <li class="flex items-center gap-1.5">
-          <span class="text-steel">/</span>
-          <span class="text-charcoal font-semibold" aria-current="page">Team &amp; Credential Oversight</span>
-        </li>
-      </ol>
+  <!-- Top Breadcrumbs & Page Header (Untitled UI Style) -->
+  <header class="border-b border-slate-200 pb-5">
+    <nav aria-label="Breadcrumbs" class="mb-3">
+      <a href="{% url 'dashboard:overview' %}" class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-medium transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Back to dashboard</span>
+      </a>
     </nav>
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <div class="flex items-center gap-2 mb-1">
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-ink text-white">RBAC-VAULT</span>
-          <span class="text-xs font-mono text-muted">Admin User Provisioning &amp; Credential Oversight</span>
-        </div>
-        <h1 class="text-2xl sm:text-3xl font-display font-bold text-charcoal tracking-tight">Team & User Management</h1>
-        <p class="text-muted text-sm mt-1 max-w-2xl">
-          Team Credentials Ledger, role assignment, granular permission overrides, and administrative credential oversight prior to initial user password rotation.
-        </p>
+        <h1 class="text-2xl sm:text-3xl font-display font-bold text-slate-900 tracking-tight">Settings <span class="sr-only">{% autoescape off %}Team & User Management{% endautoescape %}</span></h1>
+        <p class="text-slate-500 text-sm mt-0.5">Team &amp; User Management &mdash; Manage team credentials, role assignment, and administrative oversight.</p>
       </div>
 
       <div class="flex items-center gap-3">
@@ -60,6 +42,58 @@
           <span>Provision User</span>
         </button>
       </div>
+    </div>
+
+    <!-- Horizontal Tabs Row (Matching Inspiration Screenshot Exactly) -->
+    <div class="flex items-center gap-1.5 overflow-x-auto mt-6 -mb-5 pb-1 text-sm font-medium border-b border-transparent">
+      
+      <a href="{% url 'dashboard:settings' %}?tab=details"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent">
+        My details
+      </a>
+
+      <a href="{% url 'dashboard:settings' %}?tab=profile"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent">
+        Profile
+      </a>
+
+      <a href="{% url 'dashboard:settings' %}?tab=password"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent">
+        Password
+      </a>
+
+      <a href="{% url 'accounts:user_list' %}"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs">
+        <span>Team</span>
+        {% if total_users %}
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-indigo-100 text-indigo-800">{{ total_users }}</span>
+        {% endif %}
+      </a>
+
+      <a href="{% url 'dashboard:settings' %}?tab=plan"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent">
+        Plan
+      </a>
+
+      <a href="{% url 'dashboard:settings' %}?tab=billing"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent">
+        Billing
+      </a>
+
+      <a href="{% url 'dashboard:settings' %}?tab=email"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent">
+        Email
+      </a>
+
+      <a href="{% url 'dashboard:settings' %}?tab=notifications"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent">
+        Notifications
+      </a>
+
+      <a href="{% url 'dashboard:settings' %}?tab=integrations"
+         class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent">
+        Integrations
+      </a>
     </div>
   </header>
 
