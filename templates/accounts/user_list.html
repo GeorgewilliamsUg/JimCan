@@ -66,7 +66,7 @@
          class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 bg-indigo-50/80 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs">
         <span>Team</span>
         {% if total_users %}
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-indigo-100 text-indigo-800">{{ total_users }}</span>
+          <span class="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">{{ total_users }}</span>
         {% endif %}
       </a>
 
@@ -113,7 +113,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="p-4 bg-white border border-line rounded-xl flex items-center justify-between shadow-sm">
       <div>
-        <div class="text-xs font-mono text-muted uppercase">Total Accounts</div>
+        <div class="text-xs font-medium text-slate-500">Total Accounts</div>
         <div class="text-2xl font-bold font-display text-charcoal mt-0.5">{{ total_users }}</div>
       </div>
       <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
@@ -123,7 +123,7 @@
 
     <div class="p-4 bg-white border border-line rounded-xl flex items-center justify-between shadow-sm">
       <div>
-        <div class="text-xs font-mono text-muted uppercase">Active Admins</div>
+        <div class="text-xs font-medium text-slate-500">Active Admins</div>
         <div class="text-2xl font-bold font-display text-charcoal mt-0.5">{{ active_owners_count }}</div>
       </div>
       <div class="w-10 h-10 rounded-lg {% if active_owners_count >= 2 %}bg-emerald-50 text-emerald-700{% else %}bg-amber-50 text-amber-700{% endif %} flex items-center justify-center">
@@ -133,7 +133,7 @@
 
     <div class="p-4 bg-white border border-line rounded-xl flex items-center justify-between shadow-sm">
       <div>
-        <div class="text-xs font-mono text-muted uppercase">Credential Vault</div>
+        <div class="text-xs font-medium text-slate-500">Credential Vault</div>
         <div class="text-xs font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
           <i data-lucide="key" class="w-3.5 h-3.5"></i>
           <span>Fernet-256 Symmetric Encryption</span>
@@ -150,9 +150,9 @@
     <div class="p-4 border-b border-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
       <div>
         <div class="font-semibold text-sm text-charcoal">Team Credentials Ledger</div>
-        <div class="text-xs text-muted font-mono">Provisioned accounts, assigned permissions, and initial vault credentials</div>
+        <div class="text-xs text-slate-500">Provisioned accounts, assigned permissions, and initial vault credentials</div>
       </div>
-      <div class="text-xs text-muted font-mono bg-slate-50 px-2.5 py-1 rounded-md border border-line">
+      <div class="text-xs font-medium text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
         {{ total_users }} registered accounts
       </div>
     </div>
@@ -160,7 +160,7 @@
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-sm">
         <thead>
-          <tr class="border-b border-line bg-slate-50 text-xs font-mono text-muted uppercase tracking-wider">
+          <tr class="border-b border-line bg-slate-50 text-xs font-medium text-slate-500">
             <th class="py-3 px-4">User</th>
             <th class="py-3 px-4">Contact</th>
             <th class="py-3 px-4">Role &amp; Privileges</th>
@@ -183,16 +183,16 @@
                     <div class="font-semibold text-charcoal flex items-center gap-1.5">
                       <span>{{ u.full_name }}</span>
                       {% if u.is_current_user %}
-                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">You</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">You</span>
                       {% endif %}
                     </div>
-                    <div class="text-xs font-mono text-muted">@{{ u.username }}</div>
+                    <div class="text-xs text-slate-500">@{{ u.username }}</div>
                   </div>
                 </div>
               </td>
 
               <!-- 2. Contact (Email) -->
-              <td class="py-3 px-4 text-xs font-mono text-charcoal">
+              <td class="py-3 px-4 text-xs text-slate-700">
                 {{ u.email|default:"—" }}
               </td>
 
@@ -229,7 +229,7 @@
                   {% if u.privileges %}
                     <div class="flex flex-wrap gap-1 mt-1.5">
                       {% for priv in u.privileges %}
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200" title="{{ priv.label }}">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200" title="{{ priv.label }}">
                           {{ priv.label }}
                         </span>
                       {% endfor %}
@@ -244,10 +244,10 @@
                   <div class="space-y-1" x-data="{ revealed: false, copied: false, val: '{{ u.vault_password|default:''|escapejs }}' }">
                     <div class="flex items-center gap-1.5">
                       <template x-if="!revealed">
-                        <span class="font-mono text-xs text-charcoal bg-slate-100 px-2 py-0.5 rounded border border-slate-200 tracking-widest select-none">••••••••••••</span>
+                        <span class="text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 tracking-widest select-none">••••••••••••</span>
                       </template>
                       <template x-if="revealed">
-                        <span class="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300 select-all" x-text="val"></span>
+                        <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-300 select-all" x-text="val"></span>
                       </template>
 
                       <button type="button" 
@@ -264,17 +264,17 @@
                               title="Copy Initial Password">
                         <i x-show="!copied" data-lucide="copy" class="w-3.5 h-3.5"></i>
                         <i x-show="copied" data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                        <span x-show="copied" x-transition class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-mono px-1.5 py-0.5 rounded shadow z-10 whitespace-nowrap">Copied!</span>
+                        <span x-show="copied" x-transition class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-medium px-2 py-0.5 rounded shadow z-10 whitespace-nowrap">Copied!</span>
                       </button>
                     </div>
-                    <div class="text-[10px] text-amber-700 font-mono flex items-center gap-1">
-                      <i data-lucide="clock" class="w-3 h-3"></i>
+                    <div class="text-xs text-amber-700 flex items-center gap-1">
+                      <i data-lucide="clock" class="w-3.5 h-3.5"></i>
                       <span>Initial Vault (wipes on 1st login)</span>
                     </div>
                   </div>
                 {% else %}
-                  <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono text-muted bg-slate-100 border border-slate-200">
-                    <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i>
+                  <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium text-slate-500 bg-slate-100 border border-slate-200">
+                    <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-400"></i>
                     <span>User Changed / Encrypted</span>
                   </div>
                 {% endif %}
@@ -401,10 +401,7 @@
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-line pb-4">
         <div>
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-ink text-white">SEC-05</span>
-            <h2 class="text-lg font-bold font-display text-charcoal">Provision Staff Account</h2>
-          </div>
+          <h2 class="text-lg font-bold font-display text-charcoal">Provision Staff Account</h2>
           <p class="text-xs text-muted mt-0.5">Assign credentials, operational role, and granular permission flags.</p>
         </div>
         <button type="button" @click="createModalOpen = false" class="p-1.5 text-muted hover:text-charcoal rounded-lg">
@@ -419,43 +416,43 @@
         <!-- Full Name (First and Last) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">
               First Name <span class="text-red-500">*</span>
             </label>
-            <input type="text" name="first_name" required placeholder="e.g. Sarah" class="auth-input w-full">
+            <input type="text" name="first_name" required placeholder="e.g. Sarah" class="auth-input w-full text-sm">
           </div>
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">
               Last Name <span class="text-red-500">*</span>
             </label>
-            <input type="text" name="last_name" required placeholder="e.g. Kigozi" class="auth-input w-full">
+            <input type="text" name="last_name" required placeholder="e.g. Kigozi" class="auth-input w-full text-sm">
           </div>
         </div>
 
         <!-- Work Email Address -->
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">
             Work Email Address <span class="text-red-500">*</span>
           </label>
-          <input type="email" name="email" required placeholder="sarah.k@jimcanconstruction.site" class="auth-input w-full">
-          <p class="text-[11px] text-muted mt-1 font-mono">Uniqueness is checked across active and inactive accounts.</p>
+          <input type="email" name="email" required placeholder="sarah.k@jimcanconstruction.site" class="auth-input w-full text-sm">
+          <p class="text-xs text-slate-500 mt-1">Uniqueness is checked across active and inactive accounts.</p>
         </div>
 
         <!-- Unique Username -->
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">
             Unique Username
           </label>
-          <input type="text" name="username" placeholder="Leave blank to auto-derive from email" class="auth-input w-full">
-          <p class="text-[11px] text-muted mt-1 font-mono">Custom username or auto-derived handle (e.g. sarah_kigozi).</p>
+          <input type="text" name="username" placeholder="Leave blank to auto-derive from email" class="auth-input w-full text-sm">
+          <p class="text-xs text-slate-500 mt-1">Custom username or auto-derived handle (e.g. sarah_kigozi).</p>
         </div>
 
         <!-- System Role Selector -->
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">
             System Role <span class="text-red-500">*</span>
           </label>
-          <select name="role" required class="auth-input w-full">
+          <select name="role" required class="auth-input w-full text-sm">
             <option value="Admin">Admin / Owner (Full System &amp; Financial Access)</option>
             <option value="Project Manager">Project Manager (Projects, BOQ, Site Uploads, Financial Summaries)</option>
             <option value="Site Engineer" selected>Site Engineer (Site Logs, Expense Submissions, Progress)</option>
@@ -465,7 +462,7 @@
 
         <!-- Password Configuration: Option A vs Option B -->
         <div class="border-t border-line pt-3">
-          <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-2">
+          <label class="block text-sm font-medium text-slate-700 mb-2">
             Password Configuration <span class="text-red-500">*</span>
           </label>
           <div class="space-y-2">
@@ -477,7 +474,7 @@
               <div class="flex-1">
                 <div class="text-xs font-semibold text-charcoal flex items-center justify-between">
                   <span>Auto-generate strong credentials</span>
-                  <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">Recommended</span>
+                  <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">Recommended</span>
                 </div>
                 <div class="text-[11px] text-muted">12-character high-entropy cryptographic string</div>
               </div>
@@ -497,13 +494,13 @@
           <!-- Manual password input field with Auto-generate helper button -->
           <div x-show="passwordOption === 'manual'" x-transition class="mt-3 space-y-1.5">
             <div class="flex items-center justify-between">
-              <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold">
+              <label class="block text-sm font-medium text-slate-700">
                 Initial Password
               </label>
               <button type="button" 
                       @click="generatePassword()" 
-                      class="text-[11px] font-mono text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1">
-                <i data-lucide="sparkles" class="w-3 h-3"></i>
+                      class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
                 <span>Auto-generate strong password</span>
               </button>
             </div>
@@ -511,20 +508,20 @@
                    name="custom_password" 
                    x-model="manualPassword" 
                    placeholder="Enter at least 8 characters" 
-                   class="auth-input w-full font-mono text-xs">
+                   class="auth-input w-full text-sm">
           </div>
         </div>
 
         <!-- Granular Feature Toggles -->
         <div class="border-t border-line pt-3">
-          <label class="block text-xs font-mono uppercase tracking-wider text-muted font-bold mb-2">
+          <label class="block text-sm font-medium text-slate-700 mb-2">
             Granular Permission Overrides
           </label>
           <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-line text-xs">
             <label class="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox" name="can_view_boq" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
               <div>
-                <span class="font-semibold text-charcoal">Access BOQ Master Pricing (<code class="text-[11px] font-mono">can_view_boq_rates</code>)</span>
+                <span class="font-semibold text-charcoal">Access BOQ Master Pricing <span class="text-xs text-slate-400 font-normal">can_view_boq_rates</span></span>
                 <p class="text-[11px] text-muted">Grants access to bill of quantities unit rates and pricing schedules.</p>
               </div>
             </label>
@@ -532,7 +529,7 @@
             <label class="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox" name="can_approve_expenses" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
               <div>
-                <span class="font-semibold text-charcoal">Sign Off on Vouchers (<code class="text-[11px] font-mono">can_approve_expenses</code>)</span>
+                <span class="font-semibold text-charcoal">Sign Off on Vouchers <span class="text-xs text-slate-400 font-normal">can_approve_expenses</span></span>
                 <p class="text-[11px] text-muted">Allows authorization and sign-off on expense vouchers.</p>
               </div>
             </label>
@@ -540,7 +537,7 @@
             <label class="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox" name="can_export_tax_reports" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
               <div>
-                <span class="font-semibold text-charcoal">Download URA Tax Schedules (<code class="text-[11px] font-mono">can_export_tax_reports</code>)</span>
+                <span class="font-semibold text-charcoal">Download URA Tax Schedules <span class="text-xs text-slate-400 font-normal">can_export_tax_reports</span></span>
                 <p class="text-[11px] text-muted">Permission to generate and export Uganda Revenue Authority tax schedules.</p>
               </div>
             </label>
@@ -548,7 +545,7 @@
             <label class="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox" name="can_manage_leads" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
               <div>
-                <span class="font-semibold text-charcoal">Manage Leads &amp; Pipeline (<code class="text-[11px] font-mono">can_manage_leads</code>)</span>
+                <span class="font-semibold text-charcoal">Manage Leads &amp; Pipeline <span class="text-xs text-slate-400 font-normal">can_manage_leads</span></span>
                 <p class="text-[11px] text-muted">Edit, reassign, and advance commercial pipeline opportunities.</p>
               </div>
             </label>

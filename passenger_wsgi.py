@@ -39,7 +39,7 @@ except Exception as startup_err:
   <meta charset="utf-8">
   <title>Application Startup Error · Jimcan</title>
   <style>
-    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0F172A; color: #F8FAFC; padding: 2rem; margin: 0; line-height: 1.5; }}
+    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif; background: #0F172A; color: #F8FAFC; padding: 2rem; margin: 0; line-height: 1.5; }}
     .container {{ max-width: 840px; margin: 2rem auto; background: #1E293B; border: 1px solid #334155; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }}
     h1 {{ color: #F87171; font-size: 1.4rem; margin-top: 0; }}
     .badge {{ display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(248,113,113,0.2); color: #FCA5A5; font-size: 0.8rem; font-weight: 600; font-family: monospace; }}

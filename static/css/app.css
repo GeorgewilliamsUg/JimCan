@@ -304,19 +304,20 @@ body {
 .kpi-card.accent-safety { border-top-color: var(--color-safety); }
 .kpi-card.accent-go { border-top-color: var(--color-go); }
 .kpi-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
   color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: normal;
   margin-bottom: 8px;
 }
 .kpi-value {
-  font-family: var(--font-mono);
-  font-size: 30px;
+  font-family: var(--font-display);
+  font-size: 28px;
   font-weight: 700;
   color: var(--color-charcoal);
+  letter-spacing: -0.02em;
 }
 
 /* Tables */
@@ -332,9 +333,11 @@ body {
   text-align: left;
 }
 .data-table th {
-  background-color: rgba(244, 241, 234, 0.5);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  background-color: #F8FAFC;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-line);
 }

@@ -231,12 +231,12 @@
               {{ exp.date|date_display }}
             </td>
             
-            <td class="py-3 px-3.5 font-mono font-medium text-charcoal whitespace-nowrap">
+            <td class="py-3 px-3.5 font-medium text-slate-900 whitespace-nowrap">
               {{ exp.voucher_no }}
             </td>
             
             <td class="py-3 px-3.5 whitespace-nowrap">
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 text-slate-800 border border-slate-200">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">
                 {{ exp.project_code }}
               </span>
             </td>
@@ -290,7 +290,7 @@
         {% if can_view_financials %}
           <span class="text-charcoal text-sm font-bold tabular-nums">UGX {{ total_gross_fmt }}</span>
         {% else %}
-          <span class="text-muted text-xs font-mono">CONFIDENTIAL</span>
+          <span class="text-slate-400 text-xs font-medium">CONFIDENTIAL</span>
         {% endif %}
       </div>
     </div>

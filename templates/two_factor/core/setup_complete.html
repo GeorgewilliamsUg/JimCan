@@ -25,7 +25,7 @@
       </div>
 
       <div class="bg-concrete p-4 rounded-lg border border-line">
-        <div class="grid grid-cols-2 gap-2 font-mono text-sm font-bold text-charcoal tracking-wider">
+        <div class="grid grid-cols-2 gap-2 text-sm font-semibold text-charcoal tracking-wider">
           {% for code in backup_codes %}
             <div class="p-2 bg-white rounded border border-line text-center select-all">{{ code }}</div>
           {% endfor %}
@@ -37,7 +37,7 @@
       <a href="{% url 'dashboard:overview' %}" class="btn btn-primary px-5 py-2.5 text-xs font-semibold">
         Continue to Dashboard
       </a>
-      <a href="{% url 'two_factor:profile' %}" class="text-xs text-muted hover:text-charcoal font-mono">
+      <a href="{% url 'two_factor:profile' %}" class="text-xs text-muted hover:text-charcoal font-medium">
         View Account Security
       </a>
     </div>

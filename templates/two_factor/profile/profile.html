@@ -25,9 +25,9 @@
       <div class="p-4 bg-concrete rounded-lg border border-line space-y-3">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-xs font-mono font-semibold uppercase tracking-wider text-charcoal">Static Backup Tokens</h3>
+            <h3 class="text-sm font-semibold text-charcoal">Static Backup Tokens</h3>
             <p class="text-xs text-muted mt-0.5">
-              You have <strong class="font-bold text-charcoal font-mono">{{ backup_tokens_remaining|default:backup_tokens }}</strong> backup token(s) remaining.
+              You have <strong class="font-semibold text-charcoal">{{ backup_tokens_remaining|default:backup_tokens }}</strong> backup token(s) remaining.
             </p>
           </div>
           <a href="{% url 'two_factor:backup_tokens' %}" class="btn btn-secondary px-3 py-1.5 text-xs font-semibold">
@@ -50,7 +50,7 @@
     {% endif %}
 
     <div class="pt-4 border-t border-line">
-      <a href="{% url 'dashboard:overview' %}" class="text-xs text-muted hover:text-charcoal font-mono">
+      <a href="{% url 'dashboard:overview' %}" class="text-xs text-muted hover:text-charcoal font-medium">
         &larr; Back to Dashboard
       </a>
     </div>

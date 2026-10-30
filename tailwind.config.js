@@ -45,9 +45,10 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ['"Big Shoulders Bold"', 'Impact', 'sans-serif'],
-        sans: ['"Instrument Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['"Geist Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        display: ['"Plus Jakarta Sans"', '"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+        body: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
       },
       borderRadius: {
         sm: '4px',

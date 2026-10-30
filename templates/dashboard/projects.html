@@ -33,7 +33,7 @@
       <span class="font-semibold text-charcoal">Projects &amp; Builds</span>
     </div>
     <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-blue-50 text-blue-800 border border-blue-200">
+      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200">
         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
         <span>8 Active Construction Builds</span>
       </span>
@@ -178,7 +178,7 @@
       
       <div>
         <div class="flex items-center justify-between mb-3">
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-900 text-white">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-900 text-white">
             {{ p.code }}
           </span>
           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold
@@ -209,7 +209,7 @@
         <div class="mt-4 pt-4 border-t border-line space-y-1.5">
           <div class="flex items-center justify-between text-[11px]">
             <span class="text-muted">Physical Progress</span>
-            <span class="font-mono font-bold text-charcoal">{{ p.completion_pct }}%</span>
+            <span class="font-semibold text-charcoal tabular-nums">{{ p.completion_pct }}%</span>
           </div>
           <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
             <div class="bg-safety h-1.5 rounded-full" style="width: {{ p.completion_pct }}%;"></div>
@@ -222,20 +222,20 @@
         {% if can_view_financials %}
         <div class="flex items-center justify-between text-xs">
           <span class="text-muted">Contract:</span>
-          <span class="font-mono font-bold text-charcoal">UGX {{ p.contract_value_fmt }}</span>
+          <span class="font-semibold text-charcoal tabular-nums">UGX {{ p.contract_value_fmt }}</span>
         </div>
         <div class="flex items-center justify-between text-xs">
           <span class="text-muted">Site Spend:</span>
-          <span class="font-mono font-bold text-emerald-800">UGX {{ p.actual_cost_fmt }}</span>
+          <span class="font-semibold text-emerald-800 tabular-nums">UGX {{ p.actual_cost_fmt }}</span>
         </div>
         {% else %}
         <div class="flex items-center justify-between text-xs">
           <span class="text-muted">Commenced:</span>
-          <span class="font-mono font-medium text-charcoal">{{ p.start_date }}</span>
+          <span class="font-medium text-charcoal tabular-nums">{{ p.start_date }}</span>
         </div>
         <div class="flex items-center justify-between text-xs">
           <span class="text-muted">Target Handover:</span>
-          <span class="font-mono font-medium text-charcoal">{{ p.target_completion }}</span>
+          <span class="font-medium text-charcoal tabular-nums">{{ p.target_completion }}</span>
         </div>
         {% endif %}
         <div class="flex items-center justify-between text-[11px] pt-1 border-t border-line/60">
@@ -273,7 +273,7 @@
         <tbody class="divide-y divide-slate-100">
           {% for p in projects %}
           <tr class="hover:bg-slate-50/60 transition-colors">
-            <td class="py-3 px-3.5 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">{{ p.code }}</td>
+            <td class="py-3 px-3.5 text-xs font-medium text-slate-900 whitespace-nowrap">{{ p.code }}</td>
             <td class="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">{{ p.title }}</td>
             <td class="py-3 px-3.5 text-slate-600 truncate max-w-[150px]">{{ p.client }}</td>
             <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">{{ p.location }}</td>

@@ -128,7 +128,7 @@
         <div>
           <div class="money-flow-step-label">
             <span>Contract value</span>
-            <span class="text-[11px] font-mono text-slate-500">Step 1</span>
+            <span class="text-xs font-medium text-slate-500">Step 1</span>
           </div>
           <div class="money-flow-step-figure" title="{{ contract_value|ugx }}">
             {{ contract_value|ugx_kpi }}
@@ -144,7 +144,7 @@
         <div>
           <div class="money-flow-step-label">
             <span>Invoiced</span>
-            <span class="text-[11px] font-mono text-slate-500">Step 2</span>
+            <span class="text-xs font-medium text-slate-500">Step 2</span>
           </div>
           <div class="money-flow-step-figure" title="{{ invoiced_gross|ugx }}">
             {{ invoiced_gross|ugx_kpi }}
@@ -160,7 +160,7 @@
         <div>
           <div class="money-flow-step-label">
             <span>Collected</span>
-            <span class="text-[11px] font-mono text-slate-500">Step 3</span>
+            <span class="text-xs font-medium text-slate-500">Step 3</span>
           </div>
           <div class="money-flow-step-figure" title="{{ collected|ugx }}">
             {{ collected|ugx_kpi }}
@@ -176,7 +176,7 @@
         <div>
           <div class="money-flow-step-label">
             <span>Still owed</span>
-            <span class="text-[11px] font-mono text-slate-500">Step 4</span>
+            <span class="text-xs font-medium text-slate-500">Step 4</span>
           </div>
           <div class="money-flow-step-figure" title="{{ still_owed|ugx }}">
             {{ still_owed|ugx_kpi }}
@@ -317,7 +317,7 @@
           <tbody class="divide-y divide-slate-100">
             {% for p in projects %}
             <tr class="hover:bg-slate-50/60 transition-colors">
-              <td class="py-3 px-3.5 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">{{ p.code }}</td>
+              <td class="py-3 px-3.5 text-xs font-medium text-slate-900 whitespace-nowrap">{{ p.code }}</td>
               <td class="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">
                 <a href="{% url 'dashboard:projects' %}" class="hover:underline">
                   {% if p.title %}{{ p.title }}{% elif p.name %}{{ p.name }}{% else %}{{ p.code }}{% endif %}
@@ -384,12 +384,12 @@
           <tbody class="divide-y divide-slate-100">
             {% for inv in invoices %}
             <tr class="hover:bg-slate-50/60 transition-colors">
-              <td class="py-3 px-4 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">
+              <td class="py-3 px-4 text-xs font-medium text-slate-900 whitespace-nowrap">
                 <a href="{% url 'dashboard:invoices' %}" class="hover:underline">
                   {{ inv.number }}
                 </a>
               </td>
-              <td class="py-3 px-3.5 font-mono text-xs font-medium text-slate-700 whitespace-nowrap">{{ inv.project_code }}</td>
+              <td class="py-3 px-3.5 text-xs font-medium text-slate-700 whitespace-nowrap">{{ inv.project_code }}</td>
               <td class="py-3 px-4 font-semibold text-slate-900">{{ inv.claim_title }}</td>
               <td class="py-3 px-3.5 text-slate-600 truncate max-w-[180px]" title="{{ inv.client }}">{{ inv.client }}</td>
               <td class="py-3 px-4 tabular-nums text-right text-slate-700 whitespace-nowrap">{{ inv.net_amount|ugx }}</td>
@@ -436,7 +436,7 @@
           <tbody class="divide-y divide-slate-100">
             {% for l in leads %}
             <tr class="hover:bg-slate-50/60 transition-colors">
-              <td class="py-3 px-4 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">
+              <td class="py-3 px-4 text-xs font-medium text-slate-900 whitespace-nowrap">
                 <a href="{% url 'dashboard:leads' %}" class="hover:underline">
                   {% if l.code %}{{ l.code }}{% elif l.public_id %}{{ l.public_id|slice:":8" }}{% endif %}
                 </a>
@@ -493,7 +493,7 @@
           <tbody class="divide-y divide-slate-100">
             {% for r in rate_library %}
             <tr class="hover:bg-slate-50/60 transition-colors">
-              <td class="py-3 px-4 font-mono text-xs font-medium text-slate-900 whitespace-nowrap">
+              <td class="py-3 px-4 text-xs font-medium text-slate-900 whitespace-nowrap">
                 <a href="{% url 'dashboard:rates' %}" class="hover:underline">
                   {{ r.code }}
                 </a>
@@ -552,7 +552,7 @@
       <div class="p-3.5 rounded-lg border border-slate-100 bg-slate-50/70 hover:bg-slate-50 transition-colors flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between gap-2 mb-1.5">
-            <span class="font-mono text-[11px] font-medium text-slate-700">{{ item.id }}</span>
+            <span class="text-xs font-medium text-slate-700">{{ item.id }}</span>
             <span class="status-badge status-paid text-[10px] py-0.5 px-2">{{ item.status }}</span>
           </div>
           <div class="font-semibold text-xs text-slate-900 truncate" title="{{ item.title }}">{{ item.title }}</div>

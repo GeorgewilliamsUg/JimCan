@@ -32,7 +32,7 @@
 
       <!-- Chain Status Pill -->
       <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-xs">
+        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-xs">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>HMAC Chain Intact</span>
         </span>
@@ -43,7 +43,7 @@
   <!-- Navigation Tabs -->
   <div class="flex items-center gap-2 border-b border-slate-200/80 pb-1">
     <a href="?tab=all"
-       class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold rounded-lg transition-colors {% if active_tab == 'all' %}bg-slate-900 text-white shadow-xs{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
+       class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium rounded-lg transition-colors {% if active_tab == 'all' %}bg-slate-900 text-white shadow-xs{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
       <i data-lucide="list" class="w-4 h-4"></i>
       <span>All Events</span>
       <span class="px-1.5 py-0.5 rounded text-[10px] {% if active_tab == 'all' %}bg-slate-700 text-slate-200{% else %}bg-slate-200 text-slate-700{% endif %}">
@@ -52,7 +52,7 @@
     </a>
 
     <a href="?tab=alerts"
-       class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold rounded-lg transition-colors {% if active_tab == 'alerts' %}bg-rose-700 text-white shadow-xs{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
+       class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium rounded-lg transition-colors {% if active_tab == 'alerts' %}bg-rose-700 text-white shadow-xs{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
       <i data-lucide="shield-alert" class="w-4 h-4"></i>
       <span>Security Notices</span>
       {% if alerts_count > 0 %}
@@ -71,7 +71,7 @@
       <input type="hidden" name="tab" value="{{ active_tab }}">
 
       <div>
-        <label for="filter_event_type" class="block font-mono text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wider">Event Type</label>
+        <label for="filter_event_type" class="block text-xs font-medium text-slate-700 mb-1.5">Event Type</label>
         <select name="event_type" id="filter_event_type" class="w-full rounded-lg border-slate-200 text-xs py-2 px-2.5 focus:border-slate-900 focus:ring-slate-900">
           <option value="">All Event Types</option>
           {% for et in distinct_event_types %}
@@ -81,29 +81,29 @@
       </div>
 
       <div>
-        <label for="filter_user" class="block font-mono text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wider">Actor / Username</label>
+        <label for="filter_user" class="block text-xs font-medium text-slate-700 mb-1.5">Actor / Username</label>
         <input type="text" name="user" id="filter_user" value="{{ filter_user }}" placeholder="e.g. admin"
                class="w-full rounded-lg border-slate-200 text-xs py-2 px-2.5 focus:border-slate-900 focus:ring-slate-900">
       </div>
 
       <div>
-        <label for="filter_date_from" class="block font-mono text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wider">Date From</label>
+        <label for="filter_date_from" class="block text-xs font-medium text-slate-700 mb-1.5">Date From</label>
         <input type="date" name="date_from" id="filter_date_from" value="{{ filter_date_from }}"
                class="w-full rounded-lg border-slate-200 text-xs py-2 px-2.5 focus:border-slate-900 focus:ring-slate-900">
       </div>
 
       <div>
-        <label for="filter_date_to" class="block font-mono text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wider">Date To</label>
+        <label for="filter_date_to" class="block text-xs font-medium text-slate-700 mb-1.5">Date To</label>
         <input type="date" name="date_to" id="filter_date_to" value="{{ filter_date_to }}"
                class="w-full rounded-lg border-slate-200 text-xs py-2 px-2.5 focus:border-slate-900 focus:ring-slate-900">
       </div>
 
       <div class="flex items-center gap-2">
-        <button type="submit" class="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white font-mono text-xs font-semibold rounded-lg shadow-xs transition">
+        <button type="submit" class="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium rounded-lg shadow-xs transition">
           Filter
         </button>
         {% if filter_event_type or filter_user or filter_date_from or filter_date_to %}
-          <a href="?tab={{ active_tab }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-xs rounded-lg transition text-center whitespace-nowrap">
+          <a href="?tab={{ active_tab }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition text-center whitespace-nowrap">
             Clear
           </a>
         {% endif %}
@@ -116,7 +116,7 @@
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-xs">
         <thead>
-          <tr class="bg-slate-50/80 border-b border-slate-200/80 font-mono text-[11px] text-slate-600 uppercase tracking-wider">
+          <tr class="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-600">
             <th class="py-3 px-3 w-16">Seq</th>
             <th class="py-3 px-3 w-44">Time (EAT)</th>
             <th class="py-3 px-3">Event Type</th>
@@ -130,12 +130,12 @@
           {% for event in events %}
             <tr class="hover:bg-slate-50/60 transition-colors {% if event.alert %}bg-rose-50/30{% endif %}">
               <!-- Sequence Number -->
-              <td class="py-3 px-3 font-mono text-slate-500 font-semibold">
+              <td class="py-3 px-3 text-slate-500 font-semibold tabular-nums">
                 #{{ event.sequence }}
               </td>
 
               <!-- Timestamp formatted in Africa/Kampala -->
-              <td class="py-3 px-3 font-mono text-slate-700 whitespace-nowrap">
+              <td class="py-3 px-3 text-slate-700 whitespace-nowrap tabular-nums">
                 {% timezone "Africa/Kampala" %}
                   {{ event.timestamp|date:"Y-m-d H:i:s" }} <span class="text-[10px] text-slate-400">EAT</span>
                 {% endtimezone %}
@@ -144,22 +144,22 @@
               <!-- Event Type Badge -->
               <td class="py-3 px-3 whitespace-nowrap">
                 {% if event.alert %}
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
                     <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-600"></i>
                     <span>{{ event.event_type }}</span>
                   </span>
                 {% elif event.event_type == 'login_success' %}
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i>
                     <span>{{ event.event_type }}</span>
                   </span>
                 {% elif event.event_type == 'logout' %}
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                     <i data-lucide="log-out" class="w-3 h-3 text-slate-500"></i>
                     <span>{{ event.event_type }}</span>
                   </span>
                 {% else %}
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                     {{ event.event_type }}
                   </span>
                 {% endif %}
@@ -171,7 +171,7 @@
               </td>
 
               <!-- Client IP -->
-              <td class="py-3 px-3 font-mono text-slate-600 whitespace-nowrap">
+              <td class="py-3 px-3 text-slate-600 whitespace-nowrap tabular-nums">
                 {{ event.client_ip|default:"—" }}
               </td>
 
@@ -184,7 +184,7 @@
               <td class="py-3 px-3 text-right whitespace-nowrap">
                 <button type="button"
                         @click="activeModal = (activeModal === {{ event.id }} ? null : {{ event.id }})"
-                        class="text-xs font-mono font-semibold text-slate-700 hover:text-slate-900 underline underline-offset-2">
+                        class="text-xs font-medium text-slate-700 hover:text-slate-900 underline underline-offset-2">
                   Inspect
                 </button>
               </td>
@@ -196,34 +196,34 @@
                 <div class="bg-white rounded-lg border border-slate-200 p-4 space-y-3">
                   <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                     <div class="flex items-center gap-2">
-                      <span class="font-mono font-bold text-xs text-slate-900">Event Details #{{ event.sequence }}</span>
-                      <span class="font-mono text-[10px] text-slate-400">UUID: {{ event.request_id|default:"N/A" }}</span>
+                      <span class="font-semibold text-xs text-slate-900">Event Details #{{ event.sequence }}</span>
+                      <span class="text-xs text-slate-400">UUID: {{ event.request_id|default:"N/A" }}</span>
                     </div>
                     <button type="button" @click="activeModal = null" class="text-slate-400 hover:text-slate-600">
                       <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                   </div>
 
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div>
-                      <span class="text-slate-400 block text-[10px] uppercase">Previous Hash</span>
-                      <span class="text-slate-600 break-all text-[11px]">{{ event.prev_hash }}</span>
+                      <span class="text-slate-500 block text-xs font-medium mb-1">Previous Hash</span>
+                      <span class="text-slate-600 break-all text-xs select-all">{{ event.prev_hash }}</span>
                     </div>
                     <div>
-                      <span class="text-slate-400 block text-[10px] uppercase">Entry HMAC-SHA256 Hash</span>
-                      <span class="text-slate-900 font-semibold break-all text-[11px]">{{ event.entry_hash }}</span>
+                      <span class="text-slate-500 block text-xs font-medium mb-1">Entry HMAC-SHA256 Hash</span>
+                      <span class="text-slate-900 font-semibold break-all text-xs select-all">{{ event.entry_hash }}</span>
                     </div>
                   </div>
 
                   {% if event.changes %}
                     <div>
-                      <span class="text-slate-400 block text-[10px] font-mono uppercase mb-1">Scrubbed Changes Diff (Sanitized)</span>
-                      <pre class="bg-slate-900 text-slate-100 p-3 rounded-lg text-[11px] font-mono overflow-x-auto">{{ event.changes|pprint }}</pre>
+                      <span class="text-slate-500 block text-xs font-medium mb-1">Scrubbed Changes Diff (Sanitized)</span>
+                      <pre class="bg-slate-900 text-slate-100 p-3 rounded-lg text-xs overflow-x-auto leading-relaxed">{{ event.changes|pprint }}</pre>
                     </div>
                   {% endif %}
 
                   {% if event.user_agent %}
-                    <div class="text-[11px] text-slate-500 font-mono">
+                    <div class="text-xs text-slate-500">
                       <span class="text-slate-400">User Agent:</span> {{ event.user_agent }}
                     </div>
                   {% endif %}
@@ -247,7 +247,7 @@
 
     <!-- Pagination Controls -->
     {% if page_obj.has_other_pages %}
-      <div class="p-4 border-t border-slate-200/80 flex items-center justify-between text-xs font-mono">
+      <div class="p-4 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
         <div class="text-slate-500">
           Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} events
         </div>

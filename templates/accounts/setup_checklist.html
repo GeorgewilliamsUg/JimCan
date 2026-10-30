@@ -116,7 +116,7 @@
               class="px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5">
         <span>Team</span>
         {% if total_users %}
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-indigo-100 text-indigo-800">{{ total_users }}</span>
+          <span class="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">{{ total_users }}</span>
         {% endif %}
       </button>
 
@@ -496,39 +496,39 @@
         <!-- Name -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">First name</label>
-            <input type="text" value="{{ request.user.first_name|default:'Admin' }}" class="auth-input w-full">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">First name</label>
+            <input type="text" value="{{ request.user.first_name|default:'Admin' }}" class="auth-input w-full text-sm">
           </div>
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Last name</label>
-            <input type="text" value="{{ request.user.last_name|default:'User' }}" class="auth-input w-full">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Last name</label>
+            <input type="text" value="{{ request.user.last_name|default:'User' }}" class="auth-input w-full text-sm">
           </div>
         </div>
 
         <!-- Email & Username -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Work email address</label>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Work email address</label>
             <div class="relative">
-              <input type="email" value="{{ request.user.email|default:'admin@jimcanconstruction.site' }}" class="auth-input w-full pr-20">
-              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 rounded border border-emerald-200">Verified</span>
+              <input type="email" value="{{ request.user.email|default:'admin@jimcanconstruction.site' }}" class="auth-input w-full pr-20 text-sm">
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs font-medium bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">Verified</span>
             </div>
           </div>
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Username</label>
-            <input type="text" value="@{{ request.user.username }}" readonly class="auth-input w-full bg-slate-50 text-slate-500 cursor-not-allowed">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+            <input type="text" value="@{{ request.user.username }}" readonly class="auth-input w-full bg-slate-50 text-slate-500 cursor-not-allowed text-sm">
           </div>
         </div>
 
         <!-- Phone & Timezone -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Phone number</label>
-            <input type="tel" value="+256 772 123456" class="auth-input w-full font-mono text-xs">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Phone number</label>
+            <input type="tel" value="+256 772 123456" class="auth-input w-full text-sm">
           </div>
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Timezone</label>
-            <select class="auth-input w-full">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Timezone</label>
+            <select class="auth-input w-full text-sm">
               <option selected>Kampala (EAT / UTC+03:00) · Default</option>
               <option>Nairobi (EAT / UTC+03:00)</option>
               <option>London (GMT / UTC+00:00)</option>
@@ -539,7 +539,7 @@
         <!-- Operational Role -->
         <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
           <div>
-            <div class="text-xs font-mono text-slate-500 uppercase">Assigned Security Role</div>
+            <div class="text-xs font-medium text-slate-500">Assigned Security Role</div>
             <div class="text-sm font-bold text-slate-900 mt-0.5">{{ current_role_display|default:'Administrator' }}</div>
             <div class="text-xs text-slate-500 mt-0.5">Role permissions are managed by system administrators.</div>
           </div>
@@ -596,12 +596,12 @@
         <!-- Job Title & Department -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Operational job title</label>
-            <input type="text" placeholder="e.g. Lead Project Engineer" class="auth-input w-full">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Operational job title</label>
+            <input type="text" placeholder="e.g. Lead Project Engineer" class="auth-input w-full text-sm">
           </div>
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Department</label>
-            <select class="auth-input w-full">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Department</label>
+            <select class="auth-input w-full text-sm">
               <option selected>Engineering &amp; Site Operations</option>
               <option>Finance &amp; Audit Directorate</option>
               <option>Commercial, BOQ &amp; Procurement</option>
@@ -612,8 +612,8 @@
 
         <!-- Bio / Field Notes -->
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Field notes / Operational bio</label>
-          <textarea rows="3" placeholder="Brief summary of site responsibilities, specialties, or project portfolio." class="auth-input w-full"></textarea>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Field notes / Operational bio</label>
+          <textarea rows="3" placeholder="Brief summary of site responsibilities, specialties, or project portfolio." class="auth-input w-full text-sm"></textarea>
         </div>
 
       </div>
@@ -649,19 +649,19 @@
           {% csrf_token %}
           
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Current password</label>
-            <input type="password" name="old_password" required placeholder="••••••••••••" class="auth-input w-full">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Current password</label>
+            <input type="password" name="old_password" required placeholder="••••••••••••" class="auth-input w-full text-sm">
           </div>
 
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">New password</label>
-            <input type="password" name="new_password1" required placeholder="••••••••••••" class="auth-input w-full">
-            <p class="text-[11px] text-slate-500 mt-1 font-mono">Your new password must be at least 12 characters and contain uppercase, lowercase, numbers, and symbols.</p>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">New password</label>
+            <input type="password" name="new_password1" required placeholder="••••••••••••" class="auth-input w-full text-sm">
+            <p class="text-xs text-slate-500 mt-1">Your new password must be at least 12 characters and contain uppercase, lowercase, numbers, and symbols.</p>
           </div>
 
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1.5">Confirm new password</label>
-            <input type="password" name="new_password2" required placeholder="••••••••••••" class="auth-input w-full">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Confirm new password</label>
+            <input type="password" name="new_password2" required placeholder="••••••••••••" class="auth-input w-full text-sm">
           </div>
 
           <div class="pt-2">
@@ -707,7 +707,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
         <div>
-          <div class="text-xs font-mono text-slate-500 uppercase">Total Accounts</div>
+          <div class="text-xs font-medium text-slate-500">Total Accounts</div>
           <div class="text-2xl font-bold font-display text-slate-900 mt-0.5">{{ total_users|default:'3' }}</div>
         </div>
         <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
@@ -717,7 +717,7 @@
 
       <div class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
         <div>
-          <div class="text-xs font-mono text-slate-500 uppercase">Active Admins</div>
+          <div class="text-xs font-medium text-slate-500">Active Admins</div>
           <div class="text-2xl font-bold font-display text-slate-900 mt-0.5">{{ active_owners_count|default:'2' }}</div>
         </div>
         <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -727,7 +727,7 @@
 
       <div class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
         <div>
-          <div class="text-xs font-mono text-slate-500 uppercase">Credential Vault</div>
+          <div class="text-xs font-medium text-slate-500">Credential Vault</div>
           <div class="text-xs font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
             <i data-lucide="key" class="w-3.5 h-3.5"></i>
             <span>Fernet-256 Symmetric Encryption</span>
@@ -744,9 +744,9 @@
       <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <div class="font-semibold text-sm text-slate-900">Team Credentials Ledger</div>
-          <div class="text-xs text-slate-500 font-mono">Provisioned accounts, assigned permissions, and initial vault credentials</div>
+          <div class="text-xs text-slate-500">Provisioned accounts, assigned permissions, and initial vault credentials</div>
         </div>
-        <div class="text-xs text-slate-600 font-mono bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
+        <div class="text-xs font-medium text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
           {{ total_users|default:users|length }} registered accounts
         </div>
       </div>
@@ -754,7 +754,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-sm">
           <thead>
-            <tr class="border-b border-slate-200 bg-slate-50 text-xs font-mono text-slate-500 uppercase tracking-wider">
+            <tr class="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500">
               <th class="py-3 px-4">User</th>
               <th class="py-3 px-4">Contact</th>
               <th class="py-3 px-4">Role &amp; Privileges</th>
@@ -777,16 +777,16 @@
                       <div class="font-semibold text-slate-900 flex items-center gap-1.5">
                         <span>{{ u.full_name }}</span>
                         {% if u.is_current_user %}
-                          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">You</span>
+                          <span class="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">You</span>
                         {% endif %}
                       </div>
-                      <div class="text-xs font-mono text-slate-500">@{{ u.username }}</div>
+                      <div class="text-xs text-slate-500">@{{ u.username }}</div>
                     </div>
                   </div>
                 </td>
 
                 <!-- 2. Contact -->
-                <td class="py-3 px-4 text-xs font-mono text-slate-700">
+                <td class="py-3 px-4 text-xs text-slate-700">
                   {{ u.email|default:"—" }}
                 </td>
 
@@ -822,7 +822,7 @@
                     {% if u.privileges %}
                       <div class="flex flex-wrap gap-1 mt-1.5">
                         {% for priv in u.privileges %}
-                          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200" title="{{ priv.label }}">
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200" title="{{ priv.label }}">
                             {{ priv.label }}
                           </span>
                         {% endfor %}
@@ -837,10 +837,10 @@
                     <div class="space-y-1" x-data="{ revealed: false, copied: false, val: '{{ u.vault_password|default:''|escapejs }}' }">
                       <div class="flex items-center gap-1.5">
                         <template x-if="!revealed">
-                          <span class="font-mono text-xs text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 tracking-widest select-none">••••••••••••</span>
+                          <span class="text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 tracking-widest select-none">••••••••••••</span>
                         </template>
                         <template x-if="revealed">
-                          <span class="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300 select-all" x-text="val"></span>
+                          <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-300 select-all" x-text="val"></span>
                         </template>
 
                         <button type="button" 
@@ -857,17 +857,17 @@
                                 title="Copy Initial Password">
                           <i x-show="!copied" data-lucide="copy" class="w-3.5 h-3.5"></i>
                           <i x-show="copied" data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                          <span x-show="copied" x-transition class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-mono px-1.5 py-0.5 rounded shadow z-10 whitespace-nowrap">Copied!</span>
+                          <span x-show="copied" x-transition class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-medium px-2 py-0.5 rounded shadow z-10 whitespace-nowrap">Copied!</span>
                         </button>
                       </div>
-                      <div class="text-[10px] text-amber-700 font-mono flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i>
+                      <div class="text-xs text-amber-700 flex items-center gap-1">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
                         <span>Initial Vault (wipes on 1st login)</span>
                       </div>
                     </div>
                   {% else %}
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono text-slate-500 bg-slate-100 border border-slate-200">
-                      <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium text-slate-500 bg-slate-100 border border-slate-200">
+                      <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-400"></i>
                       <span>User Changed / Encrypted</span>
                     </div>
                   {% endif %}
@@ -973,13 +973,13 @@
 
       <div class="border-t border-slate-200 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-          <div class="text-xs font-mono text-slate-500 uppercase">Legal Registered Name</div>
+          <div class="text-xs font-medium text-slate-500">Legal Registered Name</div>
           <div class="text-base font-bold text-slate-900">Jimcan Construction &amp; Engineering Ltd.</div>
           <div class="text-xs text-slate-500">Incorporation No: 80020003418291</div>
         </div>
 
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-          <div class="text-xs font-mono text-slate-500 uppercase">URA Tax Identification Number</div>
+          <div class="text-xs font-medium text-slate-500">URA Tax Identification Number</div>
           <div class="text-base font-bold text-slate-900">1002938471</div>
           <div class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
             <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
@@ -988,13 +988,13 @@
         </div>
 
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-          <div class="text-xs font-mono text-slate-500 uppercase">Head Office Address</div>
+          <div class="text-xs font-medium text-slate-500">Head Office Address</div>
           <div class="text-sm font-semibold text-slate-900">Plot 14, Jinja Road, Kampala, Uganda</div>
           <div class="text-xs text-slate-500">P.O. Box 7210, Kampala</div>
         </div>
 
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-          <div class="text-xs font-mono text-slate-500 uppercase">Regulatory Class</div>
+          <div class="text-xs font-medium text-slate-500">Regulatory Class</div>
           <div class="text-sm font-semibold text-slate-900">UNBS Class A General Building Contractor</div>
           <div class="text-xs text-slate-500">Ministry of Works &amp; Transport Certified</div>
         </div>
@@ -1014,19 +1014,19 @@
 
       <div class="border-t border-slate-200 pt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-          <div class="text-xs font-mono text-slate-500 uppercase">Standard VAT Rate (18%)</div>
+          <div class="text-xs font-medium text-slate-500">Standard VAT Rate (18%)</div>
           <div class="text-2xl font-bold font-display text-slate-900 mt-1">18.00%</div>
           <div class="text-xs text-slate-500 mt-1">Standard rate for commercial supplies</div>
         </div>
 
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-          <div class="text-xs font-mono text-slate-500 uppercase">Withholding Tax (WHT)</div>
+          <div class="text-xs font-medium text-slate-500">Withholding Tax (WHT)</div>
           <div class="text-2xl font-bold font-display text-slate-900 mt-1">6.00%</div>
           <div class="text-xs text-slate-500 mt-1">Contractor withholding tax rate</div>
         </div>
 
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-          <div class="text-xs font-mono text-slate-500 uppercase">Base Currency</div>
+          <div class="text-xs font-medium text-slate-500">Base Currency</div>
           <div class="text-2xl font-bold font-display text-slate-900 mt-1">UGX</div>
           <div class="text-xs text-slate-500 mt-1">Ugandan Shilling (Zero Decimal Base)</div>
         </div>
@@ -1037,16 +1037,16 @@
         <h3 class="text-sm font-semibold text-slate-900">Document Numbering Sequences</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-            <span class="text-xs font-mono text-slate-500">Invoices</span>
-            <div class="font-mono text-sm font-bold text-slate-900 mt-0.5">JC-INV-2026-###</div>
+            <span class="text-xs font-medium text-slate-500">Invoices</span>
+            <div class="text-sm font-semibold text-slate-900 mt-0.5">JC-INV-2026-###</div>
           </div>
           <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-            <span class="text-xs font-mono text-slate-500">Estimates &amp; Quotes</span>
-            <div class="font-mono text-sm font-bold text-slate-900 mt-0.5">JC-QUO-2026-###</div>
+            <span class="text-xs font-medium text-slate-500">Estimates &amp; Quotes</span>
+            <div class="text-sm font-semibold text-slate-900 mt-0.5">JC-QUO-2026-###</div>
           </div>
           <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-            <span class="text-xs font-mono text-slate-500">Project Codes</span>
-            <div class="font-mono text-sm font-bold text-slate-900 mt-0.5">JC-PRJ-###</div>
+            <span class="text-xs font-medium text-slate-500">Project Codes</span>
+            <div class="text-sm font-semibold text-slate-900 mt-0.5">JC-PRJ-###</div>
           </div>
         </div>
       </div>
@@ -1066,12 +1066,12 @@
       <div class="border-t border-slate-200 pt-6 space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <div class="text-xs font-mono text-slate-500 uppercase">SMTP Relay Provider</div>
+            <div class="text-xs font-medium text-slate-500">SMTP Relay Provider</div>
             <div class="text-base font-bold text-slate-900 mt-1">Google Workspace / SMTP</div>
             <div class="text-xs text-slate-500 mt-0.5">smtp.gmail.com:587 (TLS Active)</div>
           </div>
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <div class="text-xs font-mono text-slate-500 uppercase">Default Dispatch Address</div>
+            <div class="text-xs font-medium text-slate-500">Default Dispatch Address</div>
             <div class="text-base font-bold text-slate-900 mt-1">sgeorge.ug@gmail.com</div>
             <div class="text-xs text-emerald-700 font-semibold mt-0.5">Authenticated Relay</div>
           </div>
@@ -1130,10 +1130,7 @@
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-200 pb-4">
         <div>
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-900 text-white">SEC-05</span>
-            <h2 class="text-lg font-bold font-display text-slate-900">Provision Staff Account</h2>
-          </div>
+          <h2 class="text-lg font-bold font-display text-slate-900">Provision Staff Account</h2>
           <p class="text-xs text-slate-500 mt-0.5">Assign credentials, operational role, and granular permission flags.</p>
         </div>
         <button type="button" @click="createModalOpen = false" class="p-1.5 text-slate-400 hover:text-slate-900 rounded-lg">
@@ -1148,43 +1145,43 @@
         <!-- Full Name (First and Last) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">
               First Name <span class="text-red-500">*</span>
             </label>
-            <input type="text" name="first_name" required placeholder="e.g. Sarah" class="auth-input w-full">
+            <input type="text" name="first_name" required placeholder="e.g. Sarah" class="auth-input w-full text-sm">
           </div>
           <div>
-            <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">
               Last Name <span class="text-red-500">*</span>
             </label>
-            <input type="text" name="last_name" required placeholder="e.g. Kigozi" class="auth-input w-full">
+            <input type="text" name="last_name" required placeholder="e.g. Kigozi" class="auth-input w-full text-sm">
           </div>
         </div>
 
         <!-- Work Email Address -->
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">
             Work Email Address <span class="text-red-500">*</span>
           </label>
-          <input type="email" name="email" required placeholder="sarah.k@jimcanconstruction.site" class="auth-input w-full">
-          <p class="text-[11px] text-slate-500 mt-1 font-mono">Uniqueness is checked across active and inactive accounts.</p>
+          <input type="email" name="email" required placeholder="sarah.k@jimcanconstruction.site" class="auth-input w-full text-sm">
+          <p class="text-xs text-slate-500 mt-1">Uniqueness is checked across active and inactive accounts.</p>
         </div>
 
         <!-- Unique Username -->
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">
             Unique Username
           </label>
-          <input type="text" name="username" placeholder="Leave blank to auto-derive from email" class="auth-input w-full">
-          <p class="text-[11px] text-slate-500 mt-1 font-mono">Custom username or auto-derived handle (e.g. sarah_kigozi).</p>
+          <input type="text" name="username" placeholder="Leave blank to auto-derive from email" class="auth-input w-full text-sm">
+          <p class="text-xs text-slate-500 mt-1">Custom username or auto-derived handle (e.g. sarah_kigozi).</p>
         </div>
 
         <!-- System Role Selector -->
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">
             System Role <span class="text-red-500">*</span>
           </label>
-          <select name="role" required class="auth-input w-full">
+          <select name="role" required class="auth-input w-full text-sm">
             <option value="Admin">Admin / Owner (Full System &amp; Financial Access)</option>
             <option value="Project Manager">Project Manager (Projects, BOQ, Site Uploads, Financial Summaries)</option>
             <option value="Site Engineer" selected>Site Engineer (Site Logs, Expense Submissions, Progress)</option>
@@ -1194,7 +1191,7 @@
 
         <!-- Password Configuration: Option A vs Option B -->
         <div class="border-t border-slate-200 pt-3">
-          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-2">
+          <label class="block text-sm font-medium text-slate-700 mb-2">
             Password Configuration <span class="text-red-500">*</span>
           </label>
           <div class="space-y-2">
@@ -1206,7 +1203,7 @@
               <div class="flex-1">
                 <div class="text-xs font-semibold text-slate-900 flex items-center justify-between">
                   <span>Auto-generate strong credentials</span>
-                  <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">Recommended</span>
+                  <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">Recommended</span>
                 </div>
                 <div class="text-[11px] text-slate-500">12-character high-entropy cryptographic string</div>
               </div>
@@ -1226,13 +1223,13 @@
           <!-- Manual password input field with Auto-generate helper button -->
           <div x-show="passwordOption === 'manual'" x-transition class="mt-3 space-y-1.5">
             <div class="flex items-center justify-between">
-              <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <label class="block text-sm font-medium text-slate-700">
                 Initial Password
               </label>
               <button type="button" 
                       @click="generatePassword()" 
-                      class="text-[11px] font-mono text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1">
-                <i data-lucide="sparkles" class="w-3 h-3"></i>
+                      class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
                 <span>Auto-generate strong password</span>
               </button>
             </div>
@@ -1240,20 +1237,20 @@
                    name="custom_password" 
                    x-model="manualPassword" 
                    placeholder="Enter at least 8 characters" 
-                   class="auth-input w-full font-mono text-xs">
+                   class="auth-input w-full text-sm">
           </div>
         </div>
 
         <!-- Granular Feature Toggles -->
         <div class="border-t border-slate-200 pt-3">
-          <label class="block text-xs font-mono uppercase tracking-wider text-slate-500 font-bold mb-2">
+          <label class="block text-sm font-medium text-slate-700 mb-2">
             Granular Permission Overrides
           </label>
           <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
             <label class="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox" name="can_view_boq" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
               <div>
-                <span class="font-semibold text-slate-900">Access BOQ Master Pricing (<code class="text-[11px] font-mono">can_view_boq_rates</code>)</span>
+                <span class="font-semibold text-slate-900">Access BOQ Master Pricing <span class="text-xs text-slate-400 font-normal">can_view_boq_rates</span></span>
                 <p class="text-[11px] text-slate-500">Grants access to bill of quantities unit rates and pricing schedules.</p>
               </div>
             </label>
@@ -1261,7 +1258,7 @@
             <label class="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox" name="can_approve_expenses" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
               <div>
-                <span class="font-semibold text-slate-900">Sign Off on Vouchers (<code class="text-[11px] font-mono">can_approve_expenses</code>)</span>
+                <span class="font-semibold text-slate-900">Sign Off on Vouchers <span class="text-xs text-slate-400 font-normal">can_approve_expenses</span></span>
                 <p class="text-[11px] text-slate-500">Allows authorization and sign-off on expense vouchers.</p>
               </div>
             </label>
@@ -1269,7 +1266,7 @@
             <label class="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox" name="can_export_tax_reports" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
               <div>
-                <span class="font-semibold text-slate-900">Download URA Tax Schedules (<code class="text-[11px] font-mono">can_export_tax_reports</code>)</span>
+                <span class="font-semibold text-slate-900">Download URA Tax Schedules <span class="text-xs text-slate-400 font-normal">can_export_tax_reports</span></span>
                 <p class="text-[11px] text-slate-500">Permission to generate and export Uganda Revenue Authority tax schedules.</p>
               </div>
             </label>
@@ -1277,7 +1274,7 @@
             <label class="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox" name="can_manage_leads" value="true" class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
               <div>
-                <span class="font-semibold text-slate-900">Manage Leads &amp; Pipeline (<code class="text-[11px] font-mono">can_manage_leads</code>)</span>
+                <span class="font-semibold text-slate-900">Manage Leads &amp; Pipeline <span class="text-xs text-slate-400 font-normal">can_manage_leads</span></span>
                 <p class="text-[11px] text-slate-500">Edit, reassign, and advance commercial pipeline opportunities.</p>
               </div>
             </label>
