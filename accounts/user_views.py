@@ -229,11 +229,22 @@ class UserEditView(View):
     def get(self, request, user_id):
         target_user = get_object_or_404(User, pk=user_id)
         form = UserEditForm(instance=target_user)
+        profile = getattr(target_user, 'profile', None)
+        must_change = profile.must_change_password if profile else False
+        is_requester_admin = is_admin(request.user)
+        vault_password = None
+        if is_requester_admin and profile and must_change:
+            vault_password = profile.get_initial_vault_password()
+
         return render(request, self.template_name, {
             'form': form,
             'target_user': target_user,
             'page_title': f"Edit Account · {target_user.username}",
             'action': 'edit',
+            'vault_password': vault_password,
+            'has_vault_record': bool(profile and profile.initial_credential_vault and must_change),
+            'must_change_password': must_change,
+            'is_admin': is_requester_admin,
         })
 
     def post(self, request, user_id):
@@ -391,7 +402,16 @@ class UserResetPasswordView(View):
             messages.error(request, "Cannot reset credentials for a suspended/deactivated account.")
             return redirect('accounts:user_list')
 
-        temp_password = generate_temporary_password(12)
+        custom_pw = request.POST.get('custom_password', '').strip()
+        if custom_pw:
+            if len(custom_pw) < 8:
+                messages.error(request, "Custom password must be at least 8 characters long.")
+                next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'accounts:user_list'
+                return redirect(next_url)
+            temp_password = custom_pw
+        else:
+            temp_password = generate_temporary_password(12)
+
         target_user.set_password(temp_password)
         target_user.save()
 
@@ -425,19 +445,23 @@ class UserResetPasswordView(View):
             )
         )
 
+        display_name = target_user.get_full_name() or target_user.username
         if email_sent:
             messages.success(
                 request,
-                f"Password reset for '{target_user.get_full_name() or target_user.username}'. "
-                f"A new temporary password has been emailed to {target_user.email}."
+                f"Password reset for '{display_name}' (@{target_user.username}). "
+                f"Credentials recorded in Administrative Vault (Temporary Password: {temp_password}) and emailed to {target_user.email}."
             )
         else:
             messages.warning(
                 request,
-                f"Password reset, but notification email could not be delivered: {email_err}. "
-                f"Temporary Password has been safely recorded in the administrative vault."
+                f"Password reset for '{display_name}' (@{target_user.username}). "
+                f"Credentials recorded in Administrative Vault (Temporary Password: {temp_password}). Email dispatch failed: {email_err}."
             )
 
+        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER')
+        if next_url:
+            return redirect(next_url)
         return redirect('accounts:user_list')
 
 
