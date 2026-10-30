@@ -314,6 +314,9 @@ class UserToggleActiveView(View):
     The last active Owner cannot be deactivated.
     """
 
+    def get(self, request, user_id):
+        return redirect('accounts:user_list')
+
     def post(self, request, user_id):
         target_user = get_object_or_404(User, pk=user_id)
 
@@ -374,6 +377,9 @@ class UserSendSetupLinkView(View):
     Dispatches a fresh one-time set-password activation link to an existing user.
     """
 
+    def get(self, request, user_id):
+        return redirect('accounts:user_list')
+
     def post(self, request, user_id):
         target_user = get_object_or_404(User, pk=user_id)
         if not target_user.is_active:
@@ -392,10 +398,20 @@ class UserSendSetupLinkView(View):
 @method_decorator(require_recent_auth(minutes=10), name='dispatch')
 class UserResetPasswordView(View):
     """
-    Resets an active user's credentials with an auto-generated 12-char temporary password,
+    Resets an active user's credentials with an auto-generated or custom temporary password,
     enforces must_change_password=True, terminates all active sessions,
     and dispatches the automated onboarding credentials email.
     """
+    template_name = 'accounts/user_reset_password_confirm.html'
+
+    def get(self, request, user_id):
+        target_user = get_object_or_404(User, pk=user_id)
+        role_name = get_user_role(target_user)
+        return render(request, self.template_name, {
+            'target_user': target_user,
+            'role_name': role_name,
+        })
+
     def post(self, request, user_id):
         target_user = get_object_or_404(User, pk=user_id)
         if not target_user.is_active:

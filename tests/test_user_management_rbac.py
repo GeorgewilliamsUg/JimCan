@@ -400,3 +400,14 @@ class AdminTeamManagementViewTests(TestCase):
         self.assertEqual(len(onboarding_emails), 1)
         self.assertEqual(onboarding_emails[0].to, [self.site_user.email])
         self.assertEqual(onboarding_emails[0].subject, "Your Jimcan Operations Account Credentials")
+
+    def test_admin_reset_password_get_renders_page(self):
+        """Admin navigating to reset password via GET renders confirmation page without 405 error."""
+        admin_client = self._client_with_reauth(self.admin_user)
+        resp = admin_client.get(
+            reverse('accounts:user_reset_password', kwargs={'user_id': self.site_user.pk})
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Reset User Password', resp.content.decode('utf-8'))
+        self.assertIn(self.site_user.username, resp.content.decode('utf-8'))
+
